@@ -131,5 +131,21 @@ create policy "agents_select"          on agents          for select using (is_a
 create policy "building_agents_select" on building_agents for select using (true);
 create policy "map_layers_select"      on map_layers      for select using (is_active = true);
 
--- 쓰기는 관리자만 가능 (추후 users 테이블 추가 시 admin role 체크로 교체)
--- 현재는 service_role key 사용하는 서버 클라이언트로만 쓰기 허용
+-- ※ INSERT / UPDATE / DELETE 정책 없음 — 의도된 설계
+--
+-- 현재 쓰기(INSERT/UPDATE/DELETE)는 RLS 정책 없이 service_role key를 가진
+-- 서버 클라이언트(createServiceClient)에서만 수행합니다.
+-- service_role key는 RLS를 우회하므로 별도 정책 없이도 관리자 패널에서 정상 동작합니다.
+--
+-- 추후 users 테이블 추가 시 아래 정책들을 이 파일 또는 별도 마이그레이션에 추가하세요:
+--
+--   create policy "buildings_insert_admin" on buildings for insert
+--     with check (exists (select 1 from users where id = auth.uid() and role = 'admin'));
+--
+--   create policy "buildings_update_admin" on buildings for update
+--     using (exists (select 1 from users where id = auth.uid() and role = 'admin'));
+--
+--   create policy "buildings_delete_admin" on buildings for delete
+--     using (exists (select 1 from users where id = auth.uid() and role = 'admin'));
+--
+-- rooms / agents / building_agents 도 동일한 패턴으로 추가하면 됩니다.
