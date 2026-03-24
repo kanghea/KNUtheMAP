@@ -30,7 +30,7 @@
 
 | 구분 | 기술 | 선택 이유 |
 |---|---|---|
-| Frontend | **Next.js 14** (App Router) | SSR·ISR로 지도 초기 로딩 성능 확보 |
+| Frontend | **Next.js 16** (App Router) | SSR·ISR로 지도 초기 로딩 성능 확보 |
 | 지도 렌더링 | **Mapbox GL JS** | 3D 빌딩·커스텀 레이어·클러스터링 지원 |
 | 스타일링 | **Tailwind CSS** | 빠른 UI 반복 개발 |
 | Backend | **Next.js API Routes** | 풀스택 단일 레포 구성 |
@@ -45,12 +45,14 @@
 ## 주요 기능
 
 ### ✅ Phase 1 — MVP (2주 이내)
-- [ ] **3D 자취방 지도** — Mapbox 위에 방 정보 마커 클러스터링
-- [ ] **방 정보 카드** — 월세·보증금·평수·사진·거리 표시
+- [ ] **3D 자취방 지도** — Mapbox 위에 건물 단위 마커 클러스터링
+- [ ] **건물 정보 카드** — 건물명·최저 월세·공실 수·사진·거리 표시
+- [ ] **호실 상세** — 마커 클릭 → 해당 건물의 호실 목록 팝업
 - [ ] **필터** — 월세 범위, 방 종류, 교문까지 거리
 - [ ] **경북대 실생활 레이어** — 동문·북문·쪽문·사잇길·가로등 오버레이
+- [ ] **관리자 패널** — 건물·호실·공인중개사 데이터 입력/수정
 - [ ] **Google 로그인** — 옵저버(열람) / 인증 회원(작성) 권한 분리
-- [ ] **리뷰 시스템** / **멘토링 시스템** — 인증 회원만 작성, 누구나 열람 
+- [ ] **리뷰 시스템** — 인증 회원만 작성, 누구나 열람 (Phase 1 후반)
 
 ### 🔜 Phase 2 — 확장
 - [ ] 선배 멘토 커뮤니티 (학과별 자취 꿀팁)
@@ -63,63 +65,35 @@
 
 ## 데이터베이스 스키마
 
-```sql
--- 자취방
-create table rooms (
-  id          uuid primary key default gen_random_uuid(),
-  title       text not null,
-  lat         float8 not null,
-  lng         float8 not null,
-  rent        int not null,         -- 월세 (만원)
-  deposit     int not null,         -- 보증금 (만원)
-  size_m2     float4,               -- 평수
-  room_type   text,                 -- 원룸 / 투룸 / 오피스텔
-  images      text[],               -- Supabase Storage 경로 배열
-  description text,
-  created_at  timestamptz default now()
-);
+> 상세 스키마는 `supabase/migrations/001_initial_schema.sql` 참고
 
--- 사용자
-create table users (
-  id          uuid primary key references auth.users,
-  role        text default 'observer',   -- observer / verified
-  department  text,                       -- 학과
-  grade       int,                        -- 학번
-  created_at  timestamptz default now()
-);
+### 테이블 구조
 
--- 리뷰
-create table reviews (
-  id          uuid primary key default gen_random_uuid(),
-  room_id     uuid references rooms(id) on delete cascade,
-  user_id     uuid references users(id) on delete cascade,
-  rating      int check (rating between 1 and 5),
-  content     text not null,
-  lived_from  date,
-  lived_to    date,
-  created_at  timestamptz default now()
-);
+**buildings (건물)** — 지도 마커 단위
+- 건물명, 주소, 좌표(Geocoding API 자동 입력), 총 층수, 층별 호실 구조(JSONB)
+- 엘리베이터·주차 여부, 건물주 직접 연락처, 지도 노출 여부
 
--- 경북대 교문·레이어 포인트
-create table map_layers (
-  id          uuid primary key default gen_random_uuid(),
-  name        text not null,         -- 동문 / 북문 / 짬냥이 출몰지 등
-  layer_type  text not null,         -- gate / alley / streetlight / mascot
-  lat         float8 not null,
-  lng         float8 not null,
-  description text,
-  is_active   boolean default true
-);
+**rooms (호실)** — buildings 하위, 좌표 없음
+- 호수, 층, 방 종류(원룸/투룸/오피스텔/고시원), 월세·보증금·관리비
+- 옵션(JSONB), 공실 여부
 
--- 멘토 게시글 (Phase 2)
-create table mentor_posts (
-  id          uuid primary key default gen_random_uuid(),
-  user_id     uuid references users(id) on delete cascade,
-  department  text,
-  title       text not null,
-  content     text not null,
-  created_at  timestamptz default now()
-);
+**agents (공인중개사)**
+- 업체명, 담당자, 연락처
+
+**building_agents (건물-공인중개사 N:N 연결)**
+- 건물 하나를 여러 공인중개사가 담당 가능, 건물주 직접과 병존 가능
+
+**map_layers (경북대 실생활 레이어)**
+- 동문·북문·쪽문·사잇길·가로등·짬냥이 출몰지 등
+
+> users / reviews / mentor_posts — 추후 추가 예정
+
+### 테이블 관계
+
+```
+buildings ──< rooms          (1:N)
+buildings >──< agents        (N:N, building_agents 중간 테이블)
+map_layers                   (독립)
 ```
 
 <br />
@@ -132,30 +106,29 @@ KNUtheMAP/
 │   ├── (auth)/
 │   │   └── login/                # Google OAuth 로그인 페이지
 │   ├── api/
-│   │   ├── rooms/                # 자취방 CRUD API
-│   │   ├── reviews/              # 리뷰 API
+│   │   ├── buildings/            # 건물 CRUD API
+│   │   ├── rooms/                # 호실 CRUD API
+│   │   ├── agents/               # 공인중개사 API
 │   │   └── layers/               # 지도 레이어 API
 │   ├── map/                      # 메인 지도 페이지
 │   └── admin/                    # 관리자 데이터 입력 패널
 ├── components/
 │   ├── map/
 │   │   ├── MapView.tsx           # Mapbox 메인 컴포넌트
-│   │   ├── RoomMarker.tsx        # 자취방 마커
-│   │   ├── RoomCard.tsx          # 방 정보 팝업 카드
+│   │   ├── BuildingMarker.tsx    # 건물 마커 (클러스터링)
+│   │   ├── BuildingCard.tsx      # 건물 팝업 카드
+│   │   ├── RoomList.tsx          # 호실 목록 (건물 클릭 시)
 │   │   ├── FilterPanel.tsx       # 필터 UI
 │   │   └── LayerToggle.tsx       # 레이어 on/off 토글
-│   ├── review/
-│   │   ├── ReviewList.tsx
-│   │   └── ReviewForm.tsx
 │   └── ui/                       # 공통 UI 컴포넌트
 ├── lib/
 │   ├── supabase.ts               # Supabase 클라이언트
-│   ├── mapbox.ts                 # Mapbox 설정
+│   ├── mapbox.ts                 # Mapbox 설정 및 Geocoding
 │   └── auth.ts                   # NextAuth 설정
 ├── types/
 │   └── index.ts                  # 전역 타입 정의
-└── scripts/
-    └── seed.py                   # 초기 데이터 시딩 스크립트 (Python)
+└── supabase/
+    └── migrations/               # DB 마이그레이션 SQL
 ```
 
 <br />
@@ -164,9 +137,8 @@ KNUtheMAP/
 
 ### 필요 환경
 - Node.js 18+
-- Python 3.10+ (시딩 스크립트용)
 - Supabase 계정
-- Mapbox 계정
+- Mapbox 계정 (Geocoding API 포함)
 - Google Cloud Console (OAuth)
 
 ### 설치
@@ -209,15 +181,7 @@ npm run dev
 
 ### DB 마이그레이션
 
-Supabase 대시보드 SQL Editor에서 `/supabase/migrations/` 내 SQL 파일을 순서대로 실행
-
-### 초기 데이터 시딩
-
-```bash
-cd scripts
-pip install -r requirements.txt
-python seed.py
-```
+Supabase 대시보드 SQL Editor에서 `supabase/migrations/` 내 SQL 파일을 순서대로 실행
 
 <br />
 
