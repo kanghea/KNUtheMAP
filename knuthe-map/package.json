@@ -6,7 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed": "npx tsx scripts/seed-full-data.ts",
+    "backfill:addresses": "npx tsx scripts/backfill-addresses.ts",
+    "backfill:names": "npx tsx scripts/backfill-names.ts",
+    "backfill:vworld": "npx tsx scripts/backfill-vworld.ts",
+    "backfill:bldrgst": "npx tsx scripts/backfill-bldrgst.ts",
+    "collect:area": "npx tsx scripts/collect-area.ts",
+    "diff:area": "npx tsx scripts/diff-area.ts",
+    "import:area": "npx tsx scripts/import-area.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.100.0",
@@ -24,9 +32,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^16.6.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
