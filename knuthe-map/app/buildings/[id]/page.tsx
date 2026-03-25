@@ -6,6 +6,7 @@ import TransactionTabs from './_components/TransactionTabs'
 import InfoExpand from './_components/InfoExpand'
 import NaverRoadView from './_components/NaverRoadView'
 import AgeDistribution from './_components/AgeDistribution'
+import ReviewSection from '@/components/review/ReviewSection'
 
 // ── 유틸 ──────────────────────────────────────────────────────
 
@@ -81,8 +82,6 @@ const HouseIcon = () => (
   </svg>
 )
 
-const RATING_CATS = ['건물/단지', '집 내부', '주변환경', '교통편의']
-
 // ── 페이지 ────────────────────────────────────────────────────
 
 export default async function BuildingPage({
@@ -115,6 +114,50 @@ export default async function BuildingPage({
     .map((n) => ({ ...n, distM: haversineM(b.lat, b.lng, n.lat, n.lng) }))
     .sort((a, z) => a.distM - z.distM)
     .slice(0, 6)
+
+  // ── 리뷰 & 거래 데이터
+  const [{ data: reviewsData }, { data: txData }] = await Promise.all([
+    supabase
+      .from('reviews')
+      .select(`
+        id, rating_overall, rating_clean, rating_noise,
+        rating_security, rating_transport, rating_cost,
+        content, pros, cons, floor, room_type,
+        lived_from, lived_to, is_anonymous, created_at,
+        user:users(nickname, avatar_url)
+      `)
+      .eq('building_id', id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('transactions')
+      .select('contract_type, rent, deposit, maintenance, area_m2, floor, room_type, contract_date, source')
+      .eq('building_id', id)
+      .eq('is_active', true)
+      .order('contract_date', { ascending: false }),
+  ])
+
+  // Supabase returns user as array from join; normalize to object
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const reviews = (reviewsData ?? []).map((r: any) => ({
+    ...r,
+    user: Array.isArray(r.user) ? (r.user[0] ?? null) : r.user,
+  })) as Parameters<typeof ReviewSection>[0]['initialReviews']
+  const transactions = txData ?? []
+
+  const avgRating = reviews.length
+    ? Math.round((reviews.reduce((s, r) => s + r.rating_overall, 0) / reviews.length) * 10) / 10
+    : null
+
+  const monthlyTx = transactions.filter((t) => t.contract_type === '월세' && t.rent)
+  const txSummary = monthlyTx.length
+    ? {
+        avg_rent: Math.round(monthlyTx.reduce((s, t) => s + (t.rent ?? 0), 0) / monthlyTx.length),
+        min_rent: Math.min(...monthlyTx.map((t) => t.rent ?? 0)),
+        max_rent: Math.max(...monthlyTx.map((t) => t.rent ?? 0)),
+        count: monthlyTx.length,
+      }
+    : null
 
   // ── 같은 구역 건물 연식 (정규분포용)
   const currentAge = buildingAge(b.use_apr_day)
@@ -206,8 +249,10 @@ export default async function BuildingPage({
             <h1 className="text-[1.3rem] font-bold text-gray-900 leading-tight">{title}</h1>
             <div className="flex items-center gap-1 shrink-0 mt-0.5">
               <StarIcon fill="#f59e0b" size={16} />
-              <span className="text-base font-bold text-gray-800">–</span>
-              <span className="text-sm text-gray-400 underline cursor-pointer">(0개)</span>
+              <span className="text-base font-bold text-gray-800">
+                {avgRating !== null ? avgRating.toFixed(1) : '–'}
+              </span>
+              <span className="text-sm text-gray-400">({reviews.length}개)</span>
             </div>
           </div>
 
@@ -233,7 +278,7 @@ export default async function BuildingPage({
         </div>
 
         {/* ── 월세 실거래가 ────────────────────────────────────── */}
-        <TransactionTabs />
+        <TransactionTabs transactions={transactions} summary={txSummary} />
 
         {/* ── 건물 소개 ─────────────────────────────────────────── */}
         <section className="px-5 pt-7 pb-6 border-b border-gray-100">
@@ -275,36 +320,8 @@ export default async function BuildingPage({
             살아본 사람들의 이야기 👋
           </h2>
 
-          {/* 종합 평점 카드 */}
-          <div className="border border-gray-200 rounded-xl overflow-hidden mb-3">
-            <div className="grid grid-cols-2 divide-x divide-gray-200">
-              <div className="px-5 py-5 flex flex-col items-center justify-center gap-1.5">
-                <span className="text-xs text-gray-400 flex items-center gap-1">
-                  집 종합평점
-                  <span className="w-3.5 h-3.5 rounded-full border border-gray-300 text-gray-400 flex items-center justify-center text-[9px] font-bold leading-none">i</span>
-                </span>
-                <div className="flex items-baseline gap-1 mt-0.5">
-                  <span className="text-[1.75rem] font-bold text-gray-300 leading-none">–</span>
-                  <span className="text-sm text-gray-300">/ 5</span>
-                </div>
-                <div className="flex gap-0.5 mt-1">
-                  {[1, 2, 3, 4, 5].map((i) => <StarIcon key={i} fill="#e5e7eb" size={15} />)}
-                </div>
-              </div>
-              <div className="px-5 py-5 flex flex-col justify-center gap-3">
-                {RATING_CATS.map((cat) => (
-                  <div key={cat} className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500 w-[4.5rem] shrink-0">{cat}</span>
-                    <div className="flex-1 h-1.5 bg-gray-100 rounded-full" />
-                    <span className="text-xs text-gray-300 w-4 text-right shrink-0">–</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
           {/* 관심등록 카드 */}
-          <div className="border border-gray-200 rounded-xl px-5 py-4 flex items-center justify-between mb-7">
+          <div className="border border-gray-200 rounded-xl px-5 py-4 flex items-center justify-between mb-6">
             <div>
               <p className="text-sm font-semibold text-gray-800">이 건물에 관심 있으신가요?</p>
               <p className="text-xs text-gray-400 mt-0.5">관심등록 하면 새로운 리뷰를 알려드려요!</p>
@@ -314,27 +331,12 @@ export default async function BuildingPage({
             </button>
           </div>
 
-          {/* 리뷰 헤더 */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-white bg-emerald-500 rounded-md px-2 py-0.5">건물 리뷰</span>
-              <span className="text-sm font-semibold text-gray-800">{title}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <StarIcon size={13} fill="#f59e0b" />
-              <span className="text-sm text-gray-400">리뷰 없음</span>
-            </div>
-          </div>
-
-          <p className="text-sm text-gray-400 text-center py-8">아직 등록된 리뷰가 없습니다.</p>
-
-          <button
-            disabled
-            className="w-full bg-blue-600 text-white font-semibold py-3.5 rounded-xl text-sm
-              hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            건물 리뷰 작성하고 모든 리뷰 보기
-          </button>
+          <ReviewSection
+            buildingId={id}
+            buildingName={title}
+            initialReviews={reviews}
+            initialAvg={avgRating}
+          />
         </section>
 
         {/* ── 주변 건물 ─────────────────────────────────────────── */}
