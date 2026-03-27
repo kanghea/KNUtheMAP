@@ -29,7 +29,7 @@ export default async function OwnerContractsPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const building = ownerBuilding.buildings as any
 
-  const [{ data: contracts }, { data: unitOptions }] = await Promise.all([
+  const [{ data: rawContracts }, { data: unitOptions }] = await Promise.all([
     supabase
       .from('owner_contracts')
       .select(`
@@ -81,7 +81,12 @@ export default async function OwnerContractsPage() {
       <div style={{ maxWidth: 520, margin: '0 auto', padding: '20px 16px' }}>
         <ContractsClient
           buildingId={building.id}
-          initialContracts={contracts ?? []}
+          initialContracts={(rawContracts ?? []).map((c) => ({
+            ...c,
+            building_units: Array.isArray(c.building_units)
+              ? c.building_units[0] ?? null
+              : c.building_units,
+          })) as import('./_components/ContractsClient').Contract[]}
           units={unitOptions ?? []}
         />
       </div>
