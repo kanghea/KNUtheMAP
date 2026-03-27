@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { createSupabaseServer } from '@/lib/supabase-server'
 import ProfileEditor from './_components/ProfileEditor'
 import LogoutButton from './_components/LogoutButton'
-import MyContractsCard from '@/components/contracts/MyContractsCard'
+import MyContractsManager from './_components/MyContractsManager'
 
 export default async function MePage() {
   const supabase = await createSupabaseServer()
@@ -15,20 +15,6 @@ export default async function MePage() {
     .select('id, email, nickname, avatar_url, grade, dept')
     .eq('id', user.id)
     .single()
-
-  // 계약 서버사이드 fetch
-  const { data: contractsRaw } = await supabase
-    .from('transactions')
-    .select('id, contract_type, rent, deposit, area_m2, floor, room_type, contract_date, source, buildings(name, address)')
-    .eq('reported_by', user.id)
-    .eq('is_active', true)
-    .order('created_at', { ascending: false })
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const contracts = (contractsRaw ?? []).map((c: any) => ({
-    ...c,
-    buildings: Array.isArray(c.buildings) ? (c.buildings[0] ?? null) : c.buildings,
-  }))
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc', paddingBottom: 100 }}>
@@ -71,15 +57,12 @@ export default async function MePage() {
         </div>
 
         {/* ── 계약 관리 ─────────────────────────────────────────── */}
-        <div style={{ marginBottom: 4 }}>
-          <h2 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: '0 0 12px 4px' }}>
-            내 거래 제보
-          </h2>
+        <div style={{
+          background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '20px', marginBottom: 16,
+        }}>
+          <MyContractsManager />
         </div>
-        <MyContractsCard
-          initialContracts={contracts}
-          hideHeader
-        />
 
         {/* ── 로그아웃 ──────────────────────────────────────────── */}
         <LogoutButton />

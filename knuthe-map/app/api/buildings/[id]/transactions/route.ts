@@ -10,7 +10,7 @@ export async function GET(
 
   const { data, error } = await service
     .from('transactions')
-    .select('contract_type, rent, deposit, maintenance, area_m2, floor, room_type, contract_date, source')
+    .select('contract_type, rent, deposit, maintenance, area_m2, floor, room_type, unit_number, contract_date, contract_start, contract_end, source')
     .eq('building_id', id)
     .eq('is_active', true)
     .order('contract_date', { ascending: false })
