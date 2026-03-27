@@ -180,7 +180,8 @@ export default function RoomsMapView({ filters, onClusterClick }: Props) {
         const src = map.getSource('rooms') as mapboxgl.GeoJSONSource
 
         try {
-          const leaves = await src.getClusterLeaves(clusterId, 500, 0)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const leaves = await (src as any).getClusterLeaves(clusterId, 500, 0) as GeoJSON.Feature[]
           const ids = leaves
             .map((f) => f.properties?.id as string)
             .filter(Boolean)

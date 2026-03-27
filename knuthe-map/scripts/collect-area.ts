@@ -87,7 +87,7 @@ interface VworldResponse {
   }
 }
 
-async function fetchPage(page: number): Promise<{ features: VworldFeature[]; total: number }> {
+async function fetchPage(page: number): Promise<{ features: VworldFeature[]; total: number; totalPages: number }> {
   const params = new URLSearchParams({
     service:    'data',
     request:    'GetFeature',
@@ -107,7 +107,7 @@ async function fetchPage(page: number): Promise<{ features: VworldFeature[]; tot
   if (!res.ok) throw new Error(`V-world HTTP ${res.status}`)
 
   const data: VworldResponse = await res.json()
-  if (data.response.status === 'NOT_FOUND') return { features: [], total: 0 }
+  if (data.response.status === 'NOT_FOUND') return { features: [], total: 0, totalPages: 0 }
   if (data.response.status !== 'OK') {
     throw new Error(`V-world 오류: ${data.response.error?.text ?? data.response.status}`)
   }
@@ -115,7 +115,7 @@ async function fetchPage(page: number): Promise<{ features: VworldFeature[]; tot
   const features   = data.response.result?.featureCollection?.features ?? []
   // V-world page.total = 전체 페이지 수 (features 수가 아님)
   const totalPages = parseInt(data.response.page?.total ?? '1', 10)
-  return { features, totalPages }
+  return { features, total: features.length, totalPages }
 }
 
 function sleep(ms: number) { return new Promise<void>((r) => setTimeout(r, ms)) }

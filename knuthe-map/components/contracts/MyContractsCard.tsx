@@ -80,7 +80,7 @@ export default function MyContractsCard({ initialContracts, hideHeader }: Props)
         .order('created_at', { ascending: false })
         .limit(20)
 
-      setContracts((data as Contract[]) ?? [])
+      setContracts((data as unknown as Contract[]) ?? [])
       setLoading(false)
     }
 

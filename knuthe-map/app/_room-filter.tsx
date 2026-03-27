@@ -69,7 +69,6 @@ function DualRange({
 }) {
   const pct = (v: number) => ((v - min) / (max - min)) * 100
   const thumbStyle: React.CSSProperties = {
-    // @ts-expect-error vendor
     WebkitAppearance: 'none',
     appearance: 'none',
     position: 'absolute', inset: 0, width: '100%',
