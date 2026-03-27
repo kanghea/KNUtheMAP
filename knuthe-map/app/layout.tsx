@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Suspense } from "react";
 import "./globals.css";
@@ -16,6 +16,13 @@ const geistMono = localFont({
   src: "./fonts/geist-mono-latin.woff2",
   variable: "--font-geist-mono",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 export const metadata: Metadata = {
   title: "KNUtheMAP",

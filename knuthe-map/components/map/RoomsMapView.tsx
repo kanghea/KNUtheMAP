@@ -212,7 +212,7 @@ export default function RoomsMapView({ filters, onClusterClick }: Props) {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+      <div ref={containerRef} style={{ width: '100%', height: '100%', touchAction: 'none' }} />
 
       {/* 범례 */}
       <div style={{

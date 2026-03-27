@@ -279,7 +279,7 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
             placeholder="주소나 건물명으로 검색"
             style={{
               flex: 1, background: 'none', border: 'none', outline: 'none',
-              color: '#fff', fontSize: 14, fontWeight: 500,
+              color: '#fff', fontSize: 16, fontWeight: 500,
             }}
           />
 

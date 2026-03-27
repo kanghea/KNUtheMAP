@@ -23,6 +23,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  touch-action: manipulation;
 }
 
 /* Mapbox 팝업 커스텀 스타일 */

@@ -329,5 +329,5 @@ export default function MapView({ filters, initialZone, flyTo }: MapViewProps) {
     }
   }, [])
 
-  return <div ref={containerRef} className="w-full h-full" />
+  return <div ref={containerRef} className="w-full h-full" style={{ touchAction: 'none' }} />
 }
