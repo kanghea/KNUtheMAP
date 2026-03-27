@@ -334,6 +334,9 @@ export default function DynamicFilter({ filters, onChange }: Props) {
             padding: '16px 18px 14px',
             boxShadow: '0 8px 40px rgba(0,0,0,.6)',
             color: '#fff',
+            maxHeight: 'calc(100dvh - 120px)',
+            overflowY: 'auto',
+            WebkitOverflowScrolling: 'touch',
           }}
         >
           {/* 헤더 */}
