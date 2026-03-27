@@ -14,10 +14,31 @@ export default async function AdminPage() {
 
   const service = createServiceClient()
 
-  const [{ count: pendingCount }, { count: userCount }] = await Promise.all([
+  const [
+    { count: pendingCount },
+    { count: userCount },
+    { count: buildingCount },
+    { count: roomCount },
+  ] = await Promise.all([
     service.from('role_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
     service.from('users').select('*', { count: 'exact', head: true }),
+    service.from('buildings').select('*', { count: 'exact', head: true }).eq('is_active', true),
+    service.from('rooms').select('*', { count: 'exact', head: true }).eq('is_active', true),
   ])
+
+  const stats = [
+    { label: '승인 대기',   value: pendingCount  ?? 0, icon: '⏳', color: '#d97706', bg: '#fffbeb', href: '/admin/approvals' },
+    { label: '전체 사용자', value: userCount      ?? 0, icon: '👥', color: '#2563eb', bg: '#eff6ff', href: '/admin/users' },
+    { label: '활성 건물',   value: buildingCount  ?? 0, icon: '🏢', color: '#0891b2', bg: '#ecfeff', href: '/admin/buildings' },
+    { label: '활성 방',     value: roomCount      ?? 0, icon: '🚪', color: '#7c3aed', bg: '#f5f3ff', href: '/admin/rooms' },
+  ]
+
+  const menus = [
+    { href: '/admin/approvals', icon: '✅', label: '권한 신청 관리', desc: '건물주·중개사 승인/거절' },
+    { href: '/admin/users',     icon: '👥', label: '사용자 관리',    desc: '전체 사용자 조회·역할 변경' },
+    { href: '/admin/buildings', icon: '🏢', label: '건물 관리',      desc: '건물 정보 수정·노출 설정' },
+    { href: '/admin/rooms',     icon: '🚪', label: '방(매물) 관리',  desc: '매물 활성화·삭제' },
+  ]
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc', paddingBottom: 100 }}>
@@ -32,10 +53,7 @@ export default async function AdminPage() {
       <div style={{ maxWidth: 520, margin: '0 auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          {[
-            { label: '승인 대기', value: pendingCount ?? 0, icon: '⏳', color: '#d97706', bg: '#fffbeb', href: '/admin/approvals' },
-            { label: '전체 사용자', value: userCount ?? 0,   icon: '👥', color: '#2563eb', bg: '#eff6ff', href: '/admin/users' },
-          ].map((s) => (
+          {stats.map((s) => (
             <Link key={s.href} href={s.href} style={{
               background: s.bg, borderRadius: 16, padding: '18px 16px',
               border: `1px solid ${s.color}20`, textDecoration: 'none',
@@ -52,13 +70,10 @@ export default async function AdminPage() {
           background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
           boxShadow: '0 2px 12px rgba(0,0,0,0.04)', overflow: 'hidden',
         }}>
-          {[
-            { href: '/admin/approvals', icon: '✅', label: '권한 신청 관리', desc: '건물주·중개사 승인/거절' },
-            { href: '/admin/users',     icon: '👥', label: '사용자 관리',    desc: '전체 사용자 조회·역할 변경' },
-          ].map((item, i) => (
+          {menus.map((item, i) => (
             <Link key={item.href} href={item.href} style={{
               display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px',
-              textDecoration: 'none', borderBottom: i < 1 ? '1px solid #f8fafc' : 'none',
+              textDecoration: 'none', borderBottom: i < menus.length - 1 ? '1px solid #f8fafc' : 'none',
             }}>
               <span style={{
                 width: 40, height: 40, borderRadius: 12, background: '#f8fafc',

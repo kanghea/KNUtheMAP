@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import "./globals.css";
 import PrefsIsland from "@/components/map/PrefsIsland";
 import Providers from "./providers";
+import { createSupabaseServer } from "@/lib/supabase-server";
+import type { Role } from "@/lib/useRole";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,11 +22,22 @@ export const metadata: Metadata = {
   description: "경북대학교 주변 건물 정보 지도",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  let role: Role = 'tenant'
+  try {
+    const supabase = await createSupabaseServer()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data } = await supabase
+        .from('users').select('role').eq('id', user.id).single()
+      if (data?.role) role = data.role as Role
+    }
+  } catch {}
+
   return (
     <html
       lang="ko"
@@ -33,7 +46,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <Providers>
           {children}
-          <Suspense><PrefsIsland /></Suspense>
+          <Suspense><PrefsIsland initialRole={role} /></Suspense>
         </Providers>
       </body>
     </html>

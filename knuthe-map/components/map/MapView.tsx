@@ -216,7 +216,7 @@ export default function MapView({ filters, initialZone, flyTo }: MapViewProps) {
       for (const [osm_id, zone] of zonesMapRef.current) {
         if (!zone.lat || !zone.lng) continue
 
-        const displayName = zone.name.replace('구역', '')
+        const displayName = zone.name
         const count = zoneCounts.get(osm_id) ?? 0
 
         const el = document.createElement('div')

@@ -165,9 +165,9 @@ export default async function RoomDetailPage({
 
         <Divider />
 
-        {/* ── 세입자 체크리스트 ─────────────────────────────────── */}
+        {/* ── 입주자 체크리스트 ─────────────────────────────────── */}
         <div style={{ padding: '16px 0' }}>
-          <SectionTitle>세입자 체크리스트</SectionTitle>
+          <SectionTitle>입주자 체크리스트</SectionTitle>
           <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 12px' }}>
             관리자가 매물 등록 시 직접 확인한 항목입니다.
           </p>

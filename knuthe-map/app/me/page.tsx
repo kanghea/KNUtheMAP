@@ -1,9 +1,20 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createSupabaseServer } from '@/lib/supabase-server'
-import ProfileEditor from './_components/ProfileEditor'
-import LogoutButton from './_components/LogoutButton'
+import { createServiceClient } from '@/lib/supabase'
+import ProfileEditor      from './_components/ProfileEditor'
+import LogoutButton       from './_components/LogoutButton'
 import MyContractsManager from './_components/MyContractsManager'
+import OwnerSection       from './_components/OwnerSection'
+import AgentSection       from './_components/AgentSection'
+import AdminSection       from './_components/AdminSection'
+
+const ROLE_LABELS: Record<string, string> = {
+  tenant: '학생',
+  owner:  '건물주',
+  agent:  '공인중개사',
+  admin:  '관리자',
+}
 
 export default async function MePage() {
   const supabase = await createSupabaseServer()
@@ -12,9 +23,39 @@ export default async function MePage() {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('id, email, nickname, avatar_url, grade, dept')
+    .select('id, email, nickname, avatar_url, grade, dept, role')
     .eq('id', user.id)
     .single()
+
+  const role = profile?.role ?? 'tenant'
+  const service = createServiceClient()
+
+  // role별 추가 데이터
+  let myRoomsCount   = 0
+  let buildingsCount = 0
+  let roomsCount     = 0
+  let usersCount     = 0
+
+  if (role === 'owner' || role === 'agent') {
+    const { count } = await service
+      .from('rooms')
+      .select('id', { count: 'exact', head: true })
+      .eq('listed_by', user.id)
+    myRoomsCount = count ?? 0
+  }
+
+  if (role === 'admin') {
+    const [b, r, u] = await Promise.all([
+      service.from('buildings').select('id', { count: 'exact', head: true }).eq('is_active', true),
+      service.from('rooms').select('id', { count: 'exact', head: true }).eq('is_active', true),
+      service.from('users').select('id', { count: 'exact', head: true }),
+    ])
+    buildingsCount = b.count ?? 0
+    roomsCount     = r.count ?? 0
+    usersCount     = u.count ?? 0
+  }
+
+  const roleLabel = ROLE_LABELS[role] ?? role
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc', paddingBottom: 100 }}>
@@ -32,16 +73,20 @@ export default async function MePage() {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           textDecoration: 'none',
         }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6"/>
           </svg>
         </Link>
-        <h1 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>마이페이지</h1>
+        <div>
+          <h1 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>마이페이지</h1>
+          <p style={{ fontSize: 11, color: '#94a3b8', margin: '1px 0 0' }}>{roleLabel}</p>
+        </div>
       </header>
 
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '20px 16px' }}>
 
-        {/* ── 프로필 편집 카드 ──────────────────────────────────── */}
+        {/* ── 프로필 카드 ────────────────────────────────────────── */}
         <div style={{
           background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
           boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '20px', marginBottom: 16,
@@ -50,19 +95,64 @@ export default async function MePage() {
             내 정보
           </h2>
           {profile ? (
-            <ProfileEditor profile={profile} />
+            <ProfileEditor
+              profile={profile}
+              showStudentFields={role === 'tenant'}
+            />
           ) : (
             <p style={{ fontSize: 13, color: '#94a3b8' }}>프로필 정보를 불러올 수 없어요.</p>
           )}
         </div>
 
-        {/* ── 계약 관리 ─────────────────────────────────────────── */}
-        <div style={{
-          background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '20px', marginBottom: 16,
-        }}>
-          <MyContractsManager />
-        </div>
+        {/* ── role별 섹션 ────────────────────────────────────────── */}
+        {role === 'tenant' && (
+          <div style={{
+            background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '20px', marginBottom: 16,
+          }}>
+            <MyContractsManager />
+          </div>
+        )}
+
+        {role === 'owner' && (
+          <div style={{
+            background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '20px', marginBottom: 16,
+          }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>
+              건물주 메뉴
+            </h2>
+            <OwnerSection myRoomsCount={myRoomsCount} />
+          </div>
+        )}
+
+        {role === 'agent' && (
+          <div style={{
+            background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '20px', marginBottom: 16,
+          }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>
+              중개사 메뉴
+            </h2>
+            <AgentSection myRoomsCount={myRoomsCount} />
+          </div>
+        )}
+
+        {role === 'admin' && (
+          <div style={{
+            background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '20px', marginBottom: 16,
+          }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>
+              관리자 메뉴
+            </h2>
+            <AdminSection
+              buildingsCount={buildingsCount}
+              roomsCount={roomsCount}
+              usersCount={usersCount}
+            />
+          </div>
+        )}
 
         {/* ── 로그아웃 ──────────────────────────────────────────── */}
         <LogoutButton />

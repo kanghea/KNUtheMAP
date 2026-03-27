@@ -11,7 +11,7 @@ const ROLES = [
   {
     key: 'tenant' as UserRole,
     emoji: '🔍',
-    title: '방 구하기',
+    title: '방 구하기 (학생)',
     desc: '경북대 주변 매물을 찾고\n건물 정보·리뷰를 확인해요',
     color: '#2563eb',
     bg: '#eff6ff',

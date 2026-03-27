@@ -58,7 +58,7 @@ function AccordionRow({
   )
 }
 
-export default function ProfileEditor({ profile }: { profile: Profile }) {
+export default function ProfileEditor({ profile, showStudentFields = true }: { profile: Profile; showStudentFields?: boolean }) {
   const [nickname,    setNickname]    = useState(profile.nickname ?? '')
   const [grade,       setGrade]       = useState(profile.grade    ?? '')
   const [dept,        setDept]        = useState(profile.dept     ?? '')
@@ -134,33 +134,36 @@ export default function ProfileEditor({ profile }: { profile: Profile }) {
         />
       </div>
 
-      {/* 학번 — 아코디언 */}
-      <AccordionRow
-        label="학번" value={grade || null}
-        open={openSection === 'grade'}
-        onToggle={() => toggle('grade')}
-      >
-        <div style={{ paddingTop: 12 }}>
-          <StepGrade
-            selected={grade || null}
-            onSelect={(v) => { setGrade(v); setOpenSection(null) }}
-          />
-        </div>
-      </AccordionRow>
+      {/* 학번·학과 — 학생 전용 */}
+      {showStudentFields && (
+        <>
+          <AccordionRow
+            label="학번" value={grade || null}
+            open={openSection === 'grade'}
+            onToggle={() => toggle('grade')}
+          >
+            <div style={{ paddingTop: 12 }}>
+              <StepGrade
+                selected={grade || null}
+                onSelect={(v) => { setGrade(v); setOpenSection(null) }}
+              />
+            </div>
+          </AccordionRow>
 
-      {/* 학과 — 아코디언 */}
-      <AccordionRow
-        label="학과" value={dept || null}
-        open={openSection === 'dept'}
-        onToggle={() => toggle('dept')}
-      >
-        <div style={{ paddingTop: 12 }}>
-          <StepDepartment
-            selected={dept || null}
-            onSelect={(v) => { setDept(v); if (v) setOpenSection(null) }}
-          />
-        </div>
-      </AccordionRow>
+          <AccordionRow
+            label="학과" value={dept || null}
+            open={openSection === 'dept'}
+            onToggle={() => toggle('dept')}
+          >
+            <div style={{ paddingTop: 12 }}>
+              <StepDepartment
+                selected={dept || null}
+                onSelect={(v) => { setDept(v); if (v) setOpenSection(null) }}
+              />
+            </div>
+          </AccordionRow>
+        </>
+      )}
 
       {error && (
         <p style={{ margin: 0, fontSize: 12, color: '#ef4444' }}>{error}</p>

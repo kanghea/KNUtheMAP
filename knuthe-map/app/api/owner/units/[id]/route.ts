@@ -29,7 +29,7 @@ export async function PATCH(
     .single()
   if (!ob) return NextResponse.json({ error: '권한 없음' }, { status: 403 })
 
-  const allowed = ['floor', 'unit_number', 'area_m2', 'room_type', 'base_deposit', 'base_rent', 'status', 'memo']
+  const allowed = ['floor', 'unit_number', 'area_m2', 'room_type', 'base_deposit', 'base_rent', 'status', 'memo', 'images', 'main_image_idx']
   const patch: Record<string, unknown> = {}
   for (const key of allowed) {
     if (key in body) patch[key] = body[key]

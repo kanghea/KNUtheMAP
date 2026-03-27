@@ -5,15 +5,16 @@
 -- ── users.role 확장 ───────────────────────────────────────────────────────────
 alter table public.users
   drop constraint if exists users_role_check;
-alter table public.users
-  add constraint users_role_check
-  check (role in ('tenant', 'owner', 'agent', 'admin'));
 
--- 기존 'observer' → 'tenant' 마이그레이션
+-- 기존 'observer' → 'tenant' 마이그레이션 (constraint 추가 전에 먼저 변환)
 update public.users set role = 'tenant' where role = 'observer';
 
 -- role 기본값 변경
 alter table public.users alter column role set default 'tenant';
+
+alter table public.users
+  add constraint users_role_check
+  check (role in ('tenant', 'owner', 'agent', 'admin'));
 
 -- grade, dept 컬럼 (007 migration에서 이미 추가됐으면 skip)
 alter table public.users
@@ -30,6 +31,7 @@ create table if not exists public.role_requests (
 
   -- 신청 정보
   business_name  text,        -- 사무소명 / 건물명
+  address        text,        -- 건물 주소 (owner) / 사무소 주소 (agent)
   license_number text,        -- 공인중개사 등록번호 (agent만)
   phone          text,
   memo           text,        -- 기타 메모

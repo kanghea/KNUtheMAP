@@ -29,14 +29,37 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(data, { status: 201 })
 }
 
-// PATCH /api/owner/buildings — 전담 중개사 변경
+// PATCH /api/owner/buildings — 전담 중개사 변경 또는 건물명 수정
 export async function PATCH(req: NextRequest) {
   const supabase = await createSupabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { dedicated_agent_id } = await req.json()
+  const body = await req.json()
 
+  // 건물명 수정
+  if ('building_name' in body) {
+    const name = (body.building_name as string)?.trim()
+    if (!name) return NextResponse.json({ error: '건물명을 입력해주세요' }, { status: 400 })
+
+    // 이 사용자가 소유한 building_id 조회
+    const { data: ob } = await supabase
+      .from('owner_buildings')
+      .select('building_id')
+      .eq('owner_id', user.id)
+      .single()
+    if (!ob) return NextResponse.json({ error: '건물 정보 없음' }, { status: 404 })
+
+    const { error } = await supabase
+      .from('buildings')
+      .update({ name })
+      .eq('id', ob.building_id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true, name })
+  }
+
+  // 전담 중개사 변경
+  const { dedicated_agent_id } = body
   const { data, error } = await supabase
     .from('owner_buildings')
     .update({ dedicated_agent_id: dedicated_agent_id ?? null })

@@ -2,7 +2,7 @@
 
 import { usePathname, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { useRole, type Role } from '@/lib/useRole'
+import { type Role } from '@/lib/useRole'
 
 // ── 아이콘 ───────────────────────────────────────────────────────────────────
 
@@ -167,10 +167,10 @@ function navItems(role: Role): NavItem[] {
 
 // ── 메인 컴포넌트 ─────────────────────────────────────────────────────────────
 
-export default function PrefsIsland() {
+export default function PrefsIsland({ initialRole = 'tenant' }: { initialRole?: Role }) {
   const pathname     = usePathname()
   const searchParams = useSearchParams()
-  const role         = useRole() ?? 'tenant'
+  const role         = initialRole
 
   // 온보딩 중에는 숨김
   const isOnboarding = pathname === '/' && searchParams.get('reset') === '1'

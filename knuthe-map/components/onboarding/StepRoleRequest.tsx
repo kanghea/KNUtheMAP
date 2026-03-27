@@ -11,6 +11,7 @@ interface Props {
 
 export default function StepRoleRequest({ role, onSubmitted, onBack }: Props) {
   const [businessName,   setBusinessName]   = useState('')
+  const [address,        setAddress]        = useState('')
   const [licenseNumber,  setLicenseNumber]  = useState('')
   const [phone,          setPhone]          = useState('')
   const [memo,           setMemo]           = useState('')
@@ -22,6 +23,10 @@ export default function StepRoleRequest({ role, onSubmitted, onBack }: Props) {
   const handleSubmit = async () => {
     if (!businessName.trim()) {
       setError(isOwner ? '건물명을 입력해주세요' : '사무소명을 입력해주세요')
+      return
+    }
+    if (!address.trim()) {
+      setError(isOwner ? '건물 주소를 입력해주세요' : '사무소 주소를 입력해주세요')
       return
     }
     if (!isOwner && !licenseNumber.trim()) {
@@ -36,6 +41,7 @@ export default function StepRoleRequest({ role, onSubmitted, onBack }: Props) {
       body: JSON.stringify({
         requested_role: role,
         business_name:  businessName.trim(),
+        address:        address.trim(),
         license_number: licenseNumber.trim() || null,
         phone:          phone.trim() || null,
         memo:           memo.trim() || null,
@@ -88,6 +94,15 @@ export default function StepRoleRequest({ role, onSubmitted, onBack }: Props) {
           placeholder={isOwner ? '예) 복현빌라' : '예) 경북부동산 중개사무소'}
           value={businessName}
           onChange={(e) => setBusinessName(e.target.value)}
+        />
+      </div>
+
+      <div>
+        {label(isOwner ? '건물 주소' : '사무소 주소', true)}
+        <input style={inputStyle}
+          placeholder="예) 대구 북구 복현로 123"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
         />
       </div>
 

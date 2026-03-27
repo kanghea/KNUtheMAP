@@ -7,6 +7,7 @@ interface Request {
   requested_role: 'owner' | 'agent'
   status: 'pending' | 'approved' | 'rejected'
   business_name: string | null
+  address: string | null
   license_number: string | null
   phone: string | null
   memo: string | null
@@ -128,6 +129,11 @@ export default function ApprovalList({ requests }: { requests: Request[] }) {
                 background: '#f8fafc', borderRadius: 10, padding: '10px 12px',
                 display: 'flex', flexDirection: 'column', gap: 4, marginBottom: req.status === 'pending' ? 12 : 0,
               }}>
+                {req.address && (
+                  <div style={{ fontSize: 12, color: '#475569' }}>
+                    <span style={{ color: '#94a3b8' }}>주소: </span>{req.address}
+                  </div>
+                )}
                 {req.license_number && (
                   <div style={{ fontSize: 12, color: '#475569' }}>
                     <span style={{ color: '#94a3b8' }}>등록번호: </span>{req.license_number}

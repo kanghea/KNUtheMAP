@@ -18,7 +18,7 @@ export default async function ApprovalsPage() {
   const { data: requests } = await service
     .from('role_requests')
     .select(`
-      id, requested_role, status, business_name, license_number, phone, memo,
+      id, requested_role, status, business_name, address, license_number, phone, memo,
       created_at, reviewed_at, reject_reason,
       users!role_requests_user_id_fkey ( id, email, nickname, role )
     `)

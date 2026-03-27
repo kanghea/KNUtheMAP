@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
   // 호실 + 활성 계약 조인
   const { data: units, error } = await supabase
     .from('building_units')
-    .select('id, floor, unit_number, area_m2, room_type, status, base_deposit, base_rent')
+    .select('id, floor, unit_number, area_m2, room_type, status, base_deposit, base_rent, images, main_image_idx')
     .eq('building_id', buildingId)
     .order('floor', { ascending: false })
     .order('unit_number')
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { building_id, floor, unit_number, area_m2, room_type, base_deposit, base_rent } = body
+  const { building_id, floor, unit_number, area_m2, room_type, base_deposit, base_rent, images, main_image_idx } = body
 
   if (!building_id || !floor || !unit_number)
     return NextResponse.json({ error: '필수 항목 누락' }, { status: 400 })
@@ -74,7 +74,9 @@ export async function POST(req: NextRequest) {
     .from('building_units')
     .insert({ building_id, floor, unit_number, area_m2: area_m2 ?? null,
               room_type: room_type ?? null, base_deposit: base_deposit ?? null,
-              base_rent: base_rent ?? null })
+              base_rent: base_rent ?? null,
+              images: images ?? [],
+              main_image_idx: main_image_idx ?? 0 })
     .select()
     .single()
 

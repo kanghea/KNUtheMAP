@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { requested_role, business_name, license_number, phone, memo } = body
+  const { requested_role, business_name, address, license_number, phone, memo } = body
 
   if (!requested_role || !['owner', 'agent'].includes(requested_role)) {
     return NextResponse.json({ error: '잘못된 역할입니다' }, { status: 400 })
@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
       user_id:        user.id,
       requested_role,
       business_name:  business_name  ?? null,
+      address:        address        ?? null,
       license_number: license_number ?? null,
       phone:          phone          ?? null,
       memo:           memo           ?? null,

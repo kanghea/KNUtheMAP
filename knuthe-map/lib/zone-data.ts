@@ -16,8 +16,8 @@ export type ZoneData = {
 }
 
 export const ZONE_DATA: Record<string, ZoneData> = {
-  '북문구역': {
-    name: '북문구역',
+  '북문': {
+    name: '북문',
     shortName: '북문',
     area: '산격동',
     description: '경북대 북문 인근 산격동 일대. 대학생 상권이 가장 발달한 구역으로 편의시설과 대중교통이 풍부하고 학교까지 도보 5분 이내로 접근 가능하다.',
@@ -41,8 +41,8 @@ export const ZONE_DATA: Record<string, ZoneData> = {
     nearbyFacilities: ['홈플러스', '칠성시장', 'CGV 칠성점', '버스·지하철 정류장'],
     imageColor: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
   },
-  '텍문구역': {
-    name: '텍문구역',
+  '텍문': {
+    name: '텍문',
     shortName: '텍문',
     area: '침산동',
     description: '공과대학·IT대학에 가장 가까운 구역. 조용하고 도보 통학에 최적화된 환경이며 임대료가 상대적으로 저렴하다.',
@@ -64,8 +64,8 @@ export const ZONE_DATA: Record<string, ZoneData> = {
     nearbyFacilities: ['편의점', '학교 구내식당', '공과대학'],
     imageColor: 'linear-gradient(135deg, #1e3a5f 0%, #0ea5e9 100%)',
   },
-  '서문구역': {
-    name: '서문구역',
+  '서문': {
+    name: '서문',
     shortName: '서문',
     area: '대현동',
     description: '경북대 서문 방면의 조용한 주거 구역. 청년문화공간과 소규모 카페들이 생겨나고 있으며 전반적으로 한적한 편이다.',
@@ -87,8 +87,8 @@ export const ZONE_DATA: Record<string, ZoneData> = {
     nearbyFacilities: ['청년문화공간', '소규모 카페', '편의점'],
     imageColor: 'linear-gradient(135deg, #064e3b 0%, #10b981 100%)',
   },
-  '쪽문구역': {
-    name: '쪽문구역',
+  '쪽문': {
+    name: '쪽문',
     shortName: '쪽문',
     area: '대현동',
     description: '경북대 쪽문 인근 카페거리가 형성된 구역. 수의과대학 인접으로 수의대생들이 주로 거주하며 카페와 음식점이 집중되어 있다.',
@@ -109,8 +109,8 @@ export const ZONE_DATA: Record<string, ZoneData> = {
     nearbyFacilities: ['카페거리', '편의점', '수의과대학'],
     imageColor: 'linear-gradient(135deg, #78350f 0%, #f59e0b 100%)',
   },
-  '정문구역': {
-    name: '정문구역',
+  '정문': {
+    name: '정문',
     shortName: '정문',
     area: '대현동',
     description: '경북대 정문 인근 자취방 밀집 구역. 대현동 공원·벚꽃길과 가깝고 낭만적인 분위기로 인기가 높다.',
@@ -132,8 +132,8 @@ export const ZONE_DATA: Record<string, ZoneData> = {
     nearbyFacilities: ['대현동 공원', '편의점', '카페', '버스정류장'],
     imageColor: 'linear-gradient(135deg, #831843 0%, #ec4899 100%)',
   },
-  '동문구역': {
-    name: '동문구역',
+  '동문': {
+    name: '동문',
     shortName: '동문',
     area: '복현동',
     description: '경북대 동문 방면 복현동 일대. 법과대학·경상대학·사범대학과 인접하여 해당 단과대 학생들이 주로 거주한다.',
