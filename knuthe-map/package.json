@@ -14,7 +14,8 @@
     "backfill:bldrgst": "npx tsx scripts/backfill-bldrgst.ts",
     "collect:area": "npx tsx scripts/collect-area.ts",
     "diff:area": "npx tsx scripts/diff-area.ts",
-    "import:area": "npx tsx scripts/import-area.ts"
+    "import:area": "npx tsx scripts/import-area.ts",
+    "backfill:use-apr-day": "npx tsx scripts/backfill-use-apr-day.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.9.0",

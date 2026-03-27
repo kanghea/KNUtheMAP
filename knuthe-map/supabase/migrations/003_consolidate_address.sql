@@ -8,7 +8,7 @@
 -- 변경:
 --   geocoded_address 값을 address 로 통합 후 geocoded_address 컬럼 삭제
 --   address 하나로 단일화
--- ============================================================
+-- ======================일======================================
 
 -- 1. geocoded_address → address 복사 (address 가 비어있는 행만)
 update buildings

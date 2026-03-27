@@ -6,7 +6,12 @@ import TransactionTabs from './_components/TransactionTabs'
 import InfoExpand from './_components/InfoExpand'
 import NaverRoadView from './_components/NaverRoadView'
 import AgeDistribution from './_components/AgeDistribution'
+import GateDistance    from './_components/GateDistance'
 import ReviewSection from '@/components/review/ReviewSection'
+import { gateDistances, haversineM as gateHaversine, GATES } from '@/lib/gate-utils'
+import { cookies } from 'next/headers'
+import { parsePrefs } from '@/lib/prefs'
+import PersonalScore, { type FactorResult } from './_components/PersonalScore'
 
 // ── 유틸 ──────────────────────────────────────────────────────
 
@@ -159,6 +164,20 @@ export default async function BuildingPage({
       }
     : null
 
+  // ── 사용자 개인화 설정 읽기 ──────────────────────────────────
+  const jar      = await cookies()
+  const prefsRaw = jar.get('knu_prefs')?.value
+  const prefs    = prefsRaw ? parsePrefs(prefsRaw) : null
+
+  // ── 가까운 출입문 (상위 3개)
+  const nearestGates = b.lat && b.lng
+    ? gateDistances(b.lat, b.lng).slice(0, 3).map((gd) => ({
+        name:    gd.gate.name,
+        distM:   gd.distM,
+        minutes: gd.minutes,
+      }))
+    : []
+
   // ── 같은 구역 건물 연식 (정규분포용)
   const currentAge = buildingAge(b.use_apr_day)
   let zoneAges: number[] = []
@@ -174,6 +193,91 @@ export default async function BuildingPage({
     zoneAges = (zoneBuildings ?? [])
       .map((zb) => buildingAge(zb.use_apr_day))
       .filter((a): a is number => a !== null && a > 0)
+  }
+
+  // ── 내 기준 factor 점수 계산 ─────────────────────────────────
+  let personalFactors: FactorResult[] = []
+  if (prefs && prefs.priorities.length > 0 && b.lat && b.lng) {
+    const age = buildingAge(b.use_apr_day)
+
+    // 거리: 선호 문까지 하버사인
+    const gateObj = prefs.gate ? GATES.find((g) => g.name === prefs.gate) ?? null : null
+    const gateDistM = gateObj ? gateHaversine(b.lat, b.lng, gateObj.lat, gateObj.lng) : null
+    const gateMin   = gateDistM !== null ? Math.round((gateDistM * 1.3) / 70) : null
+
+    const distStars = gateDistM === null ? 3
+      : gateDistM < 100  ? 5
+      : gateDistM < 400  ? 4
+      : gateDistM < 700  ? 3
+      : gateDistM < 1000 ? 2 : 1
+
+    // 연식
+    const ageStars = age === null ? 3
+      : age < 5  ? 5
+      : age < 15 ? 4
+      : age < 25 ? 3
+      : age < 35 ? 2 : 1
+
+    // 방 크기
+    const areaPerUnit  = (b.tot_area ?? 0) > 0 && (b.hhld_cnt ?? 0) > 0
+      ? (b.tot_area as number) / (b.hhld_cnt as number) : null
+    const sizeStars = areaPerUnit === null ? 3
+      : areaPerUnit > 80 ? 5
+      : areaPerUnit > 50 ? 4
+      : areaPerUnit > 35 ? 3
+      : areaPerUnit > 20 ? 2 : 1
+
+    // 보안
+    let sec = 0
+    if (b.has_elevator)                          sec += 35
+    if ((b.ride_use_elvt_cnt ?? 0) >= 2)         sec += 15
+    if ((b.hhld_cnt ?? 0) >= 5)                  sec += 25
+    if (age !== null && age <= 10)               sec += 25
+    else if (age !== null && age <= 20)          sec += 12
+    const secStars = sec >= 70 ? 5 : sec >= 50 ? 4 : sec >= 30 ? 3 : sec >= 15 ? 2 : 1
+
+    // 주변 편의시설 (nearbyRaw 내 근린생활 수)
+    const commercialCount = (nearbyRaw ?? []).filter((n) =>
+      (n.main_purps_nm ?? '').includes('근린생활') ||
+      (n.main_purps_nm ?? '').includes('판매')
+    ).length
+    const nearbyStars = commercialCount >= 10 ? 5
+      : commercialCount >= 6  ? 4
+      : commercialCount >= 3  ? 3
+      : commercialCount >= 1  ? 2 : 1
+
+    const factorMap: Record<string, FactorResult> = {
+      dist: {
+        id:     'dist',
+        stars:  distStars,
+        detail: gateMin !== null
+          ? `${prefs.gate ?? ''}에서 도보 ${gateMin}분`
+          : '문 미설정',
+      },
+      age: {
+        id:     'age',
+        stars:  ageStars,
+        detail: age !== null ? `준공 ${age}년` : '연식 정보 없음',
+      },
+      size: {
+        id:     'size',
+        stars:  sizeStars,
+        detail: areaPerUnit !== null ? `세대당 ${Math.round(areaPerUnit)}㎡` : '면적 정보 없음',
+      },
+      security: {
+        id:     'security',
+        stars:  secStars,
+        detail: b.has_elevator ? '엘리베이터 있음' : '엘리베이터 없음',
+      },
+      nearby: {
+        id:     'nearby',
+        stars:  nearbyStars,
+        detail: `500m 내 상점 ${commercialCount}개`,
+      },
+    }
+    personalFactors = prefs.priorities
+      .map((pid) => factorMap[pid])
+      .filter(Boolean) as FactorResult[]
   }
 
   const title = b.name?.trim() || shortAddress(b.address)
@@ -303,13 +407,33 @@ export default async function BuildingPage({
           </div>
         </section>
 
+        {/* ── 내 기준 적합도 ────────────────────────────────────── */}
+        {prefs && personalFactors.length > 0 && (
+          <section className="px-5 pt-6 pb-5 border-b border-gray-100">
+            <PersonalScore
+              grade={prefs.grade}
+              dept={prefs.dept}
+              priorities={prefs.priorities}
+              factors={personalFactors}
+            />
+          </section>
+        )}
+
+        {/* ── 가까운 출입문 ─────────────────────────────────────── */}
+        {nearestGates.length > 0 && (
+          <section className="px-5 pt-6 pb-5 border-b border-gray-100">
+            <GateDistance gates={nearestGates} />
+          </section>
+        )}
+
         {/* ── 연식 정규분포 ─────────────────────────────────────── */}
-        {currentAge != null && zoneAges.length >= 5 && (
+        {currentAge != null && zoneAges.length >= 5 && b.use_apr_day && (
           <section className="px-5 pt-6 pb-5 border-b border-gray-100">
             <AgeDistribution
               ages={zoneAges}
               currentAge={currentAge}
               zone={b.zone ?? '해당 구역'}
+              builtYear={parseInt(b.use_apr_day.slice(0, 4))}
             />
           </section>
         )}

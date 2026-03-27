@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { MAJOR_GATES, haversineM, minutesToMaxDistM } from '@/lib/gate-utils'
 
 // ── 타입 ─────────────────────────────────────────────────────────
 
@@ -10,6 +11,8 @@ export interface MapFilters {
   depositRange: [number, number]   // 만원
   ageRange:     [number, number]   // 년
   options:      string[]
+  gate:         string | null      // 기준 출입문 이름
+  gateMinutes:  number | null      // 최대 도보 분
 }
 
 export const DEFAULT_FILTERS: MapFilters = {
@@ -18,6 +21,8 @@ export const DEFAULT_FILTERS: MapFilters = {
   depositRange: [0, 5000],
   ageRange:     [0, 60],
   options:      [],
+  gate:         null,
+  gateMinutes:  null,
 }
 
 // ── 건물 종류 매처 ────────────────────────────────────────────────
@@ -56,12 +61,10 @@ export function featureMatchesFilters(
       if (matcher && !matcher(p.main_purps_nm ?? '')) return false
     }
 
-    // 건물 연식
+    // 건물 연식 (연식 정보 없는 건물은 필터 활성 시 제외)
     if (!defaultAge) {
       const age = calcAge(p.use_apr_day)
-      if (age !== null) {
-        if (age < ageMin || age > ageMax) return false
-      }
+      if (age === null || age < ageMin || age > ageMax) return false
     }
 
     // 월세 / 보증금: 건물에 room 데이터 있을 때만 필터링
@@ -76,6 +79,18 @@ export function featureMatchesFilters(
     if (filters.options.length > 0 && p.options) {
       const bOpts: string[] = Array.isArray(p.options) ? p.options : []
       if (!filters.options.every((o) => bOpts.includes(o))) return false
+    }
+
+    // 출입문 도보 거리
+    if (filters.gate && filters.gateMinutes) {
+      const coords = (feature.geometry as GeoJSON.Point)?.coordinates
+      const lat = coords ? coords[1] : p.lat
+      const lng = coords ? coords[0] : p.lng
+      if (lat == null || lng == null) return false
+      const gateObj = MAJOR_GATES.find((g) => g.name === filters.gate)
+      if (!gateObj) return false
+      const maxDist = minutesToMaxDistM(filters.gateMinutes)
+      if (haversineM(lat, lng, gateObj.lat, gateObj.lng) > maxDist) return false
     }
 
     return true
@@ -147,9 +162,9 @@ function DualRange({ min, max, from, to, step = 1, onChange, fmtMin, fmtMax }: D
 // ── 섹션 행 (클릭 → 슬라이더 토글) ──────────────────────────────
 
 function RangeRow({
-  label, summary, open, onToggle, children,
+  label, summary, open, onToggle, children, maxH = 120,
 }: {
-  label: string; summary: string; open: boolean; onToggle: () => void; children: React.ReactNode
+  label: string; summary: string; open: boolean; onToggle: () => void; children: React.ReactNode; maxH?: number
 }) {
   return (
     <div>
@@ -172,7 +187,7 @@ function RangeRow({
       <div
         style={{
           overflow: 'hidden',
-          maxHeight: open ? 120 : 0,
+          maxHeight: open ? maxH : 0,
           transition: 'max-height .25s ease',
         }}
       >
@@ -222,6 +237,7 @@ export default function DynamicFilter({ filters, onChange }: Props) {
     filters.depositRange[0] !== DEFAULT_FILTERS.depositRange[0] || filters.depositRange[1] !== DEFAULT_FILTERS.depositRange[1],
     filters.ageRange[0]     !== DEFAULT_FILTERS.ageRange[0]     || filters.ageRange[1]     !== DEFAULT_FILTERS.ageRange[1],
     filters.options.length > 0,
+    filters.gate !== null && filters.gateMinutes !== null,
   ].filter(Boolean).length
 
   const fmtWon  = (v: number) => `${v.toLocaleString()}만`
@@ -279,7 +295,6 @@ export default function DynamicFilter({ filters, onChange }: Props) {
             cursor: 'pointer',
             boxShadow: '0 4px 20px rgba(0,0,0,.4)',
             whiteSpace: 'nowrap',
-            // 열릴 때 위로 축소되며 사라짐
             opacity: open ? 0 : 1,
             transform: open ? 'scale(0.88) translateY(-4px)' : 'scale(1) translateY(0)',
             pointerEvents: open ? 'none' : 'all',
@@ -302,7 +317,6 @@ export default function DynamicFilter({ filters, onChange }: Props) {
         </button>
 
         {/* ── 열린 패널 ──────────────────────────────────────── */}
-        {/* pill 위치에서 아래로 펼쳐지는 scale + opacity */}
         <div
           style={{
             position: 'absolute',
@@ -386,6 +400,60 @@ export default function DynamicFilter({ filters, onChange }: Props) {
               onChange={(f, t) => set('ageRange', [f, t])}
               fmtMin={fmtAge} fmtMax={fmtAge}
             />
+          </RangeRow>
+
+          {/* ── 출입문 거리 ─────────────────────────────────── */}
+          <RangeRow
+            label="출입문 거리"
+            summary={filters.gate && filters.gateMinutes
+              ? `${filters.gate} · ${filters.gateMinutes}분 이내`
+              : '설정 안 함'}
+            open={section === 'gate'}
+            onToggle={() => toggleSection('gate')}
+            maxH={200}
+          >
+            <div className="pb-3 pt-1">
+              <p className="text-[10px] text-white/40 uppercase tracking-wide mb-1.5">기준 출입문</p>
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {MAJOR_GATES.map((g) => {
+                  const active = filters.gate === g.name
+                  return (
+                    <button
+                      key={g.name}
+                      onClick={() => set('gate', active ? null : g.name)}
+                      style={{
+                        padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                        cursor: 'pointer', border: 'none', transition: 'background .15s, color .15s',
+                        background: active ? '#2563eb' : 'rgba(255,255,255,0.1)',
+                        color: active ? '#fff' : 'rgba(255,255,255,0.7)',
+                      }}
+                    >
+                      {g.name}
+                    </button>
+                  )
+                })}
+              </div>
+              <p className="text-[10px] text-white/40 uppercase tracking-wide mb-1.5">최대 도보 시간</p>
+              <div className="flex flex-wrap gap-1.5">
+                {[5, 10, 15, 20].map((min) => {
+                  const active = filters.gateMinutes === min
+                  return (
+                    <button
+                      key={min}
+                      onClick={() => set('gateMinutes', active ? null : min)}
+                      style={{
+                        padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+                        cursor: 'pointer', border: 'none', transition: 'background .15s, color .15s',
+                        background: active ? '#2563eb' : 'rgba(255,255,255,0.1)',
+                        color: active ? '#fff' : 'rgba(255,255,255,0.7)',
+                      }}
+                    >
+                      {min}분 이내
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
           </RangeRow>
 
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '4px 0 8px' }} />

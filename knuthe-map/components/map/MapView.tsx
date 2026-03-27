@@ -3,18 +3,12 @@
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import mapboxgl from 'mapbox-gl'
-import * as THREE from 'three'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { MAPBOX_TOKEN, MAPBOX_STYLE, MAP_DEFAULTS } from '@/lib/mapbox'
 import { GATES_GEOJSON } from '@/lib/gates'
 import { MapFilters, featureMatchesFilters } from '@/components/map/DynamicFilter'
 
 mapboxgl.accessToken = MAPBOX_TOKEN
-
-const GATE_MODEL_URL       = '/models/chinese_gate.glb'
-const GATE_HEIGHT_METERS   = 1
-const GATE_ALTITUDE_METERS = 2
 
 type ZoneMeta = { name: string; lat: number; lng: number; footprint: [number, number][] | null }
 
@@ -27,55 +21,41 @@ function pointInPolygon(lng: number, lat: number, poly: [number, number][]): boo
   return inside
 }
 
-function buildZoneClustersGeoJSON(
-  features: GeoJSON.Feature[],
-  zonesMap: Map<number, ZoneMeta>,
-): GeoJSON.FeatureCollection {
-  const counts = new Map<number, number>()
-  features.forEach((f) => {
-    const zid = f.properties?.zone_id as number | null
-    if (zid) counts.set(zid, (counts.get(zid) ?? 0) + 1)
-  })
-  return {
-    type: 'FeatureCollection',
-    features: [...counts.entries()].flatMap(([zid, count]) => {
-      const z = zonesMap.get(zid)
-      if (!z) return []
-      return [{
-        type: 'Feature' as const,
-        geometry: { type: 'Point' as const, coordinates: [z.lng, z.lat] },
-        properties: { zone_id: zid, zone_name: z.name, count },
-      }]
-    }),
-  }
-}
 
 interface MapViewProps {
-  filters: MapFilters
+  filters:      MapFilters
+  initialZone?: string | null
+  flyTo?:       { lat: number; lng: number } | null
 }
 
-export default function MapView({ filters }: MapViewProps) {
-  const containerRef   = useRef<HTMLDivElement>(null)
-  const mapRef         = useRef<mapboxgl.Map | null>(null)
-  const allFeaturesRef = useRef<GeoJSON.Feature[]>([])
-  const zonesMapRef    = useRef<Map<number, ZoneMeta>>(new Map())
-  const router         = useRouter()
-  const routerRef      = useRef(router)
+export default function MapView({ filters, initialZone, flyTo }: MapViewProps) {
+  const containerRef       = useRef<HTMLDivElement>(null)
+  const mapRef             = useRef<mapboxgl.Map | null>(null)
+  const allFeaturesRef     = useRef<GeoJSON.Feature[]>([])
+  const zonesMapRef        = useRef<Map<number, ZoneMeta>>(new Map())
+  const filtersRef         = useRef(filters)
+  const zonePillMarkersRef = useRef<mapboxgl.Marker[]>([])
+  const router             = useRouter()
+  const routerRef          = useRef(router)
   useEffect(() => { routerRef.current = router }, [router])
+  useEffect(() => { filtersRef.current = filters }, [filters])
 
-  // ── 필터 변경 시 소스 데이터 업데이트 (재조회 없음)
+  // ── 검색으로 선택된 건물로 이동
+  useEffect(() => {
+    if (!flyTo || !mapRef.current) return
+    mapRef.current.flyTo({ center: [flyTo.lng, flyTo.lat], zoom: 18, duration: 1000 })
+  }, [flyTo])
+
+  // ── 필터 변경 시 소스 데이터 업데이트
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
-    const bSource = map.getSource('buildings')    as mapboxgl.GeoJSONSource | undefined
-    const zSource = map.getSource('zone-clusters') as mapboxgl.GeoJSONSource | undefined
+    const bSource = map.getSource('buildings') as mapboxgl.GeoJSONSource | undefined
     if (!bSource) return
 
     const matcher = featureMatchesFilters(filters)
     const filtered = allFeaturesRef.current.filter(matcher)
-
     bSource.setData({ type: 'FeatureCollection', features: filtered })
-    zSource?.setData(buildZoneClustersGeoJSON(filtered, zonesMapRef.current))
   }, [filters])
 
   useEffect(() => {
@@ -94,65 +74,65 @@ export default function MapView({ filters }: MapViewProps) {
     map.addControl(new mapboxgl.NavigationControl(), 'top-right')
 
     map.on('style.load', async () => {
-      // ── Three.js 게이트 레이어 ─────────────────────────────────
-      let camera: THREE.Camera
-      let scene: THREE.Scene
-      let renderer: THREE.WebGLRenderer
+      // ── 출입문 레이어 ─────────────────────────────────────────────
+      map.addSource('gates', { type: 'geojson', data: GATES_GEOJSON })
 
-      const gateLayer: mapboxgl.CustomLayerInterface = {
-        id: 'gates-3d',
-        type: 'custom',
-        renderingMode: '3d',
-
-        onAdd(_, gl) {
-          camera = new THREE.Camera()
-          scene  = new THREE.Scene()
-          scene.add(new THREE.AmbientLight(0xffffff, 3.0))
-          scene.add(new THREE.HemisphereLight(0xffffff, 0x888888, 2.0))
-          const dl1 = new THREE.DirectionalLight(0xffffff, 3.0)
-          dl1.position.set(1, 1, 2).normalize()
-          scene.add(dl1)
-          const dl2 = new THREE.DirectionalLight(0xffffff, 1.5)
-          dl2.position.set(-1, -1, 1).normalize()
-          scene.add(dl2)
-
-          const loader = new GLTFLoader()
-          loader.load(GATE_MODEL_URL, (gltf) => {
-            gltf.scene.traverse((node) => {
-              if (node instanceof THREE.Mesh) {
-                node.geometry.computeVertexNormals()
-                const mats = Array.isArray(node.material) ? node.material : [node.material]
-                for (const mat of mats) { mat.flatShading = false; mat.needsUpdate = true }
-              }
-            })
-            for (const feature of GATES_GEOJSON.features) {
-              const coords = (feature.geometry as GeoJSON.Point).coordinates
-              const mc = mapboxgl.MercatorCoordinate.fromLngLat([coords[0], coords[1]], GATE_ALTITUDE_METERS)
-              const scale = mc.meterInMercatorCoordinateUnits() * GATE_HEIGHT_METERS
-              const model = gltf.scene.clone(true)
-              model.scale.setScalar(scale)
-              model.position.set(mc.x, mc.y, mc.z ?? 0)
-              model.rotation.x = Math.PI / 2
-              scene.add(model)
-            }
-            map.triggerRepaint()
-          })
-
-          renderer = new THREE.WebGLRenderer({ canvas: map.getCanvas(), context: gl, antialias: true })
-          renderer.autoClear = false
-          renderer.outputColorSpace = THREE.SRGBColorSpace
-          renderer.toneMapping = THREE.NoToneMapping
+      // 출입문 원형 마커
+      map.addLayer({
+        id: 'gates-circle',
+        type: 'circle',
+        source: 'gates',
+        paint: {
+          'circle-radius': 7,
+          'circle-color': '#1e40af',
+          'circle-stroke-color': '#fff',
+          'circle-stroke-width': 2,
+          'circle-opacity': 0.92,
         },
+      })
 
-        render(_, matrix) {
-          camera.projectionMatrix = new THREE.Matrix4().fromArray(matrix)
-          renderer.resetState()
-          renderer.render(scene, camera)
-          map.triggerRepaint()
-        },
-      }
+      // 출입문 이름 라벨 (커스텀 스타일에 glyphs 미설정 시 무시)
+      try {
+        map.addLayer({
+          id: 'gates-label',
+          type: 'symbol',
+          source: 'gates',
+          layout: {
+            'text-field': ['concat', ['get', 'name'], ' ⓘ'],
+            'text-font': ['DIN Offc Pro Bold', 'Arial Unicode MS Bold'],
+            'text-size': 12,
+            'text-offset': [0, 1.4],
+            'text-anchor': 'top',
+            'text-allow-overlap': false,
+          },
+          paint: {
+            'text-color': '#1e3a8a',
+            'text-halo-color': 'rgba(255,255,255,0.95)',
+            'text-halo-width': 2,
+          },
+        })
+      } catch { /* glyphs not available in custom style */ }
 
-      map.addLayer(gateLayer)
+      // 출입문 클릭 → 팝업
+      map.on('click', 'gates-circle', (e) => {
+        const feat = e.features?.[0]
+        if (!feat || !e.lngLat) return
+        const name = feat.properties?.name as string
+        new mapboxgl.Popup({ closeButton: true, maxWidth: '260px' })
+          .setLngLat(e.lngLat)
+          .setHTML(`
+            <div style="padding:12px 14px;font-family:inherit">
+              <p style="margin:0 0 4px;font-size:11px;color:#6b7280;letter-spacing:.06em">경북대학교 출입문</p>
+              <h3 style="margin:0 0 10px;font-size:16px;font-weight:800;color:#0f172a">${name}</h3>
+              <div style="height:80px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center">
+                <span style="font-size:12px;color:#94a3b8">사진 준비 중</span>
+              </div>
+            </div>
+          `)
+          .addTo(map)
+      })
+      map.on('mouseenter', 'gates-circle', () => { map.getCanvas().style.cursor = 'pointer' })
+      map.on('mouseleave', 'gates-circle', () => { map.getCanvas().style.cursor = '' })
 
       // ── 건물 GeoJSON + 구역 데이터 로드 ──────────────────────────
       let geojson: GeoJSON.FeatureCollection
@@ -169,6 +149,9 @@ export default function MapView({ filters }: MapViewProps) {
         return
       }
 
+      // async 대기 중 컴포넌트가 언마운트됐으면 중단 (소스 중복·appendChild 오류 방지)
+      if (map !== mapRef.current) return
+
       zonesMapRef.current = new Map(
         zonesData.map((z) => [z.osm_id, { name: z.name, lat: z.lat, lng: z.lng, footprint: z.footprint ?? null }])
       )
@@ -184,128 +167,149 @@ export default function MapView({ filters }: MapViewProps) {
         }
       }
 
+      // ── 구역별 건물 수 집계 ──────────────────────────────────────
+      const zoneCounts = new Map<number, number>()
+      for (const f of geojson.features) {
+        const zid = f.properties?.zone_id as number | undefined
+        if (zid != null) zoneCounts.set(zid, (zoneCounts.get(zid) ?? 0) + 1)
+      }
+
       allFeaturesRef.current = geojson.features
 
-      // ── 구역 클러스터 소스 ──────────────────────────────────────
-      map.addSource('zone-clusters', {
-        type: 'geojson',
-        data: buildZoneClustersGeoJSON(geojson.features, zonesMapRef.current),
-        generateId: true,
-      })
+      // ── initialZone fitBounds ────────────────────────────────────
+      if (initialZone) {
+        const zoneEntry = [...zonesMapRef.current.entries()].find(([, z]) => z.name === initialZone)
+        if (zoneEntry) {
+          const [zid] = zoneEntry
+          const bldgs = geojson.features.filter((f) => f.properties?.zone_id === zid)
+          if (bldgs.length > 0) {
+            const lngs = bldgs.map((f) => (f.geometry as GeoJSON.Point).coordinates[0])
+            const lats = bldgs.map((f) => (f.geometry as GeoJSON.Point).coordinates[1])
+            map.fitBounds(
+              [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
+              { padding: 80, maxZoom: 15, duration: 800 },
+            )
+          }
+        }
+      }
 
-      // ── 구역 클러스터 원 ─────────────────────────────────────────
-      map.addLayer({
-        id: 'zone-clusters-circle',
-        type: 'circle',
-        source: 'zone-clusters',
-        maxzoom: 13,
-        paint: {
-          'circle-color': [
-            'interpolate', ['linear'], ['get', 'count'],
-            1, '#93c5fd', 50, '#3b82f6', 200, '#1d4ed8',
-          ],
-          'circle-radius': [
-            'interpolate', ['linear'], ['get', 'count'],
-            1, 22, 100, 32, 300, 42,
-          ],
-          'circle-stroke-width': 2.5,
-          'circle-stroke-color': 'rgba(255,255,255,0.85)',
-          'circle-opacity': 0.9,
-        },
-      })
+      // ── 건물 소스 (클러스터링 없음, 초기 필터 적용) ─────────────
+      const initialMatcher = featureMatchesFilters(filtersRef.current)
+      const initialFiltered = geojson.features.filter(initialMatcher)
 
-      // ── 구역 클러스터 건물 수 ────────────────────────────────────
-      map.addLayer({
-        id: 'zone-clusters-count',
-        type: 'symbol',
-        source: 'zone-clusters',
-        maxzoom: 13,
-        layout: {
-          'text-field': ['get', 'count'],
-          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-          'text-size': 13,
-        },
-        paint: { 'text-color': '#fff' },
-      })
-
-      // ── 구역명 라벨 ──────────────────────────────────────────────
-      map.addLayer({
-        id: 'zone-clusters-name',
-        type: 'symbol',
-        source: 'zone-clusters',
-        maxzoom: 13,
-        layout: {
-          'text-field': ['get', 'zone_name'],
-          'text-font': ['DIN Offc Pro Regular', 'Arial Unicode MS Regular'],
-          'text-size': 11,
-          'text-offset': [0, 2.4],
-          'text-anchor': 'top',
-        },
-        paint: {
-          'text-color': '#1f2937',
-          'text-halo-color': 'rgba(255,255,255,0.9)',
-          'text-halo-width': 1.5,
-        },
-      })
-
-      // ── 건물 소스 (클러스터링 없음) ──────────────────────────────
       map.addSource('buildings', {
         type: 'geojson',
-        data: geojson,
+        data: { type: 'FeatureCollection', features: initialFiltered },
         generateId: true,
       })
 
-      // ── 개별 건물 도트 (줌 ≥ 13에서 표시) ──────────────────────
+      // ── 구역 Pill 마커 (HTML Marker) ────────────────────────────
+      const HIDE_ZONE_ZOOM = 14
+
+      const updateZonePillVisibility = () => {
+        const visible = map.getZoom() < HIDE_ZONE_ZOOM
+        zonePillMarkersRef.current.forEach((m) => {
+          ;(m.getElement() as HTMLDivElement).style.display = visible ? 'flex' : 'none'
+        })
+      }
+
+      for (const [osm_id, zone] of zonesMapRef.current) {
+        if (!zone.lat || !zone.lng) continue
+
+        const displayName = zone.name.replace('구역', '')
+        const count = zoneCounts.get(osm_id) ?? 0
+
+        const el = document.createElement('div')
+        el.style.cssText = [
+          'display:flex', 'align-items:center', 'gap:0',
+          'background:#2563eb', 'color:#fff',
+          'border-radius:999px',
+          'box-shadow:0 3px 10px rgba(37,99,235,0.45)',
+          'cursor:pointer', 'pointer-events:auto',
+          'white-space:nowrap', 'user-select:none',
+          'overflow:hidden',
+          'border:2px solid rgba(255,255,255,0.3)',
+        ].join(';')
+
+        // 이름 섹션
+        const nameSpan = document.createElement('span')
+        nameSpan.style.cssText = 'padding:7px 8px 7px 12px;font-size:13px;font-weight:700;letter-spacing:-0.02em'
+        nameSpan.textContent = `${displayName} ›`
+
+        // 건물 수 뱃지
+        const badge = document.createElement('span')
+        badge.style.cssText = [
+          'background:rgba(255,255,255,0.18)',
+          'padding:7px 10px',
+          'font-size:11px', 'font-weight:700',
+        ].join(';')
+        badge.textContent = `${count}개`
+
+        el.appendChild(nameSpan)
+        if (count > 0) el.appendChild(badge)
+
+        el.addEventListener('click', (e) => {
+          e.stopPropagation()
+          routerRef.current.push(`/zones/${encodeURIComponent(zone.name)}`)
+        })
+
+        // hover effect
+        el.addEventListener('mouseenter', () => { el.style.background = '#1d4ed8'; map.getCanvas().style.cursor = 'pointer' })
+        el.addEventListener('mouseleave', () => { el.style.background = '#2563eb'; map.getCanvas().style.cursor = '' })
+
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+          .setLngLat([zone.lng, zone.lat])
+          .addTo(map)
+
+        zonePillMarkersRef.current.push(marker)
+      }
+
+      map.on('zoom', updateZonePillVisibility)
+      updateZonePillVisibility()
+
+      // ── 개별 건물 도트 (zoom 13+, 건물 유형별 색상) ─────────────
       map.addLayer({
         id: 'buildings-dot',
         type: 'circle',
         source: 'buildings',
         minzoom: 13,
         paint: {
-          'circle-radius': [
-            'interpolate', ['linear'], ['zoom'],
-            12, 3.5,
-            16, 6,
-          ],
-          'circle-color': '#fff',
-          'circle-stroke-color': [
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 4, 16, 6],
+          'circle-color': [
             'case',
-            ['==', ['get', 'main_purps_nm'], '단독주택'], '#6b7280',
-            ['==', ['get', 'main_purps_nm'], '공동주택'], '#2563eb',
-            ['any',
-              ['in', '근린생활', ['get', 'main_purps_nm']],
-            ], '#f59e0b',
+            ['==', ['get', 'main_purps_nm'], '단독주택'],          '#6b7280',
+            ['==', ['get', 'main_purps_nm'], '공동주택'],          '#2563eb',
+            ['in', '근린생활', ['get', 'main_purps_nm']],          '#f59e0b',
             '#9ca3af',
           ],
-          'circle-stroke-width': [
-            'interpolate', ['linear'], ['zoom'],
-            12, 1.5,
-            16, 2.5,
-          ],
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 1.5,
           'circle-opacity': 0.95,
         },
       })
 
-      // ── 건물명 레이블 (zoom ≥ 15) ────────────────────────────────
-      map.addLayer({
-        id: 'buildings-label',
-        type: 'symbol',
-        source: 'buildings',
-        minzoom: 15,
-        layout: {
-          'text-field': ['coalesce', ['get', 'name'], ['get', 'address']],
-          'text-font': ['DIN Offc Pro Regular', 'Arial Unicode MS Regular'],
-          'text-size': 11,
-          'text-offset': [0, 1.1],
-          'text-anchor': 'top',
-          'text-max-width': 8,
-        },
-        paint: {
-          'text-color': '#1f2937',
-          'text-halo-color': 'rgba(255,255,255,0.92)',
-          'text-halo-width': 1.5,
-        },
-      })
+      // ── 건물명 레이블 (zoom ≥ 15, 커스텀 스타일에 glyphs 미설정 시 무시)
+      try {
+        map.addLayer({
+          id: 'buildings-label',
+          type: 'symbol',
+          source: 'buildings',
+          minzoom: 15,
+          layout: {
+            'text-field': ['coalesce', ['get', 'name'], ['get', 'address']],
+            'text-font': ['DIN Offc Pro Regular', 'Arial Unicode MS Regular'],
+            'text-size': 11,
+            'text-offset': [0, 1.1],
+            'text-anchor': 'top',
+            'text-max-width': 8,
+          },
+          paint: {
+            'text-color': '#1f2937',
+            'text-halo-color': 'rgba(255,255,255,0.92)',
+            'text-halo-width': 1.5,
+          },
+        })
+      } catch { /* glyphs not available in custom style */ }
 
       // ── 클릭: 건물 세부 페이지 이동 ─────────────────────────────
       map.on('click', 'buildings-dot', (e) => {
@@ -313,27 +317,13 @@ export default function MapView({ filters }: MapViewProps) {
         if (id) routerRef.current.push(`/buildings/${id}`)
       })
 
-      // ── 구역 클러스터 클릭: 해당 구역 건물들에 fitBounds ────────
-      map.on('click', 'zone-clusters-circle', (e) => {
-        const zid = e.features?.[0]?.properties?.zone_id as number | undefined
-        if (zid == null) return
-        const bldgs = allFeaturesRef.current.filter((f) => f.properties?.zone_id === zid)
-        if (bldgs.length === 0) return
-        const lngs = bldgs.map((f) => (f.geometry as GeoJSON.Point).coordinates[0])
-        const lats = bldgs.map((f) => (f.geometry as GeoJSON.Point).coordinates[1])
-        map.fitBounds(
-          [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
-          { padding: 80, maxZoom: 15, duration: 600 },
-        )
-      })
-
-      map.on('mouseenter', 'zone-clusters-circle', () => { map.getCanvas().style.cursor = 'pointer' })
-      map.on('mouseleave', 'zone-clusters-circle', () => { map.getCanvas().style.cursor = '' })
-      map.on('mouseenter', 'buildings-dot',         () => { map.getCanvas().style.cursor = 'pointer' })
-      map.on('mouseleave', 'buildings-dot',         () => { map.getCanvas().style.cursor = '' })
+      map.on('mouseenter', 'buildings-dot', () => { map.getCanvas().style.cursor = 'pointer' })
+      map.on('mouseleave', 'buildings-dot', () => { map.getCanvas().style.cursor = '' })
     })
 
     return () => {
+      zonePillMarkersRef.current.forEach((m) => m.remove())
+      zonePillMarkersRef.current = []
       mapRef.current?.remove()
       mapRef.current = null
     }
