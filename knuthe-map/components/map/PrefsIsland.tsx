@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 function IconHome({ active }: { active: boolean }) {
@@ -52,7 +52,12 @@ function NavDivider() {
 }
 
 export default function PrefsIsland() {
-  const pathname = usePathname()
+  const pathname     = usePathname()
+  const searchParams = useSearchParams()
+
+  // 온보딩 중에는 네비게이션 바 숨김
+  const isOnboarding = pathname === '/' && searchParams.get('reset') === '1'
+  if (isOnboarding) return null
 
   const isHome   = pathname === '/'
   const isRooms  = pathname.startsWith('/rooms')

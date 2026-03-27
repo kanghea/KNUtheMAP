@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { getZoneByDept } from '@/lib/department-zones'
 import { savePrefs } from '@/lib/prefs'
 import StepGrade      from '@/components/onboarding/StepGrade'
@@ -46,17 +47,17 @@ export default function OnboardingClient() {
   const progress = ((step + 1) / STEPS.length) * 100
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col" style={{ position: 'fixed', inset: 0, zIndex: 100, overflowY: 'auto' }}>
       {/* 헤더 */}
       <header className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md bg-blue-600 flex items-center justify-center">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"
-              strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
-          </div>
+          <Image
+            src="/images/경북대 로고(현).png"
+            alt="경북대학교"
+            width={28}
+            height={28}
+            style={{ objectFit: 'contain' }}
+          />
           <span className="text-sm font-bold text-gray-900">KNUtheMAP</span>
         </div>
         <button
