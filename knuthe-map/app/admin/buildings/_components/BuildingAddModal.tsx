@@ -83,8 +83,8 @@ export default function BuildingAddModal({ onCreated, onClose }: Props) {
     border: '1.5px solid #e2e8f0', fontSize: 13, outline: 'none', boxSizing: 'border-box',
   }
   const lbl = (t: string, req = false) => (
-    <p style={{ fontSize: 11, fontWeight: 600, color: '#64748b', margin: '0 0 5px' }}>
-      {t}{req && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
+    <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', margin: '0 0 5px' }}>
+      {t}{req && <span style={{ color: 'var(--color-red)', marginLeft: 2 }}>*</span>}
     </p>
   )
 
@@ -94,13 +94,13 @@ export default function BuildingAddModal({ onCreated, onClose }: Props) {
       display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
     }} onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
       <div style={{
-        background: '#fff', borderRadius: '20px 20px 0 0',
+        background: 'var(--bg-elevated)', borderRadius: '20px 20px 0 0',
         width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto',
         padding: '20px 20px 32px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
           <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>건물 추가</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#94a3b8' }}>✕</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--text-tertiary)' }}>✕</button>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -117,20 +117,20 @@ export default function BuildingAddModal({ onCreated, onClose }: Props) {
               <button onClick={searchGeo} disabled={geoLoading} style={{
                 padding: '10px 14px', borderRadius: 10, border: 'none',
                 background: geoLoading ? '#93c5fd' : '#2563eb',
-                color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
+                color: 'var(--text-inverse)', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
               }}>
                 {geoLoading ? '검색 중…' : '검색'}
               </button>
             </div>
 
-            {geoError && <p style={{ fontSize: 12, color: '#ef4444', margin: '6px 0 0' }}>{geoError}</p>}
+            {geoError && <p style={{ fontSize: 12, color: 'var(--color-red)', margin: '6px 0 0' }}>{geoError}</p>}
 
             {/* 좌표 확인 */}
             {geo && (
-              <div style={{ marginTop: 8, background: '#f0fdf4', borderRadius: 10, padding: '10px 12px', border: '1px solid #bbf7d0' }}>
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#16a34a', margin: '0 0 2px' }}>좌표 확인 완료</p>
-                <p style={{ fontSize: 11, color: '#475569', margin: 0 }}>{geo.roadAddress}</p>
-                <p style={{ fontSize: 10, color: '#94a3b8', margin: '2px 0 0' }}>
+              <div style={{ marginTop: 8, background: 'var(--color-green-bg)', borderRadius: 10, padding: '10px 12px', border: '1px solid #bbf7d0' }}>
+                <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-green)', margin: '0 0 2px' }}>좌표 확인 완료</p>
+                <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: 0 }}>{geo.roadAddress}</p>
+                <p style={{ fontSize: 10, color: 'var(--text-tertiary)', margin: '2px 0 0' }}>
                   lat {geo.lat.toFixed(6)}, lng {geo.lng.toFixed(6)}
                 </p>
               </div>
@@ -139,13 +139,13 @@ export default function BuildingAddModal({ onCreated, onClose }: Props) {
             {/* 후보 목록 */}
             {geo && geo.candidates.length > 1 && (
               <div style={{ marginTop: 6 }}>
-                <p style={{ fontSize: 11, color: '#94a3b8', margin: '0 0 4px' }}>다른 결과 선택:</p>
+                <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '0 0 4px' }}>다른 결과 선택:</p>
                 {geo.candidates.map((c, i) => (
                   <button key={i} onClick={() => selectCandidate(c)} style={{
                     display: 'block', width: '100%', textAlign: 'left',
                     padding: '6px 10px', borderRadius: 8, marginBottom: 3,
-                    border: '1px solid #e2e8f0', background: '#fff',
-                    fontSize: 11, color: '#475569', cursor: 'pointer',
+                    border: '1px solid var(--border-secondary)', background: 'var(--bg-elevated)',
+                    fontSize: 11, color: 'var(--text-secondary)', cursor: 'pointer',
                   }}>{c.label}</button>
                 ))}
               </div>
@@ -184,12 +184,12 @@ export default function BuildingAddModal({ onCreated, onClose }: Props) {
             </div>
           </div>
 
-          {error && <p style={{ fontSize: 12, color: '#ef4444', margin: 0 }}>{error}</p>}
+          {error && <p style={{ fontSize: 12, color: 'var(--color-red)', margin: 0 }}>{error}</p>}
 
           <button onClick={handleSubmit} disabled={submitting} style={{
             width: '100%', padding: '13px', borderRadius: 12, border: 'none',
             background: submitting ? '#93c5fd' : '#2563eb',
-            color: '#fff', fontSize: 14, fontWeight: 700, cursor: submitting ? 'default' : 'pointer',
+            color: 'var(--text-inverse)', fontSize: 14, fontWeight: 700, cursor: submitting ? 'default' : 'pointer',
           }}>
             {submitting ? '등록 중…' : '건물 등록'}
           </button>

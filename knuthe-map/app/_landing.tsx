@@ -36,13 +36,13 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
   const heroLabel   = [gradeLabel, prefs.dept].filter(Boolean).join(' · ') || null
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: 'inherit' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-secondary)', fontFamily: 'inherit' }}>
 
       {/* ── 헤더 ──────────────────────────────────────────────── */}
       <header style={{
         position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(248,250,252,0.92)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #f1f5f9',
+        background: 'var(--bg-overlay)', backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid var(--border-primary)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '12px 20px',
       }}>
@@ -54,7 +54,7 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
             height={32}
             style={{ objectFit: 'contain' }}
           />
-          <span style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
+          <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
             KNUtheMAP
           </span>
         </div>
@@ -62,9 +62,9 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
           href="/?reset=1"
           style={{
             display: 'flex', alignItems: 'center', gap: 5,
-            fontSize: 12, fontWeight: 600, color: '#64748b', textDecoration: 'none',
+            fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', textDecoration: 'none',
             padding: '6px 12px', borderRadius: 999,
-            background: '#f1f5f9', border: '1px solid #e2e8f0',
+            background: 'var(--bg-tertiary)', border: '1px solid var(--border-secondary)',
           }}
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -82,7 +82,7 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
         <div style={{
           margin: '16px 0 14px',
           background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 55%, #3b82f6 100%)',
-          borderRadius: 22, padding: '24px 22px 20px', color: '#fff',
+          borderRadius: 22, padding: '24px 22px 20px', color: 'var(--text-inverse)',
           boxShadow: '0 8px 32px rgba(37,99,235,0.22)',
         }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.55)', marginBottom: 4, letterSpacing: '0.06em' }}>
@@ -99,10 +99,10 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
           <div style={{ display: 'flex', gap: 8 }}>
             <Link href="/rooms" style={{
               flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              background: '#fff', color: '#2563eb',
+              background: 'var(--bg-elevated)', color: 'var(--color-primary)',
               borderRadius: 12, padding: '11px 0',
               fontSize: 13, fontWeight: 700, textDecoration: 'none',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+              boxShadow: 'var(--shadow-sm)',
             }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -113,7 +113,7 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
             </Link>
             <Link href={mapUrl} style={{
               flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              background: 'rgba(255,255,255,0.15)', color: '#fff',
+              background: 'rgba(255,255,255,0.15)', color: 'var(--text-inverse)',
               borderRadius: 12, padding: '11px 0',
               fontSize: 13, fontWeight: 700, textDecoration: 'none',
               border: '1px solid rgba(255,255,255,0.25)',
@@ -130,8 +130,8 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
         {/* ── 구역 바로가기 (가로 스크롤) ─────────────────────── */}
         <div style={{ marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, padding: '0 2px' }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>구역 바로가기</span>
-            <Link href={mapUrl} style={{ fontSize: 11, color: '#94a3b8', textDecoration: 'none', fontWeight: 500 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>구역 바로가기</span>
+            <Link href={mapUrl} style={{ fontSize: 11, color: 'var(--text-tertiary)', textDecoration: 'none', fontWeight: 500 }}>
               전체 지도 →
             </Link>
           </div>
@@ -147,21 +147,21 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
                   href={`/map?zone=${encodeURIComponent(z.name)}${prefs.priorities.length ? `&p=${prefs.priorities.join(',')}` : ''}${prefs.gate ? `&gate=${encodeURIComponent(prefs.gate)}` : ''}`}
                   style={{
                     flexShrink: 0,
-                    background: isMyZone ? '#eff6ff' : '#fff',
+                    background: isMyZone ? 'var(--color-primary-bg)' : 'var(--bg-elevated)',
                     borderRadius: 14,
                     padding: '10px 14px',
-                    border: isMyZone ? '1.5px solid #2563eb' : '1px solid #f1f5f9',
+                    border: isMyZone ? '1.5px solid var(--color-primary)' : '1px solid var(--border-primary)',
                     textDecoration: 'none',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                     minWidth: 64,
-                    boxShadow: isMyZone ? '0 0 0 3px rgba(37,99,235,0.08)' : '0 1px 4px rgba(0,0,0,0.04)',
+                    boxShadow: isMyZone ? '0 0 0 3px rgba(37,99,235,0.08)' : 'var(--shadow-xs)',
                   }}
                 >
                   <span style={{ fontSize: 20 }}>{z.emoji}</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: isMyZone ? '#2563eb' : '#0f172a' }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: isMyZone ? 'var(--color-primary)' : 'var(--text-primary)' }}>
                     {z.name}
                   </span>
-                  <span style={{ fontSize: 10, color: '#94a3b8', whiteSpace: 'nowrap' }}>{z.desc}</span>
+                  <span style={{ fontSize: 10, color: 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>{z.desc}</span>
                 </Link>
               )
             })}
@@ -173,14 +173,14 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
 
         {/* ── 내 계약 관리 ─────────────────────────────────────── */}
         <div style={{
-          background: '#fff', borderRadius: 20,
-          border: '1px solid #f1f5f9',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+          background: 'var(--bg-elevated)', borderRadius: 20,
+          border: '1px solid var(--border-primary)',
+          boxShadow: 'var(--shadow-xs)',
           marginBottom: 14, overflow: 'hidden',
         }}>
           <div style={{ padding: '16px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>내 계약 관리</span>
-            <Link href="/me" style={{ fontSize: 11, color: '#94a3b8', textDecoration: 'none', fontWeight: 500 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>내 계약 관리</span>
+            <Link href="/me" style={{ fontSize: 11, color: 'var(--text-tertiary)', textDecoration: 'none', fontWeight: 500 }}>
               마이페이지 →
             </Link>
           </div>
@@ -190,14 +190,14 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
         {/* ── 내 우선순위 ──────────────────────────────────────── */}
         {topPriority.length > 0 && (
           <div style={{
-            background: '#fff', borderRadius: 20, padding: '16px 20px',
-            border: '1px solid #f1f5f9',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+            background: 'var(--bg-elevated)', borderRadius: 20, padding: '16px 20px',
+            border: '1px solid var(--border-primary)',
+            boxShadow: 'var(--shadow-xs)',
             marginBottom: 14,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>내 우선순위</span>
-              <Link href="/?reset=1" style={{ fontSize: 11, color: '#94a3b8', textDecoration: 'none', fontWeight: 500 }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>내 우선순위</span>
+              <Link href="/?reset=1" style={{ fontSize: 11, color: 'var(--text-tertiary)', textDecoration: 'none', fontWeight: 500 }}>
                 변경
               </Link>
             </div>
@@ -205,8 +205,8 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
               {topPriority.map((pid, i) => {
                 const meta   = FACTOR_META[pid]
                 if (!meta) return null
-                const colors = ['#2563eb', '#7c3aed', '#0891b2']
-                const bgs    = ['#eff6ff', '#f5f3ff', '#ecfeff']
+                const colors = ['var(--color-primary)', 'var(--color-purple)', 'var(--color-cyan)']
+                const bgs    = ['var(--color-primary-bg)', 'var(--color-purple-bg)', 'var(--color-cyan-bg)']
                 return (
                   <div key={pid} style={{
                     display: 'flex', alignItems: 'center', gap: 10,
@@ -214,7 +214,7 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
                   }}>
                     <span style={{
                       width: 20, height: 20, borderRadius: '50%',
-                      background: colors[i], color: '#fff',
+                      background: colors[i], color: 'var(--text-inverse)',
                       fontSize: 10, fontWeight: 800, flexShrink: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
@@ -222,8 +222,8 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
                     </span>
                     <span style={{ fontSize: 15, flexShrink: 0 }}>{meta.icon}</span>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: '#0f172a' }}>{meta.label}</div>
-                      <div style={{ fontSize: 11, color: '#94a3b8' }}>{meta.sub}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>{meta.label}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{meta.sub}</div>
                     </div>
                   </div>
                 )
@@ -232,12 +232,12 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
             {prefs.gate && (
               <div style={{
                 marginTop: 8, padding: '9px 12px',
-                background: '#f8fafc', borderRadius: 10,
+                background: 'var(--bg-secondary)', borderRadius: 10,
                 display: 'flex', alignItems: 'center', gap: 8,
               }}>
                 <span style={{ fontSize: 14 }}>🚪</span>
-                <span style={{ fontSize: 12, color: '#475569', fontWeight: 500 }}>
-                  주로 쓰는 문: <strong style={{ color: '#0f172a' }}>{prefs.gate}</strong>
+                <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>
+                  주로 쓰는 문: <strong style={{ color: 'var(--text-primary)' }}>{prefs.gate}</strong>
                 </span>
               </div>
             )}
@@ -246,11 +246,11 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
 
         {/* ── 하단 링크 ────────────────────────────────────────── */}
         <div style={{ textAlign: 'center', padding: '4px 0', display: 'flex', justifyContent: 'center', gap: 16 }}>
-          <Link href="/me" style={{ fontSize: 11, color: '#cbd5e1', textDecoration: 'none', fontWeight: 500 }}>
+          <Link href="/me" style={{ fontSize: 11, color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 500 }}>
             마이페이지
           </Link>
-          <span style={{ color: '#e2e8f0', fontSize: 11 }}>·</span>
-          <Link href="/?reset=1" style={{ fontSize: 11, color: '#cbd5e1', textDecoration: 'none', fontWeight: 500 }}>
+          <span style={{ color: 'var(--border-secondary)', fontSize: 11 }}>·</span>
+          <Link href="/?reset=1" style={{ fontSize: 11, color: 'var(--text-muted)', textDecoration: 'none', fontWeight: 500 }}>
             온보딩 다시 하기
           </Link>
         </div>

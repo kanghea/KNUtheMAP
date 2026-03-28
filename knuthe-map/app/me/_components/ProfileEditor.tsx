@@ -22,7 +22,7 @@ function AccordionRow({
   label: string; value: string | null; open: boolean; onToggle: () => void; children: React.ReactNode
 }) {
   return (
-    <div style={{ borderRadius: 14, border: '1.5px solid #e2e8f0', overflow: 'hidden' }}>
+    <div style={{ borderRadius: 14, border: '1.5px solid var(--border-secondary)', overflow: 'hidden' }}>
       <button
         onClick={onToggle}
         style={{
@@ -31,15 +31,15 @@ function AccordionRow({
         }}
       >
         <div>
-          <span style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', display: 'block', marginBottom: 2 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', display: 'block', marginBottom: 2 }}>
             {label}
           </span>
-          <span style={{ fontSize: 14, fontWeight: 600, color: value ? '#0f172a' : '#cbd5e1' }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: value ? 'var(--text-primary)' : 'var(--text-muted)' }}>
             {value || '선택 안 됨'}
           </span>
         </div>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-          stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+          stroke="var(--text-tertiary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
           style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s', flexShrink: 0 }}>
           <path d="M6 9l6 6 6-6"/>
         </svg>
@@ -50,7 +50,7 @@ function AccordionRow({
         maxHeight: open ? 600 : 0,
         transition: 'max-height .3s cubic-bezier(.4,0,.2,1)',
       }}>
-        <div style={{ padding: '4px 16px 16px', borderTop: '1px solid #f1f5f9' }}>
+        <div style={{ padding: '4px 16px 16px', borderTop: '1px solid var(--border-primary)' }}>
           {children}
         </div>
       </div>
@@ -105,28 +105,28 @@ export default function ProfileEditor({ profile, showStudentFields = true }: { p
           <img src={profile.avatar_url} alt="" style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover' }} />
         ) : (
           <div style={{
-            width: 52, height: 52, borderRadius: '50%', background: '#eff6ff',
+            width: 52, height: 52, borderRadius: '50%', background: 'var(--color-primary-bg)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
           }}>
             👤
           </div>
         )}
         <div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>{nickname || '이름 없음'}</div>
-          <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{profile.email}</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>{nickname || '이름 없음'}</div>
+          <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>{profile.email}</div>
         </div>
       </div>
 
       {/* 닉네임 */}
       <div>
-        <label style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', marginBottom: 6, display: 'block' }}>
+        <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', marginBottom: 6, display: 'block' }}>
           닉네임
         </label>
         <input
           style={{
             width: '100%', padding: '11px 14px', borderRadius: 12,
-            border: '1.5px solid #e2e8f0', fontSize: 14, color: '#0f172a',
-            background: '#fff', outline: 'none', boxSizing: 'border-box',
+            border: '1.5px solid var(--border-secondary)', fontSize: 14, color: 'var(--text-primary)',
+            background: 'var(--bg-elevated)', outline: 'none', boxSizing: 'border-box',
           }}
           value={nickname}
           placeholder="닉네임을 입력하세요"
@@ -166,7 +166,7 @@ export default function ProfileEditor({ profile, showStudentFields = true }: { p
       )}
 
       {error && (
-        <p style={{ margin: 0, fontSize: 12, color: '#ef4444' }}>{error}</p>
+        <p style={{ margin: 0, fontSize: 12, color: 'var(--color-red)' }}>{error}</p>
       )}
 
       <button
@@ -174,7 +174,7 @@ export default function ProfileEditor({ profile, showStudentFields = true }: { p
         disabled={saving}
         style={{
           padding: '13px', borderRadius: 14, border: 'none', cursor: saving ? 'default' : 'pointer',
-          background: saved ? '#10b981' : '#2563eb', color: '#fff',
+          background: saved ? '#10b981' : 'var(--color-primary)', color: 'var(--text-inverse)',
           fontSize: 14, fontWeight: 700, transition: 'background .2s',
         }}
       >

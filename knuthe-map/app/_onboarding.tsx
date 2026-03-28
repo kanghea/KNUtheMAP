@@ -104,24 +104,24 @@ export default function OnboardingClient() {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '20px 0' }}>
           <div style={{
             width: 72, height: 72, borderRadius: '50%',
-            background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'var(--color-amber-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 32,
           }}>⏳</div>
           <div style={{ textAlign: 'center' }}>
-            <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 8px' }}>
               신청이 완료됐어요!
             </h2>
-            <p style={{ fontSize: 13, color: '#64748b', lineHeight: 1.7, margin: 0 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.7, margin: 0 }}>
               관리자 검토 후 승인 알림을 드려요<br />
               승인 전에도 방 구하기는 이용할 수 있어요
             </p>
           </div>
           <div style={{
-            background: '#f8fafc', borderRadius: 14, padding: '14px 16px',
-            width: '100%', border: '1px solid #f1f5f9',
+            background: 'var(--bg-secondary)', borderRadius: 14, padding: '14px 16px',
+            width: '100%', border: '1px solid var(--border-primary)',
           }}>
-            <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 4px', fontWeight: 600 }}>승인 완료 시</p>
-            <p style={{ fontSize: 13, color: '#475569', margin: 0, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', margin: '0 0 4px', fontWeight: 600 }}>승인 완료 시</p>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }}>
               {userRole === 'owner'
                 ? '건물 등록 및 호실·계약 관리 기능을 이용할 수 있어요'
                 : '건물 매물 등록 및 계약 통계 기능을 이용할 수 있어요'}
@@ -131,7 +131,7 @@ export default function OnboardingClient() {
             onClick={handleSkip}
             style={{
               width: '100%', padding: '14px', borderRadius: 14,
-              background: '#2563eb', color: '#fff',
+              background: 'var(--color-primary)', color: 'var(--text-inverse)',
               border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700,
             }}
           >

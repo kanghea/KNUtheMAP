@@ -60,7 +60,7 @@ export default function RoomsMapView({ filters, onClusterClick }: Props) {
         id: 'gates-circle', type: 'circle', source: 'gates',
         paint: {
           'circle-radius': 7, 'circle-color': '#1e40af',
-          'circle-stroke-color': '#fff', 'circle-stroke-width': 2, 'circle-opacity': 0.92,
+          'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2, 'circle-opacity': 0.92,
         },
       })
       try {
@@ -80,7 +80,7 @@ export default function RoomsMapView({ filters, onClusterClick }: Props) {
         if (!name || !e.lngLat) return
         new mapboxgl.Popup({ closeButton: true, maxWidth: '200px' })
           .setLngLat(e.lngLat)
-          .setHTML(`<div style="padding:10px 12px;font-size:14px;font-weight:700">${name}</div>`)
+          .setHTML(`<div style="padding:10px 12px;font-size:14px;font-weight:700;color:var(--text-primary)">${name}</div>`)
           .addTo(map)
       })
       map.on('mouseenter', 'gates-circle', () => { map.getCanvas().style.cursor = 'pointer' })
@@ -148,7 +148,7 @@ export default function RoomsMapView({ filters, onClusterClick }: Props) {
             'text-font': ['DIN Offc Pro Bold', 'Arial Unicode MS Bold'],
             'text-size': 13,
           },
-          paint: { 'text-color': '#fff' },
+          paint: { 'text-color': '#ffffff' },
         })
       } catch { /* glyphs not available */ }
 
@@ -166,7 +166,7 @@ export default function RoomsMapView({ filters, onClusterClick }: Props) {
             ['==', ['get', 'contract_type'], '전세'], '#16a34a',
             '#f59e0b',
           ],
-          'circle-stroke-color': '#fff',
+          'circle-stroke-color': '#ffffff',
           'circle-stroke-width': 2.5,
           'circle-opacity': 0.95,
         },
@@ -212,31 +212,31 @@ export default function RoomsMapView({ filters, onClusterClick }: Props) {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+      <div ref={containerRef} style={{ width: '100%', height: '100%', touchAction: 'none' }} />
 
       {/* 범례 */}
       <div style={{
         position: 'absolute', bottom: 110, left: 12,
-        background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(8px)',
+        background: 'var(--bg-elevated)', backdropFilter: 'blur(8px)',
         borderRadius: 12, padding: '8px 12px',
         display: 'flex', flexDirection: 'column', gap: 5,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+        boxShadow: 'var(--shadow-sm)',
         pointerEvents: 'none',
       }}>
         {[
-          { color: '#2563eb', label: '월세' },
-          { color: '#16a34a', label: '전세' },
-          { color: '#f59e0b', label: '매매' },
+          { color: 'var(--color-primary)', label: '월세' },
+          { color: 'var(--color-green)', label: '전세' },
+          { color: 'var(--star-filled)', label: '매매' },
         ].map(({ color, label }) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0 }} />
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#374151' }}>{label}</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-primary)' }}>{label}</span>
           </div>
         ))}
-        <div style={{ borderTop: '1px solid #e2e8f0', marginTop: 2, paddingTop: 4 }}>
+        <div style={{ borderTop: '1px solid var(--border-strong)', marginTop: 2, paddingTop: 4 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#3b82f6', flexShrink: 0, border: '2px solid rgba(255,255,255,0.6)' }} />
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#374151' }}>묶음</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-primary)' }}>{'\uBB36\uC74C'}</span>
           </div>
         </div>
       </div>

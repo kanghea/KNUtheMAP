@@ -149,8 +149,8 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
     border: '1.5px solid #e2e8f0', fontSize: 13, outline: 'none', boxSizing: 'border-box',
   }
   const lbl = (t: string, req = false) => (
-    <p style={{ fontSize: 11, fontWeight: 600, color: '#64748b', margin: '0 0 5px' }}>
-      {t}{req && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
+    <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', margin: '0 0 5px' }}>
+      {t}{req && <span style={{ color: 'var(--color-red)', marginLeft: 2 }}>*</span>}
     </p>
   )
 
@@ -160,13 +160,13 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
       display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
     }} onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
       <div style={{
-        background: '#fff', borderRadius: '20px 20px 0 0',
+        background: 'var(--bg-elevated)', borderRadius: '20px 20px 0 0',
         width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto',
         padding: '20px 20px 32px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
           <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>방(매물) 추가</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#94a3b8' }}>✕</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--text-tertiary)' }}>✕</button>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -175,13 +175,13 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
           <div>
             {lbl('건물 선택', true)}
             {selected ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 10, background: '#f0fdf4', border: '1.5px solid #bbf7d0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 10, background: 'var(--color-green-bg)', border: '1.5px solid #bbf7d0' }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{selected.name}</div>
-                  <div style={{ fontSize: 11, color: '#94a3b8' }}>{selected.address}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>{selected.name}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{selected.address}</div>
                 </div>
                 <button onClick={() => { setSelected(null); setQuery(''); setBuildings([]) }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 14 }}>✕</button>
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontSize: 14 }}>✕</button>
               </div>
             ) : (
               <>
@@ -190,19 +190,19 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                 />
-                {searching && <p style={{ fontSize: 11, color: '#94a3b8', margin: '4px 0 0' }}>검색 중…</p>}
+                {searching && <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '4px 0 0' }}>검색 중…</p>}
                 {buildings.length > 0 && (
-                  <div style={{ marginTop: 4, border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden' }}>
+                  <div style={{ marginTop: 4, border: '1px solid var(--border-secondary)', borderRadius: 10, overflow: 'hidden' }}>
                     {buildings.map((b) => (
                       <button key={b.id}
                         onClick={() => { setSelected(b); setQuery(b.name ?? ''); setBuildings([]) }}
                         style={{
                           display: 'block', width: '100%', textAlign: 'left',
-                          padding: '10px 12px', border: 'none', borderBottom: '1px solid #f8fafc',
-                          background: '#fff', cursor: 'pointer',
+                          padding: '10px 12px', border: 'none', borderBottom: '1px solid var(--border-primary)',
+                          background: 'var(--bg-elevated)', cursor: 'pointer',
                         }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>{b.name}</div>
-                        <div style={{ fontSize: 11, color: '#94a3b8' }}>{b.address}</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{b.name}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{b.address}</div>
                       </button>
                     ))}
                   </div>
@@ -219,8 +219,8 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
                 <button key={t} onClick={() => setContractType(t)} style={{
                   flex: 1, padding: '9px', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer',
                   border: contractType === t ? '2px solid #2563eb' : '1.5px solid #e2e8f0',
-                  background: contractType === t ? '#eff6ff' : '#fff',
-                  color: contractType === t ? '#2563eb' : '#64748b',
+                  background: contractType === t ? '#eff6ff' : 'var(--bg-elevated)',
+                  color: contractType === t ? '#2563eb' : 'var(--text-secondary)',
                 }}>{t}</button>
               ))}
             </div>
@@ -266,7 +266,7 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
             <div>
               {lbl('호수')}
               <input
-                style={{ ...inp, borderColor: unitError ? '#ef4444' : '#e2e8f0' }}
+                style={{ ...inp, borderColor: unitError ? '#ef4444' : 'var(--border-secondary)' }}
                 placeholder="예) 101, B201, 305가"
                 value={unitNumber}
                 onChange={(e) => {
@@ -275,7 +275,7 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
                 }}
               />
               {unitError && (
-                <p style={{ fontSize: 11, color: '#ef4444', margin: '4px 0 0' }}>{unitError}</p>
+                <p style={{ fontSize: 11, color: 'var(--color-red)', margin: '4px 0 0' }}>{unitError}</p>
               )}
             </div>
           </div>
@@ -316,7 +316,7 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
             {lbl('사진 (선택)')}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
               {previewUrls.map((url, idx) => (
-                <div key={url} style={{ position: 'relative', aspectRatio: '1', borderRadius: 10, overflow: 'hidden', background: '#f1f5f9' }}>
+                <div key={url} style={{ position: 'relative', aspectRatio: '1', borderRadius: 10, overflow: 'hidden', background: 'var(--bg-tertiary)' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <button
@@ -325,7 +325,7 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
                       position: 'absolute', top: 3, right: 3,
                       width: 20, height: 20, borderRadius: '50%',
                       background: 'rgba(0,0,0,0.6)', border: 'none',
-                      color: '#fff', fontSize: 11, cursor: 'pointer',
+                      color: 'var(--text-inverse)', fontSize: 11, cursor: 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>✕</button>
                 </div>
@@ -334,12 +334,12 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
                 onClick={() => imageInputRef.current?.click()}
                 style={{
                   aspectRatio: '1', borderRadius: 10,
-                  border: '2px dashed #e2e8f0', background: '#f8fafc',
+                  border: '2px dashed #e2e8f0', background: 'var(--bg-secondary)',
                   cursor: 'pointer', display: 'flex', flexDirection: 'column',
                   alignItems: 'center', justifyContent: 'center', gap: 3,
                 }}>
-                <span style={{ fontSize: 20, color: '#94a3b8' }}>+</span>
-                <span style={{ fontSize: 9, color: '#94a3b8' }}>사진 추가</span>
+                <span style={{ fontSize: 20, color: 'var(--text-tertiary)' }}>+</span>
+                <span style={{ fontSize: 9, color: 'var(--text-tertiary)' }}>사진 추가</span>
               </button>
             </div>
             <input
@@ -351,19 +351,19 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
               onChange={(e) => { if (e.target.files?.length) addFiles(e.target.files) }}
             />
             {pendingFiles.length > 0 && (
-              <p style={{ fontSize: 11, color: '#64748b', margin: '6px 0 0' }}>
+              <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: '6px 0 0' }}>
                 {pendingFiles.length}장 선택됨 — 등록 시 자동 업로드
               </p>
             )}
           </div>
 
-          {progress && <p style={{ fontSize: 12, color: '#2563eb', margin: 0 }}>{progress}</p>}
-          {error && <p style={{ fontSize: 12, color: '#ef4444', margin: 0 }}>{error}</p>}
+          {progress && <p style={{ fontSize: 12, color: 'var(--color-primary)', margin: 0 }}>{progress}</p>}
+          {error && <p style={{ fontSize: 12, color: 'var(--color-red)', margin: 0 }}>{error}</p>}
 
           <button onClick={handleSubmit} disabled={submitting} style={{
             width: '100%', padding: '13px', borderRadius: 12, border: 'none',
             background: submitting ? '#93c5fd' : '#2563eb',
-            color: '#fff', fontSize: 14, fontWeight: 700, cursor: submitting ? 'default' : 'pointer',
+            color: 'var(--text-inverse)', fontSize: 14, fontWeight: 700, cursor: submitting ? 'default' : 'pointer',
           }}>
             {submitting ? (progress ?? '등록 중…') : '매물 등록'}
           </button>

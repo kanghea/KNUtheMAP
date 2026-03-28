@@ -21,9 +21,9 @@ function normalPDF(x: number, μ: number, σ: number) {
 const GRADES = [
   { max: 10,       label: '신축',    emoji: '✨', color: '#10b981', bg: '#d1fae5', border: '#a7f3d0' },
   { max: 20,       label: '준신축',  emoji: '🏠', color: '#3b82f6', bg: '#dbeafe', border: '#bfdbfe' },
-  { max: 30,       label: '보통',    emoji: '🏡', color: '#6b7280', bg: '#f3f4f6', border: '#e5e7eb' },
-  { max: 40,       label: '노후',    emoji: '🔧', color: '#f59e0b', bg: '#fef3c7', border: '#fde68a' },
-  { max: Infinity, label: '구형',    emoji: '⚠️', color: '#ef4444', bg: '#fee2e2', border: '#fecaca' },
+  { max: 30,       label: '보통',    emoji: '🏡', color: '#6b7280', bg: '#f3f4f6', border: 'var(--star-empty)' },
+  { max: 40,       label: '노후',    emoji: '🔧', color: 'var(--star-filled)', bg: '#fef3c7', border: '#fde68a' },
+  { max: Infinity, label: '구형',    emoji: '⚠️', color: 'var(--color-red)', bg: '#fee2e2', border: '#fecaca' },
 ]
 function getGrade(age: number) {
   return GRADES.find((g) => age <= g.max)!
@@ -194,7 +194,7 @@ export default function AgeDistribution({ ages, currentAge, zone, builtYear }: P
           {/* 평균선 */}
           <line
             x1={meanX} y1={MT} x2={meanX} y2={baseY}
-            stroke="#94a3b8" strokeWidth="1" strokeDasharray="3,2"
+            stroke="var(--text-tertiary)" strokeWidth="1" strokeDasharray="3,2"
           />
           <text x={meanX} y={MT - 4} textAnchor="middle" fontSize="8.5" fill="#94a3b8" fontWeight="600">
             구역 평균

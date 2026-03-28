@@ -130,7 +130,7 @@ function DualRange({ min, max, from, to, step = 1, onChange, fmtMin, fmtMax }: D
     <div className="pt-1 pb-2">
       <div className="relative h-5 flex items-center">
         {/* 트랙 배경 */}
-        <div className="absolute inset-x-0 h-[3px] bg-white/20 rounded-full pointer-events-none">
+        <div className="absolute inset-x-0 h-[3px] rounded-full pointer-events-none" style={{ background: 'var(--overlay-border)' }}>
           <div
             className="absolute h-full bg-blue-500 rounded-full"
             style={{ left: `${pct(from)}%`, width: `${pct(to) - pct(from)}%` }}
@@ -151,7 +151,7 @@ function DualRange({ min, max, from, to, step = 1, onChange, fmtMin, fmtMax }: D
           style={{ zIndex: 4 }}
         />
       </div>
-      <div className="flex justify-between mt-2 text-xs text-white/50">
+      <div className="flex justify-between mt-2 text-xs" style={{ color: 'var(--overlay-text-dim)' }}>
         <span>{fmtMin(from)}</span>
         <span>{fmtMax(to)}{to === max ? '+' : ''}</span>
       </div>
@@ -172,12 +172,12 @@ function RangeRow({
         onClick={onToggle}
         className="w-full flex items-center justify-between py-3 text-left"
       >
-        <span className="text-sm font-semibold text-white">{label}</span>
+        <span className="text-sm font-semibold" style={{ color: 'var(--overlay-text)' }}>{label}</span>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-white/50">{summary}</span>
+          <span className="text-xs" style={{ color: 'var(--overlay-text-dim)' }}>{summary}</span>
           <svg
             width="14" height="14" viewBox="0 0 24 24" fill="none"
-            stroke="rgba(255,255,255,0.4)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            stroke="var(--overlay-text-faint)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
             style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .2s' }}
           >
             <path d="M6 9l6 6 6-6" />
@@ -256,7 +256,7 @@ export default function DynamicFilter({ filters, onChange }: Props) {
           pointer-events: all;
           width: 18px; height: 18px;
           border-radius: 50%;
-          background: #fff;
+          background: var(--overlay-text);
           cursor: grab;
           box-shadow: 0 2px 6px rgba(0,0,0,.55);
         }
@@ -264,7 +264,7 @@ export default function DynamicFilter({ filters, onChange }: Props) {
           pointer-events: all;
           width: 18px; height: 18px;
           border-radius: 50%;
-          background: #fff;
+          background: var(--overlay-text);
           cursor: grab;
           border: none;
           box-shadow: 0 2px 6px rgba(0,0,0,.55);
@@ -287,13 +287,13 @@ export default function DynamicFilter({ filters, onChange }: Props) {
           onClick={() => setOpen(true)}
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            background: '#0a0a0a', color: '#fff',
-            border: '1px solid rgba(255,255,255,0.12)',
+            background: 'var(--overlay-bg)', color: 'var(--overlay-text)',
+            border: '1px solid var(--overlay-active)',
             borderRadius: 999,
             padding: '8px 18px',
             fontSize: 13, fontWeight: 600,
             cursor: 'pointer',
-            boxShadow: '0 4px 20px rgba(0,0,0,.4)',
+            boxShadow: '0 4px 20px var(--overlay-shadow)',
             whiteSpace: 'nowrap',
             opacity: open ? 0 : 1,
             transform: open ? 'scale(0.88) translateY(-4px)' : 'scale(1) translateY(0)',
@@ -307,7 +307,7 @@ export default function DynamicFilter({ filters, onChange }: Props) {
           필터
           {activeCount > 0 && (
             <span style={{
-              background: '#2563eb', color: '#fff',
+              background: 'var(--color-primary)', color: 'var(--overlay-text)',
               borderRadius: 999, fontSize: 11, fontWeight: 700,
               padding: '1px 7px', lineHeight: '18px',
             }}>
@@ -328,12 +328,12 @@ export default function DynamicFilter({ filters, onChange }: Props) {
             opacity: open ? 1 : 0,
             pointerEvents: open ? 'all' : 'none',
             transition: 'opacity .25s ease, transform .28s cubic-bezier(.4,0,.2,1)',
-            background: '#0e0e10',
-            border: '1px solid rgba(255,255,255,0.1)',
+            background: 'var(--overlay-bg)',
+            border: '1px solid var(--overlay-border)',
             borderRadius: 24,
             padding: '16px 18px 14px',
-            boxShadow: '0 8px 40px rgba(0,0,0,.6)',
-            color: '#fff',
+            boxShadow: '0 8px 40px var(--overlay-shadow)',
+            color: 'var(--overlay-text)',
             maxHeight: 'calc(100dvh - 120px)',
             overflowY: 'auto',
             WebkitOverflowScrolling: 'touch',
@@ -341,10 +341,11 @@ export default function DynamicFilter({ filters, onChange }: Props) {
         >
           {/* 헤더 */}
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-bold text-white">필터</span>
+            <span className="text-sm font-bold" style={{ color: 'var(--overlay-text)' }}>필터</span>
             <button
               onClick={() => { setOpen(false); setSection(null) }}
-              className="text-xs text-white/50 hover:text-white/80 transition-colors"
+              className="text-xs transition-colors"
+              style={{ color: 'var(--overlay-text-dim)' }}
             >
               닫기
             </button>
@@ -352,7 +353,7 @@ export default function DynamicFilter({ filters, onChange }: Props) {
 
           {/* ── 건물 종류 ───────────────────────────────────── */}
           <div className="mb-3">
-            <p className="text-xs font-semibold text-white/50 mb-2 uppercase tracking-wide">건물 종류</p>
+            <p className="text-xs font-semibold mb-2 uppercase tracking-wide" style={{ color: 'var(--overlay-text-dim)' }}>건물 종류</p>
             <div className="flex flex-wrap gap-1.5">
               {BUILDING_TYPES.map(({ key, label }) => {
                 const active = filters.buildingType === key
@@ -362,8 +363,8 @@ export default function DynamicFilter({ filters, onChange }: Props) {
                     onClick={() => set('buildingType', key)}
                     style={{
                       padding: '5px 12px', borderRadius: 999, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: 'none', transition: 'background .15s, color .15s',
-                      background: active ? '#2563eb' : 'rgba(255,255,255,0.1)',
-                      color: active ? '#fff' : 'rgba(255,255,255,0.75)',
+                      background: active ? 'var(--color-primary)' : 'var(--overlay-border)',
+                      color: active ? 'var(--overlay-text)' : 'var(--overlay-text-dim)',
                     }}
                   >
                     {label}
@@ -373,7 +374,7 @@ export default function DynamicFilter({ filters, onChange }: Props) {
             </div>
           </div>
 
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '4px 0 2px' }} />
+          <div style={{ borderTop: '1px solid var(--overlay-hover)', margin: '4px 0 2px' }} />
 
           {/* ── 월세 범위 ───────────────────────────────────── */}
           <RangeRow label="월세 범위" summary={rentSummary} open={section === 'rent'} onToggle={() => toggleSection('rent')}>
@@ -416,7 +417,7 @@ export default function DynamicFilter({ filters, onChange }: Props) {
             maxH={200}
           >
             <div className="pb-3 pt-1">
-              <p className="text-[10px] text-white/40 uppercase tracking-wide mb-1.5">기준 출입문</p>
+              <p className="text-[10px] uppercase tracking-wide mb-1.5" style={{ color: 'var(--overlay-text-faint)' }}>기준 출입문</p>
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {MAJOR_GATES.map((g) => {
                   const active = filters.gate === g.name
@@ -427,8 +428,8 @@ export default function DynamicFilter({ filters, onChange }: Props) {
                       style={{
                         padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
                         cursor: 'pointer', border: 'none', transition: 'background .15s, color .15s',
-                        background: active ? '#2563eb' : 'rgba(255,255,255,0.1)',
-                        color: active ? '#fff' : 'rgba(255,255,255,0.7)',
+                        background: active ? 'var(--color-primary)' : 'var(--overlay-border)',
+                        color: active ? 'var(--overlay-text)' : 'var(--overlay-text-dim)',
                       }}
                     >
                       {g.name}
@@ -436,7 +437,7 @@ export default function DynamicFilter({ filters, onChange }: Props) {
                   )
                 })}
               </div>
-              <p className="text-[10px] text-white/40 uppercase tracking-wide mb-1.5">최대 도보 시간</p>
+              <p className="text-[10px] uppercase tracking-wide mb-1.5" style={{ color: 'var(--overlay-text-faint)' }}>최대 도보 시간</p>
               <div className="flex flex-wrap gap-1.5">
                 {[5, 10, 15, 20].map((min) => {
                   const active = filters.gateMinutes === min
@@ -447,8 +448,8 @@ export default function DynamicFilter({ filters, onChange }: Props) {
                       style={{
                         padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
                         cursor: 'pointer', border: 'none', transition: 'background .15s, color .15s',
-                        background: active ? '#2563eb' : 'rgba(255,255,255,0.1)',
-                        color: active ? '#fff' : 'rgba(255,255,255,0.7)',
+                        background: active ? 'var(--color-primary)' : 'var(--overlay-border)',
+                        color: active ? 'var(--overlay-text)' : 'var(--overlay-text-dim)',
                       }}
                     >
                       {min}분 이내
@@ -459,11 +460,11 @@ export default function DynamicFilter({ filters, onChange }: Props) {
             </div>
           </RangeRow>
 
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', margin: '4px 0 8px' }} />
+          <div style={{ borderTop: '1px solid var(--overlay-hover)', margin: '4px 0 8px' }} />
 
           {/* ── 방 옵션 ─────────────────────────────────────── */}
           <div className="mb-3">
-            <p className="text-xs font-semibold text-white/50 mb-2 uppercase tracking-wide">방 옵션</p>
+            <p className="text-xs font-semibold mb-2 uppercase tracking-wide" style={{ color: 'var(--overlay-text-dim)' }}>방 옵션</p>
             <div className="flex flex-wrap gap-1.5">
               {ROOM_OPTIONS.map((opt) => {
                 const active = filters.options.includes(opt)
@@ -473,8 +474,8 @@ export default function DynamicFilter({ filters, onChange }: Props) {
                     onClick={() => toggleOption(opt)}
                     style={{
                       padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: 'none', transition: 'background .15s, color .15s',
-                      background: active ? '#2563eb' : 'rgba(255,255,255,0.1)',
-                      color: active ? '#fff' : 'rgba(255,255,255,0.6)',
+                      background: active ? 'var(--color-primary)' : 'var(--overlay-border)',
+                      color: active ? 'var(--overlay-text)' : 'var(--overlay-text-dim)',
                     }}
                   >
                     {opt}
@@ -485,17 +486,17 @@ export default function DynamicFilter({ filters, onChange }: Props) {
           </div>
 
           {/* ── 하단 버튼 ───────────────────────────────────── */}
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ borderTop: '1px solid var(--overlay-hover)', paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <button
               onClick={() => { onChange(DEFAULT_FILTERS); setSection(null) }}
-              style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}
+              style={{ fontSize: 12, color: 'var(--overlay-text-faint)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }}
             >
               초기화
             </button>
             <button
               onClick={() => { setOpen(false); setSection(null) }}
               style={{
-                background: '#2563eb', color: '#fff', border: 'none', borderRadius: 999,
+                background: 'var(--color-primary)', color: 'var(--overlay-text)', border: 'none', borderRadius: 999,
                 padding: '7px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
               }}
             >

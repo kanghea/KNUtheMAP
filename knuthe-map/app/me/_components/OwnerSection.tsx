@@ -23,7 +23,7 @@ export default function OwnerSection({ myRoomsCount }: Props) {
           <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', margin: '0 0 4px', fontWeight: 600 }}>
             등록된 매물
           </p>
-          <p style={{ fontSize: 28, fontWeight: 800, color: '#fff', margin: 0 }}>
+          <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-inverse)', margin: 0 }}>
             {myRoomsCount}<span style={{ fontSize: 14, fontWeight: 500, marginLeft: 4 }}>개</span>
           </p>
         </div>
@@ -37,21 +37,21 @@ export default function OwnerSection({ myRoomsCount }: Props) {
             <div style={{
               display: 'flex', alignItems: 'center', gap: 14,
               padding: '14px 16px', borderRadius: 14,
-              background: '#fff', border: '1.5px solid #f1f5f9',
+              background: 'var(--bg-elevated)', border: '1.5px solid #f1f5f9',
               cursor: 'pointer',
             }}>
               <div style={{
                 width: 40, height: 40, borderRadius: 12,
-                background: '#eff6ff',
+                background: 'var(--color-primary-bg)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 18, flexShrink: 0,
               }}>{item.icon}</div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{item.label}</div>
-                <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{item.desc}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>{item.label}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>{item.desc}</div>
               </div>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="#cbd5e1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 18l6-6-6-6"/>
               </svg>
             </div>

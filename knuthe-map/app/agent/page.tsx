@@ -33,25 +33,25 @@ export default async function AgentPage() {
     .limit(5)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', paddingBottom: 100 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-secondary)', paddingBottom: 100 }}>
       <header style={{
         position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #f1f5f9',
+        background: 'var(--bg-overlay)', backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid var(--border-primary)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '14px 20px',
       }}>
         <div>
-          <h1 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>중개사 대시보드</h1>
-          <p style={{ fontSize: 11, color: '#94a3b8', margin: '2px 0 0' }}>
+          <h1 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>중개사 대시보드</h1>
+          <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '2px 0 0' }}>
             {profile.nickname ?? user.email}
           </p>
         </div>
         <Link href="/me" style={{
-          width: 34, height: 34, borderRadius: 10, background: '#f1f5f9',
+          width: 34, height: 34, borderRadius: 10, background: 'var(--bg-tertiary)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
         }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151"
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)"
             strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
             <circle cx="12" cy="7" r="4"/>
@@ -64,8 +64,8 @@ export default async function AgentPage() {
         {/* 통계 요약 */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           {[
-            { label: '관리 건물', value: buildingCount ?? 0, icon: '🏢', color: '#7c3aed', bg: '#f5f3ff', href: '/agent/buildings' },
-            { label: '활성 매물', value: listingCount ?? 0,  icon: '📋', color: '#2563eb', bg: '#eff6ff', href: '/agent/listings' },
+            { label: '관리 건물', value: buildingCount ?? 0, icon: '🏢', color: 'var(--color-purple)', bg: '#f5f3ff', href: '/agent/buildings' },
+            { label: '활성 매물', value: listingCount ?? 0,  icon: '📋', color: 'var(--color-primary)', bg: '#eff6ff', href: '/agent/listings' },
           ].map((s) => (
             <Link key={s.href} href={s.href} style={{
               background: s.bg, borderRadius: 16, padding: '18px 16px',
@@ -81,8 +81,8 @@ export default async function AgentPage() {
 
         {/* 빠른 메뉴 */}
         <div style={{
-          background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.04)', overflow: 'hidden',
+          background: 'var(--bg-elevated)', borderRadius: 20, border: '1px solid var(--border-primary)',
+          boxShadow: 'var(--shadow-xs)', overflow: 'hidden',
         }}>
           {[
             { href: '/agent/buildings', icon: '🏢', label: '건물 관리', desc: '관리 건물 추가·확인' },
@@ -93,17 +93,17 @@ export default async function AgentPage() {
               display: 'flex', alignItems: 'center', gap: 14,
               padding: '14px 18px', textDecoration: 'none',
               borderBottom: i < 2 ? '1px solid #f8fafc' : 'none',
-              background: '#fff',
+              background: 'var(--bg-elevated)',
             }}>
               <span style={{
-                width: 40, height: 40, borderRadius: 12, background: '#f8fafc',
+                width: 40, height: 40, borderRadius: 12, background: 'var(--bg-secondary)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0,
               }}>{item.icon}</span>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{item.label}</div>
-                <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>{item.desc}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>{item.label}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 1 }}>{item.desc}</div>
               </div>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1"
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)"
                 strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 18l6-6-6-6"/>
               </svg>
@@ -114,12 +114,12 @@ export default async function AgentPage() {
         {/* 최근 관리 건물 */}
         {(buildings ?? []).length > 0 && (
           <div style={{
-            background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '18px 20px',
+            background: 'var(--bg-elevated)', borderRadius: 20, border: '1px solid var(--border-primary)',
+            boxShadow: 'var(--shadow-xs)', padding: '18px 20px',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <h2 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: 0 }}>관리 건물</h2>
-              <Link href="/agent/buildings" style={{ fontSize: 12, color: '#2563eb', textDecoration: 'none' }}>
+              <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>관리 건물</h2>
+              <Link href="/agent/buildings" style={{ fontSize: 12, color: 'var(--color-primary)', textDecoration: 'none' }}>
                 전체 보기
               </Link>
             </div>
@@ -132,15 +132,15 @@ export default async function AgentPage() {
                   <Link key={i} href={`/buildings/${b.id}`} style={{
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '10px 12px', borderRadius: 10,
-                    border: '1px solid #f1f5f9', background: '#f8fafc',
+                    border: '1px solid var(--border-primary)', background: 'var(--bg-secondary)',
                     textDecoration: 'none',
                   }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a',
+                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {b.name ?? '이름 없는 건물'}
                       </div>
-                      <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1,
+                      <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 1,
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {b.address}
                       </div>
@@ -148,7 +148,7 @@ export default async function AgentPage() {
                     {b.zone && (
                       <span style={{
                         fontSize: 10, padding: '2px 7px', borderRadius: 999,
-                        background: '#f1f5f9', color: '#64748b', flexShrink: 0,
+                        background: 'var(--bg-tertiary)', color: 'var(--text-secondary)', flexShrink: 0,
                       }}>{b.zone}</span>
                     )}
                   </Link>

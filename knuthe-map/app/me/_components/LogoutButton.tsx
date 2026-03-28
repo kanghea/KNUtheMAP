@@ -8,7 +8,7 @@ export default function LogoutButton() {
           type="submit"
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: 13, color: '#94a3b8', fontWeight: 500, padding: '8px',
+            fontSize: 13, color: 'var(--text-tertiary)', fontWeight: 500, padding: '8px',
           }}
         >
           로그아웃

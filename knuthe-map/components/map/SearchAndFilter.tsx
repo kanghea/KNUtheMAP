@@ -81,7 +81,7 @@ function RangeRow({ label, summary, open, onToggle, children, maxH = 120 }: {
         <div className="flex items-center gap-2">
           <span className="text-xs text-white/50">{summary}</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-            stroke="rgba(255,255,255,0.4)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            stroke="var(--overlay-text-faint)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
             style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .2s' }}>
             <path d="M6 9l6 6 6-6" />
           </svg>
@@ -100,14 +100,14 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
       onClick={() => onChange(!on)}
       style={{
         width: 44, height: 26, borderRadius: 13, flexShrink: 0,
-        background: on ? '#2563eb' : 'rgba(255,255,255,0.15)',
+        background: on ? 'var(--color-primary)' : 'var(--overlay-border)',
         border: 'none', cursor: 'pointer', position: 'relative',
         transition: 'background .2s',
       }}
     >
       <span style={{
         position: 'absolute', top: 3, left: on ? 21 : 3,
-        width: 20, height: 20, borderRadius: '50%', background: '#fff',
+        width: 20, height: 20, borderRadius: '50%', background: 'var(--overlay-text)',
         transition: 'left .2s', boxShadow: '0 1px 4px rgba(0,0,0,.3)',
         display: 'block',
       }} />
@@ -219,11 +219,11 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
         .saf-thumb::-webkit-slider-thumb {
           -webkit-appearance: none; pointer-events: all;
           width: 18px; height: 18px; border-radius: 50%;
-          background: #fff; cursor: grab; box-shadow: 0 2px 6px rgba(0,0,0,.55);
+          background: var(--overlay-text); cursor: grab; box-shadow: 0 2px 6px rgba(0,0,0,.55);
         }
         .saf-thumb::-moz-range-thumb {
           pointer-events: all; width: 18px; height: 18px; border-radius: 50%;
-          background: #fff; cursor: grab; border: none; box-shadow: 0 2px 6px rgba(0,0,0,.55);
+          background: var(--overlay-text); cursor: grab; border: none; box-shadow: 0 2px 6px rgba(0,0,0,.55);
         }
       `}</style>
 
@@ -250,21 +250,21 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
         {/* ── 검색 바 ──────────────────────────────────────── */}
         <div
           style={{
-            background:   '#0a0a0a',
-            border:       '1px solid rgba(255,255,255,0.13)',
-            borderBottom: showCard ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(255,255,255,0.13)',
+            background:   'var(--overlay-bg)',
+            border:       '1px solid var(--overlay-border)',
+            borderBottom: showCard ? '1px solid var(--border-subtle)' : '1px solid var(--overlay-border)',
             borderRadius: showCard ? '20px 20px 0 0' : 999,
             padding:      '10px 16px',
             display:      'flex',
             alignItems:   'center',
             gap:          10,
-            boxShadow:    showCard ? 'none' : '0 4px 24px rgba(0,0,0,.5)',
+            boxShadow:    showCard ? 'none' : 'var(--overlay-shadow)',
             transition:   'border-radius .2s ease, border-bottom .1s ease',
           }}
         >
           {/* 검색 아이콘 */}
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke={focused || query ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.3)'}
+            stroke={focused || query ? 'var(--overlay-text-dim)' : 'var(--overlay-text-faint)'}
             strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
             style={{ flexShrink: 0, transition: 'stroke .2s' }}>
             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
@@ -279,14 +279,14 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
             placeholder="주소나 건물명으로 검색"
             style={{
               flex: 1, background: 'none', border: 'none', outline: 'none',
-              color: '#fff', fontSize: 14, fontWeight: 500,
+              color: 'var(--overlay-text)', fontSize: 16, fontWeight: 500,
             }}
           />
 
           {/* 로딩 스피너 */}
           {loading && (
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-              stroke="rgba(255,255,255,0.4)" strokeWidth="2.5" strokeLinecap="round"
+              stroke="var(--overlay-text-faint)" strokeWidth="2.5" strokeLinecap="round"
               style={{ flexShrink: 0, animation: 'spin 0.8s linear infinite' }}>
               <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
               <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/>
@@ -298,9 +298,9 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
             <button
               onClick={() => { setQuery(''); setResults([]); inputRef.current?.focus() }}
               style={{
-                flexShrink: 0, background: 'rgba(255,255,255,0.1)', border: 'none',
+                flexShrink: 0, background: 'var(--overlay-border)', border: 'none',
                 borderRadius: '50%', width: 20, height: 20, cursor: 'pointer',
-                color: 'rgba(255,255,255,0.6)', fontSize: 13, lineHeight: '20px',
+                color: 'var(--overlay-text-dim)', fontSize: 13, lineHeight: '20px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
@@ -312,14 +312,14 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
           <button
             onClick={() => { setFilterOpen((v) => !v); setFocused(true) }}
             style={{
-              flexShrink: 0, background: activeCount > 0 ? '#2563eb' : 'rgba(255,255,255,0.1)',
+              flexShrink: 0, background: activeCount > 0 ? 'var(--color-primary)' : 'var(--overlay-border)',
               border: 'none', borderRadius: 8, width: 30, height: 30, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'background .15s', position: 'relative',
             }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-              stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              stroke="var(--overlay-text)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="4" y1="6" x2="20" y2="6"/>
               <line x1="8" y1="12" x2="16" y2="12"/>
               <line x1="11" y1="18" x2="13" y2="18"/>
@@ -327,7 +327,7 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
             {activeCount > 0 && (
               <span style={{
                 position: 'absolute', top: -4, right: -4,
-                background: '#fff', color: '#2563eb',
+                background: 'var(--overlay-text)', color: 'var(--color-primary)',
                 borderRadius: '50%', width: 14, height: 14,
                 fontSize: 9, fontWeight: 800,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -339,16 +339,16 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
         {/* ── 카드 (검색결과 + 필터) ──────────────────────── */}
         <div
           style={{
-            background:    '#0a0a0a',
+            background:    'var(--overlay-bg)',
             borderTop:     'none',
-            borderRight:   showCard ? '1px solid rgba(255,255,255,0.13)' : 'none',
-            borderBottom:  showCard ? '1px solid rgba(255,255,255,0.13)' : 'none',
-            borderLeft:    showCard ? '1px solid rgba(255,255,255,0.13)' : 'none',
+            borderRight:   showCard ? '1px solid var(--overlay-border)' : 'none',
+            borderBottom:  showCard ? '1px solid var(--overlay-border)' : 'none',
+            borderLeft:    showCard ? '1px solid var(--overlay-border)' : 'none',
             borderRadius: '0 0 20px 20px',
             overflow:     'hidden',
             maxHeight:    showCard ? 'calc(100vh - 120px)' : 0,
             overflowY:    'auto',
-            boxShadow:    showCard ? '0 8px 32px rgba(0,0,0,.5)' : 'none',
+            boxShadow:    showCard ? 'var(--overlay-shadow)' : 'none',
             opacity:      showCard ? 1 : 0,
             transition:   'max-height .25s cubic-bezier(.4,0,.2,1), opacity .15s ease',
           }}
@@ -368,27 +368,27 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
                     padding:    '11px 16px',
                     background: 'none',
                     border:     'none',
-                    borderBottom: i < results.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                    borderBottom: i < results.length - 1 ? '1px solid var(--border-subtle)' : 'none',
                     cursor:     'pointer',
                     textAlign:  'left',
                     transition: 'background .12s',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--border-subtle)')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
                 >
                   <span style={{ fontSize: 20, flexShrink: 0 }}>{buildingIcon(r.main_purps_nm)}</span>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--overlay-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {r.name || '이름 없음'}
                     </div>
                     {r.address && (
-                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div style={{ fontSize: 11, color: 'var(--overlay-text-faint)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {r.address}
                       </div>
                     )}
                   </div>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                    stroke="rgba(255,255,255,0.2)" strokeWidth="2" strokeLinecap="round"
+                    stroke="var(--overlay-text-faint)" strokeWidth="2" strokeLinecap="round"
                     style={{ flexShrink: 0, marginLeft: 'auto' }}>
                     <path d="M9 18l6-6-6-6"/>
                   </svg>
@@ -399,14 +399,14 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
 
           {/* 검색 결과 없음 */}
           {!loading && query.trim() && results.length === 0 && (
-            <div style={{ padding: '14px 16px', color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>
+            <div style={{ padding: '14px 16px', color: 'var(--overlay-text-faint)', fontSize: 13 }}>
               &apos;{query}&apos; 에 해당하는 건물이 없어요
             </div>
           )}
 
           {/* 검색 결과 + 필터 사이 구분선 */}
           {results.length > 0 && (
-            <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '0 16px' }} />
+            <div style={{ height: 1, background: 'var(--border-subtle)', margin: '0 16px' }} />
           )}
 
           {/* ── 필터 토글 행 ────────────────────────────── */}
@@ -421,21 +421,21 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
               background: 'none',
               border:     'none',
               cursor:     'pointer',
-              color:      '#fff',
+              color:      'var(--overlay-text)',
               textAlign:  'left',
             }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-              stroke="rgba(255,255,255,0.5)" strokeWidth="2.2" strokeLinecap="round"
+              stroke="var(--overlay-text-dim)" strokeWidth="2.2" strokeLinecap="round"
               style={{ flexShrink: 0, transform: filterOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform .2s' }}>
               <path d="M6 9l6 6 6-6"/>
             </svg>
-            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', flex: 1 }}>
+            <span style={{ fontSize: 13, color: 'var(--overlay-text-dim)', flex: 1 }}>
               자세한 조건으로 찾고싶나요?
             </span>
             {activeCount > 0 && (
               <span style={{
-                background: '#2563eb', color: '#fff', borderRadius: 999,
+                background: 'var(--color-primary)', color: 'var(--overlay-text)', borderRadius: 999,
                 fontSize: 11, fontWeight: 700, padding: '1px 8px',
               }}>
                 {activeCount}
@@ -451,11 +451,11 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
           }}>
             <div style={{ padding: '0 16px 4px' }}>
 
-              <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 8 }} />
+              <div style={{ height: 1, background: 'var(--border-subtle)', marginBottom: 8 }} />
 
               {/* 건물 종류 */}
               <div style={{ marginBottom: 4 }}>
-                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+                <p style={{ fontSize: 10, color: 'var(--overlay-text-faint)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
                   건물 종류
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
@@ -465,8 +465,8 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
                       <button key={String(key)} onClick={() => set('buildingType', key)} style={{
                         padding: '5px 12px', borderRadius: 999, fontSize: 12, fontWeight: 600,
                         cursor: 'pointer', border: 'none', transition: 'background .15s, color .15s',
-                        background: active ? '#2563eb' : 'rgba(255,255,255,0.1)',
-                        color: active ? '#fff' : 'rgba(255,255,255,0.75)',
+                        background: active ? 'var(--color-primary)' : 'var(--overlay-border)',
+                        color: active ? 'var(--overlay-text)' : 'var(--overlay-text-dim)',
                       }}>
                         {label}
                       </button>
@@ -475,7 +475,7 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
                 </div>
               </div>
 
-              <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '4px 0' }} />
+              <div style={{ height: 1, background: 'var(--border-subtle)', margin: '4px 0' }} />
 
               {/* 월세 */}
               <RangeRow label="월세 범위" summary={rentSummary} open={section === 'rent'} onToggle={() => toggleSection('rent')}>
@@ -508,7 +508,7 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
                 open={section === 'gate'} onToggle={() => toggleSection('gate')} maxH={200}
               >
                 <div style={{ paddingBottom: 12, paddingTop: 4 }}>
-                  <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>기준 출입문</p>
+                  <p style={{ fontSize: 10, color: 'var(--overlay-text-faint)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>기준 출입문</p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
                     {MAJOR_GATES.map((g) => {
                       const active = filters.gate === g.name
@@ -516,15 +516,15 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
                         <button key={g.name} onClick={() => set('gate', active ? null : g.name)} style={{
                           padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
                           cursor: 'pointer', border: 'none', transition: 'background .15s',
-                          background: active ? '#2563eb' : 'rgba(255,255,255,0.1)',
-                          color: active ? '#fff' : 'rgba(255,255,255,0.7)',
+                          background: active ? 'var(--color-primary)' : 'var(--overlay-border)',
+                          color: active ? 'var(--overlay-text)' : 'var(--overlay-text-dim)',
                         }}>
                           {g.name}
                         </button>
                       )
                     })}
                   </div>
-                  <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>최대 도보 시간</p>
+                  <p style={{ fontSize: 10, color: 'var(--overlay-text-faint)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>최대 도보 시간</p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {[5, 10, 15, 20].map((min) => {
                       const active = filters.gateMinutes === min
@@ -532,8 +532,8 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
                         <button key={min} onClick={() => set('gateMinutes', active ? null : min)} style={{
                           padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
                           cursor: 'pointer', border: 'none', transition: 'background .15s',
-                          background: active ? '#2563eb' : 'rgba(255,255,255,0.1)',
-                          color: active ? '#fff' : 'rgba(255,255,255,0.7)',
+                          background: active ? 'var(--color-primary)' : 'var(--overlay-border)',
+                          color: active ? 'var(--overlay-text)' : 'var(--overlay-text-dim)',
                         }}>
                           {min}분 이내
                         </button>
@@ -543,11 +543,11 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
                 </div>
               </RangeRow>
 
-              <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '4px 0 8px' }} />
+              <div style={{ height: 1, background: 'var(--border-subtle)', margin: '4px 0 8px' }} />
 
               {/* 방 옵션 */}
               <div style={{ marginBottom: 8 }}>
-                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+                <p style={{ fontSize: 10, color: 'var(--overlay-text-faint)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
                   방 옵션
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -557,8 +557,8 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
                       <button key={opt} onClick={() => toggleOption(opt)} style={{
                         padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
                         cursor: 'pointer', border: 'none', transition: 'background .15s',
-                        background: active ? '#2563eb' : 'rgba(255,255,255,0.1)',
-                        color: active ? '#fff' : 'rgba(255,255,255,0.6)',
+                        background: active ? 'var(--color-primary)' : 'var(--overlay-border)',
+                        color: active ? 'var(--overlay-text)' : 'var(--overlay-text-dim)',
                       }}>
                         {opt}
                       </button>
@@ -571,10 +571,10 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
               <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', margin: '8px 0', padding: '12px 0' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--overlay-text)', display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span>🔔</span> 이 조건으로 매물 나오면 알림받기
                     </div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 3 }}>
+                    <div style={{ fontSize: 11, color: 'var(--overlay-text-faint)', marginTop: 3 }}>
                       {notifyOn ? '조건에 맞는 새 건물이 등록되면 알려드려요' : '새 건물 알림을 설정할 수 있어요'}
                     </div>
                   </div>
@@ -586,14 +586,14 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
               <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: 12, paddingBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <button
                   onClick={handleReset}
-                  style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}
+                  style={{ fontSize: 12, color: 'var(--overlay-text-faint)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}
                 >
                   초기화
                 </button>
                 <button
                   onClick={() => { setFilterOpen(false); setFocused(false) }}
                   style={{
-                    background: '#2563eb', color: '#fff', border: 'none',
+                    background: 'var(--color-primary)', color: 'var(--overlay-text)', border: 'none',
                     borderRadius: 999, padding: '8px 22px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
                   }}
                 >

@@ -29,7 +29,7 @@ export default async function OwnerContractsPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const building = ownerBuilding.buildings as any
 
-  const [{ data: contracts }, { data: unitOptions }] = await Promise.all([
+  const [{ data: rawContracts }, { data: unitOptions }] = await Promise.all([
     supabase
       .from('owner_contracts')
       .select(`
@@ -50,29 +50,29 @@ export default async function OwnerContractsPage() {
   ])
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', paddingBottom: 100 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-secondary)', paddingBottom: 100 }}>
 
       {/* 헤더 */}
       <header style={{
         position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #f1f5f9',
+        background: 'var(--bg-overlay)', backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid var(--border-primary)',
         display: 'flex', alignItems: 'center', gap: 12,
         padding: '14px 20px',
       }}>
         <Link href="/owner" style={{
-          width: 34, height: 34, borderRadius: 10, background: '#f1f5f9',
+          width: 34, height: 34, borderRadius: 10, background: 'var(--bg-tertiary)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           textDecoration: 'none', flexShrink: 0,
         }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151"
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)"
             strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6" />
           </svg>
         </Link>
         <div>
-          <h1 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>계약 관리</h1>
-          <p style={{ fontSize: 11, color: '#94a3b8', margin: '2px 0 0' }}>
+          <h1 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>계약 관리</h1>
+          <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '2px 0 0' }}>
             {building.name ?? building.address}
           </p>
         </div>
@@ -81,7 +81,12 @@ export default async function OwnerContractsPage() {
       <div style={{ maxWidth: 520, margin: '0 auto', padding: '20px 16px' }}>
         <ContractsClient
           buildingId={building.id}
-          initialContracts={contracts ?? []}
+          initialContracts={(rawContracts ?? []).map((c) => ({
+            ...c,
+            building_units: Array.isArray(c.building_units)
+              ? c.building_units[0] ?? null
+              : c.building_units,
+          })) as import('./_components/ContractsClient').Contract[]}
           units={unitOptions ?? []}
         />
       </div>

@@ -36,11 +36,11 @@ const FACTORS = [
 ]
 
 const RANK_COLORS = [
-  { bg: '#2563eb', text: '#fff' },
-  { bg: '#7c3aed', text: '#fff' },
-  { bg: '#0891b2', text: '#fff' },
-  { bg: '#059669', text: '#fff' },
-  { bg: '#6b7280', text: '#fff' },
+  { bg: '#2563eb', text: 'var(--bg-elevated)' },
+  { bg: '#7c3aed', text: 'var(--bg-elevated)' },
+  { bg: '#0891b2', text: 'var(--bg-elevated)' },
+  { bg: '#059669', text: 'var(--bg-elevated)' },
+  { bg: '#6b7280', text: 'var(--bg-elevated)' },
 ]
 
 interface Props {
@@ -93,7 +93,7 @@ export default function StepPriority({ value, onChange }: Props) {
             <div className="flex-1 min-w-0">
               <p
                 className="text-sm font-bold"
-                style={selected ? { color: color.bg } : { color: '#1f2937' }}
+                style={selected ? { color: color.bg } : { color: 'var(--text-primary)' }}
               >
                 {f.label}
               </p>

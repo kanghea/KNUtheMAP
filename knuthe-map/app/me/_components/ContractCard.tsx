@@ -47,7 +47,7 @@ function ActionLabel({ action }: { action: HistoryEntry['action'] }) {
 
 function HistoryTimeline({ history }: { history: HistoryEntry[] }) {
   if (history.length === 0) return (
-    <p style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '12px 0' }}>
+    <p style={{ fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center', padding: '12px 0' }}>
       변경 이력이 없습니다
     </p>
   )
@@ -60,35 +60,35 @@ function HistoryTimeline({ history }: { history: HistoryEntry[] }) {
         }}>
           {/* 타임라인 선 */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: 16 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#2563eb', flexShrink: 0, marginTop: 3 }} />
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-primary)', flexShrink: 0, marginTop: 3 }} />
             {i < history.length - 1 && (
-              <div style={{ flex: 1, width: 1, background: '#e2e8f0', marginTop: 3 }} />
+              <div style={{ flex: 1, width: 1, background: 'var(--bg-tertiary)', marginTop: 3 }} />
             )}
           </div>
 
           <div style={{ flex: 1, paddingBottom: 4 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
               <ActionLabel action={h.action} />
-              <span style={{ fontSize: 10, color: '#94a3b8' }}>
+              <span style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>
                 {new Date(h.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' })}
               </span>
             </div>
 
             {h.changed_fields && Object.entries(h.changed_fields).map(([field, [oldVal, newVal]]) => (
-              <div key={field} style={{ fontSize: 11, color: '#475569', marginBottom: 2 }}>
-                <span style={{ color: '#94a3b8' }}>{FIELD_LABELS[field] ?? field}: </span>
-                <span style={{ textDecoration: 'line-through', color: '#ef4444' }}>
+              <div key={field} style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 2 }}>
+                <span style={{ color: 'var(--text-tertiary)' }}>{FIELD_LABELS[field] ?? field}: </span>
+                <span style={{ textDecoration: 'line-through', color: 'var(--color-red)' }}>
                   {typeof oldVal === 'number' ? `${(oldVal as number).toLocaleString()}만` : String(oldVal ?? '-')}
                 </span>
                 {' → '}
-                <span style={{ color: '#16a34a', fontWeight: 600 }}>
+                <span style={{ color: 'var(--color-green)', fontWeight: 600 }}>
                   {typeof newVal === 'number' ? `${(newVal as number).toLocaleString()}만` : String(newVal ?? '-')}
                 </span>
               </div>
             ))}
 
             {h.action === 'created' || h.action === 'renewed' ? (
-              <div style={{ fontSize: 11, color: '#475569' }}>
+              <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
                 {`${(h.snapshot.contract_type as string)} · 보증금 ${((h.snapshot.deposit as number) ?? 0).toLocaleString()}만`}
                 {h.snapshot.monthly_rent ? ` / 월세 ${((h.snapshot.monthly_rent as number)).toLocaleString()}만` : ''}
               </div>
@@ -130,13 +130,13 @@ export default function ContractCard({ contract: c, onEdit, onEnd, onRenew }: Pr
   const inputStyle: React.CSSProperties = {
     padding: '7px 10px', borderRadius: 8,
     border: '1.5px solid #bfdbfe', fontSize: 12,
-    background: '#fff', outline: 'none', width: '100%', boxSizing: 'border-box',
+    background: 'var(--bg-elevated)', outline: 'none', width: '100%', boxSizing: 'border-box',
   }
 
   return (
     <div style={{
-      background: '#fff', borderRadius: 16,
-      border: `1.5px solid ${isExpiring ? '#fde68a' : '#f1f5f9'}`,
+      background: 'var(--bg-elevated)', borderRadius: 16,
+      border: `1.5px solid ${isExpiring ? '#fde68a' : 'var(--border-primary)'}`,
       overflow: 'hidden',
     }}>
       {/* ── 만료 임박 배너 ──────────────────────────────────── */}
@@ -164,15 +164,15 @@ export default function ContractCard({ contract: c, onEdit, onEnd, onRenew }: Pr
               {c.is_renewal && (
                 <span style={{
                   fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999,
-                  background: '#f3e8ff', color: '#7c3aed',
+                  background: '#f3e8ff', color: 'var(--color-purple)',
                 }}>연장</span>
               )}
             </div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginBottom: 2,
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2,
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {buildingName(c)}
             </div>
-            <div style={{ fontSize: 11, color: '#64748b' }}>
+            <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
               {[c.unit_number, c.floor ? `${c.floor}층` : null, c.room_type, c.area_m2 ? `${c.area_m2}㎡` : null]
                 .filter(Boolean).join(' · ')}
             </div>
@@ -184,16 +184,16 @@ export default function ContractCard({ contract: c, onEdit, onEnd, onRenew }: Pr
               onClick={() => { setEditing((v) => !v); setShowHistory(false) }}
               style={{
                 padding: '5px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600,
-                border: '1px solid #e2e8f0', background: editing ? '#eff6ff' : '#fff',
-                color: editing ? '#2563eb' : '#64748b', cursor: 'pointer',
+                border: '1px solid var(--border-secondary)', background: editing ? '#eff6ff' : 'var(--bg-elevated)',
+                color: editing ? '#2563eb' : 'var(--text-secondary)', cursor: 'pointer',
               }}
             >수정</button>
             <button
               onClick={onRenew}
               style={{
                 padding: '5px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600,
-                border: '1px solid #e2e8f0', background: '#fff',
-                color: '#7c3aed', cursor: 'pointer',
+                border: '1px solid var(--border-secondary)', background: 'var(--bg-elevated)',
+                color: 'var(--color-purple)', cursor: 'pointer',
               }}
             >연장</button>
           </div>
@@ -202,13 +202,13 @@ export default function ContractCard({ contract: c, onEdit, onEnd, onRenew }: Pr
         {/* ── 금액 + 기간 요약 ─────────────────────────────── */}
         {!editing && (
           <div style={{
-            marginTop: 10, background: '#f8fafc', borderRadius: 10,
+            marginTop: 10, background: 'var(--bg-secondary)', borderRadius: 10,
             padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}>
-            <span style={{ fontSize: 15, fontWeight: 800, color: '#0f172a' }}>
+            <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-primary)' }}>
               {priceTag(c)}
             </span>
-            <span style={{ fontSize: 11, color: '#94a3b8' }}>
+            <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
               {c.contract_start?.slice(0, 7) ?? '?'} ~ {c.contract_end?.slice(0, 7) ?? '?'}
             </span>
           </div>
@@ -219,13 +219,13 @@ export default function ContractCard({ contract: c, onEdit, onEnd, onRenew }: Pr
           <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ display: 'grid', gridTemplateColumns: c.contract_type === '월세' ? '1fr 1fr' : '1fr', gap: 8 }}>
               <div>
-                <p style={{ fontSize: 10, color: '#94a3b8', margin: '0 0 3px', fontWeight: 600 }}>보증금 (만원)</p>
+                <p style={{ fontSize: 10, color: 'var(--text-tertiary)', margin: '0 0 3px', fontWeight: 600 }}>보증금 (만원)</p>
                 <input style={inputStyle} type="number" value={deposit}
                   onChange={(e) => setDeposit(e.target.value)} />
               </div>
               {c.contract_type === '월세' && (
                 <div>
-                  <p style={{ fontSize: 10, color: '#94a3b8', margin: '0 0 3px', fontWeight: 600 }}>월세 (만원)</p>
+                  <p style={{ fontSize: 10, color: 'var(--text-tertiary)', margin: '0 0 3px', fontWeight: 600 }}>월세 (만원)</p>
                   <input style={inputStyle} type="number" value={monthlyRent}
                     onChange={(e) => setMonthlyRent(e.target.value)} />
                 </div>
@@ -233,12 +233,12 @@ export default function ContractCard({ contract: c, onEdit, onEnd, onRenew }: Pr
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <div>
-                <p style={{ fontSize: 10, color: '#94a3b8', margin: '0 0 3px', fontWeight: 600 }}>관리비 (만원)</p>
+                <p style={{ fontSize: 10, color: 'var(--text-tertiary)', margin: '0 0 3px', fontWeight: 600 }}>관리비 (만원)</p>
                 <input style={inputStyle} type="number" value={maintenance}
                   onChange={(e) => setMaintenance(e.target.value)} />
               </div>
               <div>
-                <p style={{ fontSize: 10, color: '#94a3b8', margin: '0 0 3px', fontWeight: 600 }}>계약 종료일</p>
+                <p style={{ fontSize: 10, color: 'var(--text-tertiary)', margin: '0 0 3px', fontWeight: 600 }}>계약 종료일</p>
                 <input style={inputStyle} type="date" value={contractEnd}
                   onChange={(e) => setContractEnd(e.target.value)} />
               </div>
@@ -249,14 +249,14 @@ export default function ContractCard({ contract: c, onEdit, onEnd, onRenew }: Pr
                 disabled={saving}
                 style={{
                   flex: 1, padding: '9px', borderRadius: 10, fontSize: 12, fontWeight: 700,
-                  background: '#2563eb', color: '#fff', border: 'none', cursor: 'pointer',
+                  background: 'var(--color-primary)', color: 'var(--text-inverse)', border: 'none', cursor: 'pointer',
                 }}
               >{saving ? '저장 중…' : '저장'}</button>
               <button
                 onClick={() => setEditing(false)}
                 style={{
                   padding: '9px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600,
-                  background: '#f1f5f9', color: '#64748b', border: 'none', cursor: 'pointer',
+                  background: 'var(--bg-tertiary)', color: 'var(--text-secondary)', border: 'none', cursor: 'pointer',
                 }}
               >취소</button>
               <button
@@ -281,18 +281,18 @@ export default function ContractCard({ contract: c, onEdit, onEnd, onRenew }: Pr
           textAlign: 'left',
         }}
       >
-        <span style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8' }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)' }}>
           가격 변동 이력 ({c.user_contract_history.length}건)
         </span>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-          stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+          stroke="var(--text-tertiary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
           style={{ transform: showHistory ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
           <path d="M6 9l6 6 6-6"/>
         </svg>
       </button>
 
       {showHistory && (
-        <div style={{ padding: '12px 16px 16px', borderTop: '1px solid #f1f5f9' }}>
+        <div style={{ padding: '12px 16px 16px', borderTop: '1px solid var(--border-primary)' }}>
           <HistoryTimeline history={c.user_contract_history} />
         </div>
       )}

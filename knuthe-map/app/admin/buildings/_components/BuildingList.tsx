@@ -87,7 +87,7 @@ export default function BuildingList({ buildings }: { buildings: Building[] }) {
         {/* 추가 버튼 */}
         <button onClick={() => setShowAdd(true)} style={{
           width: '100%', padding: '12px', borderRadius: 12, border: '2px dashed #93c5fd',
-          background: '#eff6ff', color: '#2563eb', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+          background: 'var(--color-primary-bg)', color: 'var(--color-primary)', fontSize: 13, fontWeight: 700, cursor: 'pointer',
         }}>
           + 건물 추가
         </button>
@@ -109,18 +109,18 @@ export default function BuildingList({ buildings }: { buildings: Building[] }) {
             <button key={z} onClick={() => setZone(z)} style={{
               padding: '6px 12px', borderRadius: 999, border: 'none', cursor: 'pointer',
               fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0,
-              background: zone === z ? '#0f172a' : '#f1f5f9',
-              color:      zone === z ? '#fff'    : '#64748b',
+              background: zone === z ? 'var(--text-primary)' : 'var(--border-primary)',
+              color:      zone === z ? 'var(--bg-elevated)'    : 'var(--text-secondary)',
             }}>{z}</button>
           ))}
         </div>
 
-        <p style={{ fontSize: 11, color: '#94a3b8', margin: 0 }}>{filtered.length}개 건물</p>
+        <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: 0 }}>{filtered.length}개 건물</p>
 
         {filtered.map((b) => (
           <div key={b.id} style={{
-            background: b.is_active ? '#fff' : '#f8fafc',
-            borderRadius: 14, border: '1px solid #f1f5f9',
+            background: b.is_active ? 'var(--bg-elevated)' : 'var(--bg-secondary)',
+            borderRadius: 14, border: '1px solid var(--border-primary)',
             boxShadow: '0 1px 6px rgba(0,0,0,0.03)', padding: '14px 16px',
             opacity: b.is_active ? 1 : 0.6,
           }}>
@@ -131,12 +131,12 @@ export default function BuildingList({ buildings }: { buildings: Building[] }) {
                 <div style={{ display: 'flex', gap: 6 }}>
                   <button onClick={() => setEditId(null)} style={{
                     flex: 1, padding: '8px', borderRadius: 8, border: '1.5px solid #e2e8f0',
-                    background: '#fff', fontSize: 12, cursor: 'pointer', color: '#64748b',
+                    background: 'var(--bg-elevated)', fontSize: 12, cursor: 'pointer', color: 'var(--text-secondary)',
                   }}>취소</button>
                   <button onClick={saveEdit} disabled={saving === b.id} style={{
                     flex: 2, padding: '8px', borderRadius: 8, border: 'none',
                     background: saving === b.id ? '#93c5fd' : '#2563eb',
-                    color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                    color: 'var(--text-inverse)', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                   }}>저장</button>
                 </div>
               </div>
@@ -144,13 +144,13 @@ export default function BuildingList({ buildings }: { buildings: Building[] }) {
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a',
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {b.name ?? '(이름 없음)'}
                     </span>
                     {b.zone && (
                       <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 999,
-                        background: '#f1f5f9', color: '#64748b', flexShrink: 0 }}>{b.zone}</span>
+                        background: 'var(--bg-tertiary)', color: 'var(--text-secondary)', flexShrink: 0 }}>{b.zone}</span>
                     )}
                     {!b.is_active && (
                       <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 999,
@@ -158,17 +158,17 @@ export default function BuildingList({ buildings }: { buildings: Building[] }) {
                     )}
                     {b.images?.length > 0 && (
                       <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 999,
-                        background: '#fef3c7', color: '#92400e', flexShrink: 0 }}>
+                        background: 'var(--color-amber-bg)', color: '#92400e', flexShrink: 0 }}>
                         이미지 {b.images.length}
                       </span>
                     )}
                   </div>
-                  <div style={{ fontSize: 11, color: '#94a3b8',
+                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)',
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {b.address ?? '주소 없음'}
                   </div>
                   {(b.total_floors || b.main_purps_nm) && (
-                    <div style={{ fontSize: 10, color: '#cbd5e1', marginTop: 2 }}>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 2 }}>
                       {[b.main_purps_nm, b.total_floors ? `${b.total_floors}층` : null].filter(Boolean).join(' · ')}
                     </div>
                   )}
@@ -177,13 +177,13 @@ export default function BuildingList({ buildings }: { buildings: Building[] }) {
                   <div style={{ display: 'flex', gap: 4 }}>
                     <button onClick={() => startEdit(b)} style={{
                       padding: '5px 8px', borderRadius: 8,
-                      border: '1.5px solid #e2e8f0', background: '#fff',
-                      fontSize: 11, color: '#64748b', cursor: 'pointer',
+                      border: '1.5px solid #e2e8f0', background: 'var(--bg-elevated)',
+                      fontSize: 11, color: 'var(--text-secondary)', cursor: 'pointer',
                     }}>수정</button>
                     <button onClick={() => setImageId(b.id)} style={{
                       padding: '5px 8px', borderRadius: 8,
-                      border: '1.5px solid #e2e8f0', background: '#fff',
-                      fontSize: 11, color: '#64748b', cursor: 'pointer',
+                      border: '1.5px solid #e2e8f0', background: 'var(--bg-elevated)',
+                      fontSize: 11, color: 'var(--text-secondary)', cursor: 'pointer',
                     }}>이미지</button>
                   </div>
                   <button onClick={() => toggleActive(b)} disabled={saving === b.id} style={{

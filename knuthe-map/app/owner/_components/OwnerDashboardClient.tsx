@@ -83,8 +83,8 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
 
       {/* 건물 정보 카드 */}
       <div style={{
-        background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '18px 20px',
+        background: 'var(--bg-elevated)', borderRadius: 20, border: '1px solid var(--border-primary)',
+        boxShadow: 'var(--shadow-xs)', padding: '18px 20px',
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
 
@@ -98,14 +98,14 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
                   onChange={(e) => setNameInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') setEditingName(false) }}
                   style={{
-                    width: '100%', fontSize: 16, fontWeight: 800, color: '#0f172a',
+                    width: '100%', fontSize: 16, fontWeight: 800, color: 'var(--text-primary)',
                     border: 'none', borderBottom: '2px solid #2563eb',
                     outline: 'none', background: 'transparent',
                     padding: '2px 0', boxSizing: 'border-box',
                   }}
                 />
                 {nameError && (
-                  <p style={{ fontSize: 11, color: '#ef4444', margin: '4px 0 0' }}>{nameError}</p>
+                  <p style={{ fontSize: 11, color: 'var(--color-red)', margin: '4px 0 0' }}>{nameError}</p>
                 )}
                 <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
                   <button
@@ -114,7 +114,7 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
                     style={{
                       padding: '5px 12px', borderRadius: 8, border: 'none',
                       background: nameSaving ? '#93c5fd' : '#2563eb',
-                      color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                      color: 'var(--text-inverse)', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                     }}
                   >
                     {nameSaving ? '저장 중…' : '저장'}
@@ -122,8 +122,8 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
                   <button
                     onClick={() => setEditingName(false)}
                     style={{
-                      padding: '5px 12px', borderRadius: 8, border: '1px solid #e2e8f0',
-                      background: '#fff', color: '#64748b', fontSize: 12, cursor: 'pointer',
+                      padding: '5px 12px', borderRadius: 8, border: '1px solid var(--border-secondary)',
+                      background: 'var(--bg-elevated)', color: 'var(--text-secondary)', fontSize: 12, cursor: 'pointer',
                     }}
                   >
                     취소
@@ -132,7 +132,7 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)' }}>
                   {b.name ?? '이름 없는 건물'}
                 </div>
                 <button
@@ -141,7 +141,7 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
                   style={{
                     background: 'none', border: 'none', cursor: 'pointer',
                     padding: '2px', display: 'flex', alignItems: 'center',
-                    color: '#94a3b8',
+                    color: 'var(--text-tertiary)',
                   }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -152,15 +152,15 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
                 </button>
               </div>
             )}
-            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>{b.address}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 3 }}>{b.address}</div>
             {b.total_floors && (
-              <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{b.total_floors}층 건물</div>
+              <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>{b.total_floors}층 건물</div>
             )}
           </div>
 
           <Link href="/owner/units" style={{
-            fontSize: 12, fontWeight: 600, color: '#2563eb',
-            background: '#eff6ff', padding: '6px 12px', borderRadius: 8,
+            fontSize: 12, fontWeight: 600, color: 'var(--color-primary)',
+            background: 'var(--color-primary-bg)', padding: '6px 12px', borderRadius: 8,
             textDecoration: 'none', flexShrink: 0,
           }}>
             호실 관리
@@ -168,28 +168,28 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
         </div>
 
         {/* 전담 중개사 */}
-        <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid #f1f5f9' }}>
+        <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--border-primary)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8' }}>전담 중개사</span>
-            <Link href="/owner/agent" style={{ fontSize: 11, color: '#2563eb', textDecoration: 'none' }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)' }}>전담 중개사</span>
+            <Link href="/owner/agent" style={{ fontSize: 11, color: 'var(--color-primary)', textDecoration: 'none' }}>
               {building.dedicated_agent ? '변경' : '설정하기 →'}
             </Link>
           </div>
           {building.dedicated_agent ? (
             <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{
-                width: 30, height: 30, borderRadius: '50%', background: '#eff6ff',
+                width: 30, height: 30, borderRadius: '50%', background: 'var(--color-primary-bg)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
               }}>🏢</div>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
                   {building.dedicated_agent.nickname ?? building.dedicated_agent.email}
                 </div>
-                <div style={{ fontSize: 11, color: '#94a3b8' }}>{building.dedicated_agent.email}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{building.dedicated_agent.email}</div>
               </div>
             </div>
           ) : (
-            <p style={{ margin: '6px 0 0', fontSize: 12, color: '#94a3b8' }}>
+            <p style={{ margin: '6px 0 0', fontSize: 12, color: 'var(--text-tertiary)' }}>
               설정된 전담 중개사가 없어요
             </p>
           )}
@@ -198,14 +198,14 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
 
       {/* 호실 현황 */}
       <div style={{
-        background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '18px 20px',
+        background: 'var(--bg-elevated)', borderRadius: 20, border: '1px solid var(--border-primary)',
+        boxShadow: 'var(--shadow-xs)', padding: '18px 20px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
           <div>
-            <h2 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: 0 }}>호실 현황</h2>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>호실 현황</h2>
             {b.total_floors && (
-              <p style={{ fontSize: 11, color: '#94a3b8', margin: '2px 0 0' }}>
+              <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '2px 0 0' }}>
                 지상 {b.total_floors}층 건물
               </p>
             )}
@@ -215,7 +215,7 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
             style={{
               display: 'flex', alignItems: 'center', gap: 5,
               padding: '6px 12px', borderRadius: 8,
-              background: '#2563eb', color: '#fff',
+              background: 'var(--color-primary)', color: 'var(--text-inverse)',
               border: 'none', cursor: 'pointer',
               fontSize: 11, fontWeight: 700,
             }}
@@ -225,7 +225,7 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
         </div>
 
         {loading ? (
-          <div style={{ padding: '32px 0', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
+          <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>
             불러오는 중…
           </div>
         ) : (
@@ -245,13 +245,13 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
           { href: '/owner/units',     label: '호실 관리', icon: '🏠', desc: '호실 정보 수정' },
         ].map((item) => (
           <Link key={item.href} href={item.href} style={{
-            background: '#fff', borderRadius: 16, padding: '16px',
-            border: '1px solid #f1f5f9', boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+            background: 'var(--bg-elevated)', borderRadius: 16, padding: '16px',
+            border: '1px solid var(--border-primary)', boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
             textDecoration: 'none', display: 'flex', flexDirection: 'column', gap: 6,
           }}>
             <span style={{ fontSize: 22 }}>{item.icon}</span>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{item.label}</div>
-            <div style={{ fontSize: 11, color: '#94a3b8' }}>{item.desc}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>{item.label}</div>
+            <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{item.desc}</div>
           </Link>
         ))}
       </div>

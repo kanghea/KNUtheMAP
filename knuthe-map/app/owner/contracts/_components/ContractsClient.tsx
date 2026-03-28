@@ -42,7 +42,7 @@ const FILTER_TABS: { key: FilterTab; label: string }[] = [
 
 const STATUS_CONFIG = {
   active:     { bg: '#dcfce7', color: '#15803d', label: '활성' },
-  expired:    { bg: '#f1f5f9', color: '#64748b', label: '만료' },
+  expired:    { bg: 'var(--border-primary)', color: 'var(--text-secondary)', label: '만료' },
   terminated: { bg: '#fee2e2', color: '#dc2626', label: '종료' },
 }
 
@@ -110,13 +110,13 @@ function ContractModal({ contract, units, onClose, onSaved }: ModalProps) {
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '10px 12px', borderRadius: 10,
-    border: '1.5px solid #e2e8f0', fontSize: 13, color: '#0f172a',
-    background: '#fff', outline: 'none', boxSizing: 'border-box',
+    border: '1.5px solid #e2e8f0', fontSize: 13, color: 'var(--text-primary)',
+    background: 'var(--bg-elevated)', outline: 'none', boxSizing: 'border-box',
   }
 
   const label = (txt: string, req = false) => (
-    <p style={{ fontSize: 11, fontWeight: 600, color: '#64748b', margin: '0 0 5px' }}>
-      {txt}{req && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
+    <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', margin: '0 0 5px' }}>
+      {txt}{req && <span style={{ color: 'var(--color-red)', marginLeft: 2 }}>*</span>}
     </p>
   )
 
@@ -167,19 +167,19 @@ function ContractModal({ contract, units, onClose, onSaved }: ModalProps) {
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div style={{
-        background: '#fff', borderRadius: '20px 20px 0 0',
+        background: 'var(--bg-elevated)', borderRadius: '20px 20px 0 0',
         width: '100%', maxWidth: 520,
         padding: '20px 20px 40px',
         maxHeight: '92vh', overflowY: 'auto',
       }}>
         {/* 핸들 */}
-        <div style={{ width: 36, height: 4, borderRadius: 2, background: '#e2e8f0', margin: '0 auto 18px' }} />
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--bg-tertiary)', margin: '0 auto 18px' }} />
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', margin: 0 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
             {isNew ? '계약 추가' : '계약 수정'}
           </h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#94a3b8' }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--text-tertiary)' }}>
             닫기
           </button>
         </div>
@@ -215,8 +215,8 @@ function ContractModal({ contract, units, onClose, onSaved }: ModalProps) {
                     flex: 1, padding: '10px', borderRadius: 10, fontSize: 13, fontWeight: 700,
                     cursor: 'pointer',
                     border: contractType === t ? 'none' : '1.5px solid #e2e8f0',
-                    background: contractType === t ? '#2563eb' : '#fff',
-                    color: contractType === t ? '#fff' : '#64748b',
+                    background: contractType === t ? '#2563eb' : 'var(--bg-elevated)',
+                    color: contractType === t ? 'var(--bg-elevated)' : 'var(--text-secondary)',
                   }}
                 >
                   {t}
@@ -298,7 +298,7 @@ function ContractModal({ contract, units, onClose, onSaved }: ModalProps) {
               onChange={(e) => setIsAutoRenew(e.target.checked)}
               style={{ width: 16, height: 16, cursor: 'pointer' }}
             />
-            <span style={{ fontSize: 13, color: '#374151' }}>자동 갱신</span>
+            <span style={{ fontSize: 13, color: 'var(--text-primary)' }}>자동 갱신</span>
           </label>
 
           {/* 메모 */}
@@ -312,14 +312,14 @@ function ContractModal({ contract, units, onClose, onSaved }: ModalProps) {
             />
           </div>
 
-          {error && <p style={{ margin: 0, fontSize: 12, color: '#ef4444' }}>{error}</p>}
+          {error && <p style={{ margin: 0, fontSize: 12, color: 'var(--color-red)' }}>{error}</p>}
 
           <button
             onClick={handleSave}
             disabled={saving}
             style={{
               padding: '13px', borderRadius: 12, border: 'none',
-              background: saving ? '#93c5fd' : '#2563eb', color: '#fff',
+              background: saving ? '#93c5fd' : '#2563eb', color: 'var(--text-inverse)',
               fontSize: 13, fontWeight: 700, cursor: saving ? 'default' : 'pointer',
               marginTop: 4,
             }}
@@ -366,18 +366,18 @@ export default function ContractsClient({ buildingId, initialContracts, units }:
   })
 
   const cardStyle: React.CSSProperties = {
-    background: '#fff',
+    background: 'var(--bg-elevated)',
     borderRadius: 20,
-    border: '1px solid #f1f5f9',
-    boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+    border: '1px solid var(--border-primary)',
+    boxShadow: 'var(--shadow-xs)',
     padding: '16px 18px',
   }
 
   const iconBtnStyle: React.CSSProperties = {
     width: 30, height: 30, borderRadius: 8,
-    border: '1.5px solid #e2e8f0', background: '#fff',
+    border: '1.5px solid #e2e8f0', background: 'var(--bg-elevated)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    cursor: 'pointer', color: '#64748b', flexShrink: 0,
+    cursor: 'pointer', color: 'var(--text-secondary)', flexShrink: 0,
   }
 
   const emptyLabels: Record<FilterTab, string> = {
@@ -402,8 +402,8 @@ export default function ContractsClient({ buildingId, initialContracts, units }:
                   padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700,
                   cursor: 'pointer',
                   border: isActive ? 'none' : '1.5px solid #e2e8f0',
-                  background: isActive ? '#2563eb' : '#fff',
-                  color: isActive ? '#fff' : '#64748b',
+                  background: isActive ? '#2563eb' : 'var(--bg-elevated)',
+                  color: isActive ? 'var(--bg-elevated)' : 'var(--text-secondary)',
                 }}
               >
                 {tab.label}
@@ -417,7 +417,7 @@ export default function ContractsClient({ buildingId, initialContracts, units }:
           style={{
             display: 'flex', alignItems: 'center', gap: 5,
             padding: '7px 14px', borderRadius: 12,
-            background: '#2563eb', color: '#fff',
+            background: 'var(--color-primary)', color: 'var(--text-inverse)',
             border: 'none', cursor: 'pointer',
             fontSize: 12, fontWeight: 700,
           }}
@@ -432,14 +432,14 @@ export default function ContractsClient({ buildingId, initialContracts, units }:
           ...cardStyle,
           padding: '40px 20px', textAlign: 'center',
         }}>
-          <p style={{ fontSize: 14, color: '#94a3b8', margin: '0 0 12px' }}>
+          <p style={{ fontSize: 14, color: 'var(--text-tertiary)', margin: '0 0 12px' }}>
             {emptyLabels[activeTab]}
           </p>
           <button
             onClick={() => setModalContract(null)}
             style={{
               padding: '8px 18px', borderRadius: 10,
-              background: '#2563eb', color: '#fff',
+              background: 'var(--color-primary)', color: 'var(--text-inverse)',
               border: 'none', cursor: 'pointer',
               fontSize: 12, fontWeight: 700,
             }}
@@ -462,12 +462,12 @@ export default function ContractsClient({ buildingId, initialContracts, units }:
                   <div style={{ flex: 1, minWidth: 0 }}>
                     {/* Unit title + contract type */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
                         {bu ? `${bu.floor}층 ${bu.unit_number}` : '호실 정보 없음'}
                       </span>
                       <span style={{
                         fontSize: 10, fontWeight: 700,
-                        background: '#eff6ff', color: '#2563eb',
+                        background: 'var(--color-primary-bg)', color: 'var(--color-primary)',
                         padding: '2px 7px', borderRadius: 6,
                       }}>
                         {c.contract_type}
@@ -483,32 +483,32 @@ export default function ContractsClient({ buildingId, initialContracts, units }:
 
                     {/* Tenant */}
                     {c.tenant_name && (
-                      <div style={{ fontSize: 12, color: '#475569', marginTop: 4 }}>
+                      <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
                         {c.tenant_name}
                         {c.tenant_phone && (
-                          <span style={{ color: '#94a3b8', marginLeft: 6 }}>{c.tenant_phone}</span>
+                          <span style={{ color: 'var(--text-tertiary)', marginLeft: 6 }}>{c.tenant_phone}</span>
                         )}
                       </div>
                     )}
 
                     {/* Deposit / rent */}
-                    <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                       <span>보증금 {formatMoney(c.deposit)}만</span>
                       {c.monthly_rent != null && (
                         <span>월세 {formatMoney(c.monthly_rent)}만</span>
                       )}
                       {c.maintenance != null && (
-                        <span style={{ color: '#94a3b8' }}>관리비 {formatMoney(c.maintenance)}만</span>
+                        <span style={{ color: 'var(--text-tertiary)' }}>관리비 {formatMoney(c.maintenance)}만</span>
                       )}
                     </div>
 
                     {/* Period */}
                     {(c.contract_start || c.contract_end) && (
-                      <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 3 }}>
+                      <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 3 }}>
                         {[formatDateKo(c.contract_start), formatDateKo(c.contract_end)]
                           .map((d) => d ?? '미정').join(' ~ ')}
                         {c.is_auto_renew && (
-                          <span style={{ marginLeft: 6, color: '#2563eb' }}>자동갱신</span>
+                          <span style={{ marginLeft: 6, color: 'var(--color-primary)' }}>자동갱신</span>
                         )}
                       </div>
                     )}
@@ -539,7 +539,7 @@ export default function ContractsClient({ buildingId, initialContracts, units }:
                       <button
                         onClick={() => handleTerminate(c)}
                         disabled={terminating === c.id}
-                        style={{ ...iconBtnStyle, color: '#ef4444', borderColor: '#fecaca' }}
+                        style={{ ...iconBtnStyle, color: 'var(--color-red)', borderColor: '#fecaca' }}
                         title="종료 처리"
                       >
                         <XIcon />

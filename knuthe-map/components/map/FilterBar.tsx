@@ -31,7 +31,7 @@ export default function FilterBar({ activeFilter, onFilterChange }: FilterBarPro
         display: 'flex',
         alignItems: 'center',
         gap: 6,
-        background: '#fff',
+        background: 'var(--bg-elevated)',
         borderRadius: 999,
         padding: '6px 10px',
         boxShadow: '0 2px 12px rgba(0,0,0,0.18)',
@@ -55,7 +55,7 @@ export default function FilterBar({ activeFilter, onFilterChange }: FilterBarPro
               fontWeight: active ? 700 : 500,
               fontFamily: "-apple-system, 'Apple SD Gothic Neo', sans-serif",
               background: active ? '#2563eb' : 'transparent',
-              color: active ? '#fff' : '#374151',
+              color: active ? 'var(--bg-elevated)' : 'var(--text-primary)',
               transition: 'background 0.15s, color 0.15s',
               lineHeight: 1,
             }}
