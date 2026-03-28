@@ -121,9 +121,9 @@ export default function BuildingList({ buildings }: { buildings: Building[] }) {
 
         {filtered.map((b) => (
           <div key={b.id} style={{
-            background: b.is_active ? '#fff' : '#f8fafc',
-            borderRadius: 14, border: '1px solid #f1f5f9',
-            boxShadow: '0 1px 6px rgba(0,0,0,0.03)', padding: '14px 16px',
+            background: b.is_active ? '#111111' : '#0d0d0d',
+            borderRadius: 14, border: '1px solid rgba(255,255,255,0.08)',
+            boxShadow: '0 1px 6px rgba(0,0,0,0.4)', padding: '14px 16px',
             opacity: b.is_active ? 1 : 0.6,
           }}>
             {editId === b.id ? (
@@ -132,12 +132,12 @@ export default function BuildingList({ buildings }: { buildings: Building[] }) {
                 <input style={inp} value={editAddr} onChange={(e) => setEditAddr(e.target.value)} placeholder="주소" />
                 <div style={{ display: 'flex', gap: 6 }}>
                   <button onClick={() => setEditId(null)} style={{
-                    flex: 1, padding: '8px', borderRadius: 8, border: '1.5px solid #e2e8f0',
-                    background: '#fff', fontSize: 12, cursor: 'pointer', color: '#64748b',
+                    flex: 1, padding: '8px', borderRadius: 8, border: '1.5px solid rgba(255,255,255,0.12)',
+                    background: 'rgba(255,255,255,0.05)', fontSize: 12, cursor: 'pointer', color: 'rgba(255,255,255,0.5)',
                   }}>취소</button>
                   <button onClick={saveEdit} disabled={saving === b.id} style={{
                     flex: 2, padding: '8px', borderRadius: 8, border: 'none',
-                    background: saving === b.id ? '#93c5fd' : '#2563eb',
+                    background: saving === b.id ? 'rgba(37,99,235,0.5)' : '#2563eb',
                     color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                   }}>저장</button>
                 </div>
@@ -146,31 +146,31 @@ export default function BuildingList({ buildings }: { buildings: Building[] }) {
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a',
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#ffffff',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {b.name ?? '(이름 없음)'}
                     </span>
                     {b.zone && (
                       <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 999,
-                        background: '#f1f5f9', color: '#64748b', flexShrink: 0 }}>{b.zone}</span>
+                        background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)', flexShrink: 0 }}>{b.zone}</span>
                     )}
                     {!b.is_active && (
                       <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 999,
-                        background: '#fee2e2', color: '#dc2626', flexShrink: 0 }}>비활성</span>
+                        background: 'rgba(239,68,68,0.15)', color: '#f87171', flexShrink: 0 }}>비활성</span>
                     )}
                     {b.images?.length > 0 && (
                       <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 999,
-                        background: '#fef3c7', color: '#92400e', flexShrink: 0 }}>
+                        background: 'rgba(249,115,22,0.15)', color: '#fb923c', flexShrink: 0 }}>
                         이미지 {b.images.length}
                       </span>
                     )}
                   </div>
-                  <div style={{ fontSize: 11, color: '#94a3b8',
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)',
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {b.address ?? '주소 없음'}
                   </div>
                   {(b.total_floors || b.main_purps_nm) && (
-                    <div style={{ fontSize: 10, color: '#cbd5e1', marginTop: 2 }}>
+                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>
                       {[b.main_purps_nm, b.total_floors ? `${b.total_floors}층` : null].filter(Boolean).join(' · ')}
                     </div>
                   )}
@@ -179,13 +179,13 @@ export default function BuildingList({ buildings }: { buildings: Building[] }) {
                   <div style={{ display: 'flex', gap: 4 }}>
                     <button onClick={() => startEdit(b)} style={{
                       padding: '5px 8px', borderRadius: 8,
-                      border: '1.5px solid #e2e8f0', background: '#fff',
-                      fontSize: 11, color: '#64748b', cursor: 'pointer',
+                      border: '1.5px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.05)',
+                      fontSize: 11, color: 'rgba(255,255,255,0.65)', cursor: 'pointer',
                     }}>수정</button>
                     <button onClick={() => setImageId(b.id)} style={{
                       padding: '5px 8px', borderRadius: 8,
-                      border: '1.5px solid #e2e8f0', background: '#fff',
-                      fontSize: 11, color: '#64748b', cursor: 'pointer',
+                      border: '1.5px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.05)',
+                      fontSize: 11, color: 'rgba(255,255,255,0.65)', cursor: 'pointer',
                     }}>이미지</button>
                   </div>
                   <button onClick={() => toggleActive(b)} disabled={saving === b.id} style={{

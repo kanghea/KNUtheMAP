@@ -129,21 +129,21 @@ export default function ContractCard({ contract: c, onEdit, onEnd, onRenew }: Pr
 
   const inputStyle: React.CSSProperties = {
     padding: '7px 10px', borderRadius: 8,
-    border: '1.5px solid #bfdbfe', fontSize: 16,
-    background: '#fff', outline: 'none', width: '100%', boxSizing: 'border-box',
+    border: '1.5px solid rgba(255,255,255,0.15)', fontSize: 16,
+    background: '#1a1a1a', color: '#ffffff', outline: 'none', width: '100%', boxSizing: 'border-box',
   }
 
   return (
     <div style={{
-      background: '#fff', borderRadius: 16,
-      border: `1.5px solid ${isExpiring ? '#fde68a' : '#f1f5f9'}`,
+      background: '#111111', borderRadius: 16,
+      border: `1.5px solid ${isExpiring ? 'rgba(251,191,36,0.4)' : 'rgba(255,255,255,0.08)'}`,
       overflow: 'hidden',
     }}>
       {/* ── 만료 임박 배너 ──────────────────────────────────── */}
       {isExpiring && (
         <div style={{
-          background: '#fffbeb', borderBottom: '1px solid #fde68a',
-          padding: '7px 14px', fontSize: 11, fontWeight: 600, color: '#92400e',
+          background: 'rgba(251,191,36,0.1)', borderBottom: '1px solid rgba(251,191,36,0.3)',
+          padding: '7px 14px', fontSize: 11, fontWeight: 600, color: '#fbbf24',
           display: 'flex', alignItems: 'center', gap: 5,
         }}>
           ⚠️ 계약 만료가 60일 이내입니다
@@ -158,21 +158,21 @@ export default function ContractCard({ contract: c, onEdit, onEnd, onRenew }: Pr
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
               <span style={{
                 fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999,
-                background: c.contract_type === '월세' ? '#eff6ff' : '#f0fdf4',
-                color: c.contract_type === '월세' ? '#2563eb' : '#16a34a',
+                background: c.contract_type === '월세' ? 'rgba(37,99,235,0.15)' : 'rgba(34,197,94,0.1)',
+                color: c.contract_type === '월세' ? '#2563eb' : '#4ade80',
               }}>{c.contract_type}</span>
               {c.is_renewal && (
                 <span style={{
                   fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999,
-                  background: '#f3e8ff', color: '#7c3aed',
+                  background: 'rgba(124,58,237,0.15)', color: '#a78bfa',
                 }}>연장</span>
               )}
             </div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginBottom: 2,
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', marginBottom: 2,
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {buildingName(c)}
             </div>
-            <div style={{ fontSize: 11, color: '#64748b' }}>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
               {[c.unit_number, c.floor ? `${c.floor}층` : null, c.room_type, c.area_m2 ? `${c.area_m2}㎡` : null]
                 .filter(Boolean).join(' · ')}
             </div>
@@ -184,16 +184,16 @@ export default function ContractCard({ contract: c, onEdit, onEnd, onRenew }: Pr
               onClick={() => { setEditing((v) => !v); setShowHistory(false) }}
               style={{
                 padding: '5px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600,
-                border: '1px solid #e2e8f0', background: editing ? '#eff6ff' : '#fff',
-                color: editing ? '#2563eb' : '#64748b', cursor: 'pointer',
+                border: '1px solid rgba(255,255,255,0.12)', background: editing ? 'rgba(37,99,235,0.15)' : 'rgba(255,255,255,0.05)',
+                color: editing ? '#2563eb' : 'rgba(255,255,255,0.5)', cursor: 'pointer',
               }}
             >수정</button>
             <button
               onClick={onRenew}
               style={{
                 padding: '5px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600,
-                border: '1px solid #e2e8f0', background: '#fff',
-                color: '#7c3aed', cursor: 'pointer',
+                border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.05)',
+                color: '#a78bfa', cursor: 'pointer',
               }}
             >연장</button>
           </div>
@@ -202,13 +202,13 @@ export default function ContractCard({ contract: c, onEdit, onEnd, onRenew }: Pr
         {/* ── 금액 + 기간 요약 ─────────────────────────────── */}
         {!editing && (
           <div style={{
-            marginTop: 10, background: '#f8fafc', borderRadius: 10,
+            marginTop: 10, background: 'rgba(255,255,255,0.05)', borderRadius: 10,
             padding: '10px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}>
-            <span style={{ fontSize: 15, fontWeight: 800, color: '#0f172a' }}>
+            <span style={{ fontSize: 15, fontWeight: 800, color: '#ffffff' }}>
               {priceTag(c)}
             </span>
-            <span style={{ fontSize: 11, color: '#94a3b8' }}>
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
               {c.contract_start?.slice(0, 7) ?? '?'} ~ {c.contract_end?.slice(0, 7) ?? '?'}
             </span>
           </div>
@@ -219,13 +219,13 @@ export default function ContractCard({ contract: c, onEdit, onEnd, onRenew }: Pr
           <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ display: 'grid', gridTemplateColumns: c.contract_type === '월세' ? '1fr 1fr' : '1fr', gap: 8 }}>
               <div>
-                <p style={{ fontSize: 10, color: '#94a3b8', margin: '0 0 3px', fontWeight: 600 }}>보증금 (만원)</p>
+                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', margin: '0 0 3px', fontWeight: 600 }}>보증금 (만원)</p>
                 <input style={inputStyle} type="number" value={deposit}
                   onChange={(e) => setDeposit(e.target.value)} />
               </div>
               {c.contract_type === '월세' && (
                 <div>
-                  <p style={{ fontSize: 10, color: '#94a3b8', margin: '0 0 3px', fontWeight: 600 }}>월세 (만원)</p>
+                  <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', margin: '0 0 3px', fontWeight: 600 }}>월세 (만원)</p>
                   <input style={inputStyle} type="number" value={monthlyRent}
                     onChange={(e) => setMonthlyRent(e.target.value)} />
                 </div>
@@ -233,12 +233,12 @@ export default function ContractCard({ contract: c, onEdit, onEnd, onRenew }: Pr
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <div>
-                <p style={{ fontSize: 10, color: '#94a3b8', margin: '0 0 3px', fontWeight: 600 }}>관리비 (만원)</p>
+                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', margin: '0 0 3px', fontWeight: 600 }}>관리비 (만원)</p>
                 <input style={inputStyle} type="number" value={maintenance}
                   onChange={(e) => setMaintenance(e.target.value)} />
               </div>
               <div>
-                <p style={{ fontSize: 10, color: '#94a3b8', margin: '0 0 3px', fontWeight: 600 }}>계약 종료일</p>
+                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', margin: '0 0 3px', fontWeight: 600 }}>계약 종료일</p>
                 <input style={inputStyle} type="date" value={contractEnd}
                   onChange={(e) => setContractEnd(e.target.value)} />
               </div>
@@ -256,14 +256,14 @@ export default function ContractCard({ contract: c, onEdit, onEnd, onRenew }: Pr
                 onClick={() => setEditing(false)}
                 style={{
                   padding: '9px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600,
-                  background: '#f1f5f9', color: '#64748b', border: 'none', cursor: 'pointer',
+                  background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)', border: 'none', cursor: 'pointer',
                 }}
               >취소</button>
               <button
                 onClick={() => { if (confirm('이 계약을 종료하시겠어요?')) onEnd() }}
                 style={{
                   padding: '9px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600,
-                  background: '#fff0f0', color: '#dc2626', border: '1px solid #fecaca', cursor: 'pointer',
+                  background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', cursor: 'pointer',
                 }}
               >계약 종료</button>
             </div>
