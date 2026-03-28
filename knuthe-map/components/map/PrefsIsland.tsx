@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { type Role } from '@/lib/useRole'
 
@@ -168,12 +168,12 @@ function navItems(role: Role): NavItem[] {
 // ── 메인 컴포넌트 ─────────────────────────────────────────────────────────────
 
 export default function PrefsIsland({ initialRole = 'tenant' }: { initialRole?: Role }) {
-  const pathname     = usePathname()
-  const searchParams = useSearchParams()
-  const role         = initialRole
+  const pathname = usePathname()
+  const role     = initialRole
 
-  // 온보딩 중에는 숨김
-  const isOnboarding = pathname === '/' && searchParams.get('reset') === '1'
+  // 온보딩 중에는 숨김 (클라이언트에서 search param 직접 확인)
+  const isOnboarding = pathname === '/' &&
+    typeof window !== 'undefined' && window.location.search.includes('reset=1')
   if (isOnboarding) return null
 
   const items = navItems(role)

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Suspense } from "react";
 import "./globals.css";
 import PrefsIsland from "@/components/map/PrefsIsland";
 import Providers from "./providers";
@@ -46,7 +45,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <Providers>
           {children}
-          <Suspense><PrefsIsland initialRole={role} /></Suspense>
+          <PrefsIsland initialRole={role} />
         </Providers>
       </body>
     </html>
