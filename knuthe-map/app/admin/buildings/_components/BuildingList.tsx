@@ -75,7 +75,8 @@ export default function BuildingList({ buildings }: { buildings: Building[] }) {
 
   const inp: React.CSSProperties = {
     width: '100%', padding: '8px 10px', borderRadius: 8,
-    border: '1.5px solid #e2e8f0', fontSize: 16, outline: 'none', boxSizing: 'border-box',
+    border: '1.5px solid rgba(255,255,255,0.15)', fontSize: 16, outline: 'none', boxSizing: 'border-box',
+    background: '#1a1a1a', color: '#ffffff',
   }
 
   const imageBuilding = list.find((b) => b.id === imageId)
@@ -86,8 +87,8 @@ export default function BuildingList({ buildings }: { buildings: Building[] }) {
 
         {/* 추가 버튼 */}
         <button onClick={() => setShowAdd(true)} style={{
-          width: '100%', padding: '12px', borderRadius: 12, border: '2px dashed #93c5fd',
-          background: '#eff6ff', color: '#2563eb', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+          width: '100%', padding: '12px', borderRadius: 12, border: '2px dashed rgba(37,99,235,0.5)',
+          background: 'rgba(37,99,235,0.15)', color: '#2563eb', fontSize: 13, fontWeight: 700, cursor: 'pointer',
         }}>
           + 건물 추가
         </button>
@@ -99,7 +100,8 @@ export default function BuildingList({ buildings }: { buildings: Building[] }) {
           onChange={(e) => setSearch(e.target.value)}
           style={{
             width: '100%', padding: '10px 14px', borderRadius: 12,
-            border: '1.5px solid #e2e8f0', fontSize: 16, outline: 'none', boxSizing: 'border-box',
+            border: '1.5px solid rgba(255,255,255,0.15)', fontSize: 16, outline: 'none', boxSizing: 'border-box',
+            background: '#1a1a1a', color: '#ffffff',
           }}
         />
 
@@ -109,13 +111,13 @@ export default function BuildingList({ buildings }: { buildings: Building[] }) {
             <button key={z} onClick={() => setZone(z)} style={{
               padding: '6px 12px', borderRadius: 999, border: 'none', cursor: 'pointer',
               fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0,
-              background: zone === z ? '#0f172a' : '#f1f5f9',
-              color:      zone === z ? '#fff'    : '#64748b',
+              background: zone === z ? '#ffffff' : 'rgba(255,255,255,0.07)',
+              color:      zone === z ? '#0a0a0a' : 'rgba(255,255,255,0.5)',
             }}>{z}</button>
           ))}
         </div>
 
-        <p style={{ fontSize: 11, color: '#94a3b8', margin: 0 }}>{filtered.length}개 건물</p>
+        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: 0 }}>{filtered.length}개 건물</p>
 
         {filtered.map((b) => (
           <div key={b.id} style={{
