@@ -75,7 +75,7 @@ export default function BuildingList({ buildings }: { buildings: Building[] }) {
 
   const inp: React.CSSProperties = {
     width: '100%', padding: '8px 10px', borderRadius: 8,
-    border: '1.5px solid #e2e8f0', fontSize: 12, outline: 'none', boxSizing: 'border-box',
+    border: '1.5px solid #e2e8f0', fontSize: 16, outline: 'none', boxSizing: 'border-box',
   }
 
   const imageBuilding = list.find((b) => b.id === imageId)
@@ -99,7 +99,7 @@ export default function BuildingList({ buildings }: { buildings: Building[] }) {
           onChange={(e) => setSearch(e.target.value)}
           style={{
             width: '100%', padding: '10px 14px', borderRadius: 12,
-            border: '1.5px solid #e2e8f0', fontSize: 13, outline: 'none', boxSizing: 'border-box',
+            border: '1.5px solid #e2e8f0', fontSize: 16, outline: 'none', boxSizing: 'border-box',
           }}
         />
 

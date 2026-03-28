@@ -146,7 +146,7 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
 
   const inp: React.CSSProperties = {
     width: '100%', padding: '10px 12px', borderRadius: 10,
-    border: '1.5px solid #e2e8f0', fontSize: 13, outline: 'none', boxSizing: 'border-box',
+    border: '1.5px solid #e2e8f0', fontSize: 16, outline: 'none', boxSizing: 'border-box',
   }
   const lbl = (t: string, req = false) => (
     <p style={{ fontSize: 11, fontWeight: 600, color: '#64748b', margin: '0 0 5px' }}>

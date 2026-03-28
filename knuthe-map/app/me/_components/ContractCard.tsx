@@ -129,7 +129,7 @@ export default function ContractCard({ contract: c, onEdit, onEnd, onRenew }: Pr
 
   const inputStyle: React.CSSProperties = {
     padding: '7px 10px', borderRadius: 8,
-    border: '1.5px solid #bfdbfe', fontSize: 12,
+    border: '1.5px solid #bfdbfe', fontSize: 16,
     background: '#fff', outline: 'none', width: '100%', boxSizing: 'border-box',
   }
 
