@@ -76,10 +76,10 @@ export default function BuildingFloorMap({ units, totalFloors, onUnitClick, onAd
       {/* ── 요약 통계 ────────────────────────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
         {[
-          { label: '전체 호실', value: totalUnits,   color: '#2563eb', bg: '#eff6ff' },
-          { label: '입주',      value: occupiedCnt,  color: '#16a34a', bg: '#f0fdf4' },
+          { label: '전체 호실', value: totalUnits,   color: 'var(--color-primary)', bg: '#eff6ff' },
+          { label: '입주',      value: occupiedCnt,  color: 'var(--color-green)', bg: '#f0fdf4' },
           { label: '공실',      value: vacantCnt,    color: '#dc2626', bg: '#fef2f2' },
-          { label: '만료임박',  value: expiringSoon, color: '#d97706', bg: '#fffbeb' },
+          { label: '만료임박',  value: expiringSoon, color: 'var(--color-amber)', bg: '#fffbeb' },
         ].map((s) => (
           <div key={s.label} style={{
             background: s.bg, borderRadius: 12, padding: '10px 8px', textAlign: 'center',
@@ -95,22 +95,22 @@ export default function BuildingFloorMap({ units, totalFloors, onUnitClick, onAd
         {Object.entries(STATUS_COLOR).map(([key, s]) => (
           <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             <div style={{ width: 10, height: 10, borderRadius: 3, background: s.bg, border: `1px solid ${s.border}` }} />
-            <span style={{ fontSize: 11, color: '#64748b' }}>{s.label}</span>
+            <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{s.label}</span>
           </div>
         ))}
         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
           <div style={{ width: 10, height: 10, borderRadius: 3, background: '#fef9c3', border: '2px solid #f59e0b' }} />
-          <span style={{ fontSize: 11, color: '#64748b' }}>만료 60일 이내</span>
+          <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>만료 60일 이내</span>
         </div>
       </div>
 
       {/* ── 건물 단면도 ──────────────────────────────────────── */}
       <div style={{
         border: '1.5px solid #e2e8f0', borderRadius: 16, overflow: 'hidden',
-        background: '#fff',
+        background: 'var(--bg-elevated)',
       }}>
         {floors.length === 0 ? (
-          <div style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>
+          <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-tertiary)' }}>
             <div style={{ fontSize: 28, marginBottom: 8 }}>🏗️</div>
             <p style={{ fontSize: 13, margin: '0 0 4px' }}>등록된 호실이 없어요</p>
             <p style={{ fontSize: 11 }}>아래 버튼으로 호실을 추가해주세요</p>
@@ -131,18 +131,18 @@ export default function BuildingFloorMap({ units, totalFloors, onUnitClick, onAd
                   style={{
                     width: '100%', display: 'flex', alignItems: 'center',
                     padding: '10px 14px', gap: 10,
-                    background: isSelected ? '#f8fafc' : hasUnits ? '#fff' : '#fafafa',
+                    background: isSelected ? 'var(--bg-secondary)' : hasUnits ? 'var(--bg-elevated)' : '#fafafa',
                     border: 'none', cursor: 'pointer', textAlign: 'left',
                   }}
                 >
                   {/* 층 번호 */}
                   <span style={{
                     width: 34, height: 34, borderRadius: 9,
-                    background: hasUnits ? '#f1f5f9' : '#f8fafc',
+                    background: hasUnits ? 'var(--border-primary)' : 'var(--bg-secondary)',
                     border: hasUnits ? 'none' : '1px dashed #e2e8f0',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: 11, fontWeight: 800,
-                    color: hasUnits ? '#374151' : '#cbd5e1',
+                    color: hasUnits ? 'var(--text-primary)' : 'var(--text-muted)',
                     flexShrink: 0,
                   }}>
                     {floor}F
@@ -167,19 +167,19 @@ export default function BuildingFloorMap({ units, totalFloors, onUnitClick, onAd
                         )
                       })
                     ) : (
-                      <span style={{ fontSize: 11, color: '#cbd5e1' }}>등록된 호실 없음</span>
+                      <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>등록된 호실 없음</span>
                     )}
                   </div>
 
                   {/* 오른쪽 요약 + 화살표 */}
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
                     {hasUnits && (
-                      <span style={{ fontSize: 11, color: '#94a3b8' }}>
+                      <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
                         {floorUnits.filter((u) => u.status === 'occupied').length}/{floorUnits.length}
                       </span>
                     )}
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                      stroke={hasUnits ? '#94a3b8' : '#e2e8f0'}
+                      stroke={hasUnits ? 'var(--text-tertiary)' : 'var(--border-secondary)'}
                       strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
                       style={{ transform: isSelected ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
                       <path d="M6 9l6 6 6-6"/>
@@ -210,16 +210,16 @@ export default function BuildingFloorMap({ units, totalFloors, onUnitClick, onAd
                               {u.unit_number}
                             </span>
                             <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: 11, color: '#475569' }}>
+                              <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
                                 {[u.room_type, u.area_m2 ? `${u.area_m2}㎡` : null].filter(Boolean).join(' · ') || '정보 없음'}
                               </div>
                               {u.contract && u.status === 'occupied' && (
-                                <div style={{ fontSize: 11, color: '#64748b', marginTop: 1 }}>
+                                <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 1 }}>
                                   {u.contract.monthly_rent
                                     ? `${u.contract.deposit}만 / 월 ${u.contract.monthly_rent}만`
                                     : `전세 ${u.contract.deposit}만`}
                                   {u.contract.contract_end && (
-                                    <span style={{ marginLeft: 6, color: isExpiring ? '#d97706' : '#94a3b8' }}>
+                                    <span style={{ marginLeft: 6, color: isExpiring ? '#d97706' : 'var(--text-tertiary)' }}>
                                       {isExpiring ? `⚠️ ${days}일 후 만료` : `~${u.contract.contract_end.slice(0, 7)}`}
                                     </span>
                                   )}
@@ -241,7 +241,7 @@ export default function BuildingFloorMap({ units, totalFloors, onUnitClick, onAd
                       onClick={() => onAddUnit(floor)}
                       style={{
                         padding: '8px', borderRadius: 10, border: '1.5px dashed #cbd5e1',
-                        background: '#f8fafc', color: '#94a3b8',
+                        background: 'var(--bg-secondary)', color: 'var(--text-tertiary)',
                         fontSize: 12, fontWeight: 600, cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
                       }}

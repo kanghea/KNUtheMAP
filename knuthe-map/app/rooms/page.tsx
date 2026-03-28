@@ -24,12 +24,12 @@ function RoomCard({ room }: { room: Room }) {
   const meta   = [room.room_type, floor, area].filter(Boolean).join(' · ')
 
   return (
-    <div style={{ borderBottom: '1px solid #f1f5f9' }}>
+    <div style={{ borderBottom: '1px solid var(--border-primary)' }}>
       <Link href={`/rooms/${room.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
         <div style={{ display: 'flex', gap: 12, padding: '16px 16px 14px' }}>
           <div style={{
             width: 96, height: 96, borderRadius: 12, flexShrink: 0,
-            background: '#e2e8f0', overflow: 'hidden', position: 'relative',
+            background: 'var(--border-secondary)', overflow: 'hidden', position: 'relative',
           }}>
             {thumb
               ? <img src={thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -48,14 +48,14 @@ function RoomCard({ room }: { room: Room }) {
             </button>
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', marginBottom: 3 }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 3 }}>
               {formatPrice(room)}
             </div>
-            <div style={{ fontSize: 13, color: '#64748b', marginBottom: 2 }}>{meta}</div>
-            <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 6 }}>{addr}</div>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 2 }}>{meta}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 6 }}>{addr}</div>
             {room.description && (
               <p style={{
-                fontSize: 12, color: '#64748b', margin: 0,
+                fontSize: 12, color: 'var(--text-secondary)', margin: 0,
                 overflow: 'hidden', display: '-webkit-box',
                 WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
               }}>
@@ -133,10 +133,10 @@ export default function RoomsPage() {
       {/* 매물 수 */}
       <div style={{
         pointerEvents: 'auto',
-        background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(10px)',
+        background: 'var(--bg-overlay)', backdropFilter: 'blur(10px)',
         borderRadius: 999, padding: '8px 14px',
-        fontSize: 13, fontWeight: 700, color: '#0f172a',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
+        fontSize: 13, fontWeight: 700, color: 'var(--text-primary)',
+        boxShadow: 'var(--shadow-sm)',
         border: '1px solid rgba(255,255,255,0.6)',
         whiteSpace: 'nowrap',
         display: 'flex', alignItems: 'center', gap: 6,
@@ -144,7 +144,7 @@ export default function RoomsPage() {
         {loading ? '불러오는 중…' : `매물 ${viewMode === 'list' ? filtered.length : rooms.length}개`}
         {isFiltered && activeCount > 0 && (
           <span style={{
-            background: '#2563eb', color: '#fff',
+            background: 'var(--color-primary)', color: 'var(--text-inverse)',
             borderRadius: 999, fontSize: 10, fontWeight: 700,
             padding: '1px 6px',
           }}>
@@ -158,9 +158,9 @@ export default function RoomsPage() {
       {/* 목록/지도 토글 */}
       <div style={{
         pointerEvents: 'auto',
-        background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(10px)',
+        background: 'var(--bg-overlay)', backdropFilter: 'blur(10px)',
         borderRadius: 999, padding: 4,
-        boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
+        boxShadow: 'var(--shadow-sm)',
         border: '1px solid rgba(255,255,255,0.6)',
         display: 'flex', gap: 2,
       }}>
@@ -171,8 +171,8 @@ export default function RoomsPage() {
             style={{
               padding: '5px 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
               fontSize: 12, fontWeight: 700,
-              background: viewMode === mode ? '#0f172a' : 'transparent',
-              color: viewMode === mode ? '#fff' : '#64748b',
+              background: viewMode === mode ? 'var(--text-primary)' : 'transparent',
+              color: viewMode === mode ? 'var(--bg-elevated)' : 'var(--text-secondary)',
               transition: 'all .15s',
               whiteSpace: 'nowrap',
             }}
@@ -185,10 +185,10 @@ export default function RoomsPage() {
       {/* 찜 */}
       <Link href="/rooms/liked" style={{
         pointerEvents: 'auto',
-        background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(10px)',
+        background: 'var(--bg-overlay)', backdropFilter: 'blur(10px)',
         borderRadius: 999, padding: '8px 14px',
-        fontSize: 12, fontWeight: 700, color: '#374151', textDecoration: 'none',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
+        fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', textDecoration: 'none',
+        boxShadow: 'var(--shadow-sm)',
         border: '1px solid rgba(255,255,255,0.6)',
         display: 'flex', alignItems: 'center', gap: 4,
         whiteSpace: 'nowrap',
@@ -218,13 +218,13 @@ export default function RoomsPage() {
   // ── 목록 뷰 ───────────────────────────────────────────────────────
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: '#fff', display: 'flex', flexDirection: 'column', zIndex: 0 }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg-elevated)', display: 'flex', flexDirection: 'column', zIndex: 0 }}>
 
       {/* 상단 오버레이 (흰 배경) */}
       <div style={{
         position: 'relative',
-        background: '#fff',
-        borderBottom: '1px solid #f1f5f9',
+        background: 'var(--bg-elevated)',
+        borderBottom: '1px solid var(--border-primary)',
         padding: '16px 16px 0',
         zIndex: 10,
       }}>
@@ -236,12 +236,12 @@ export default function RoomsPage() {
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 padding: '6px 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                background: '#f1f5f9', fontSize: 13, fontWeight: 700, color: '#0f172a',
+                background: 'var(--bg-tertiary)', fontSize: 13, fontWeight: 700, color: 'var(--text-primary)',
               }}
             >
               ← 지도로 돌아가기
             </button>
-            <span style={{ fontSize: 13, color: '#64748b' }}>
+            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
               선택한 묶음 {clusterIds.length}개
             </span>
           </div>
@@ -249,11 +249,11 @@ export default function RoomsPage() {
 
         {/* 매물수 / 토글 / 찜 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <span style={{ fontSize: 15, fontWeight: 800, color: '#0f172a', flex: 1 }}>
+          <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-primary)', flex: 1 }}>
             {loading ? '불러오는 중…' : `매물 ${filtered.length}개`}
             {isFiltered && activeCount > 0 && (
               <span style={{
-                marginLeft: 6, background: '#eff6ff', color: '#2563eb',
+                marginLeft: 6, background: 'var(--color-primary-bg)', color: 'var(--color-primary)',
                 borderRadius: 999, fontSize: 10, fontWeight: 700, padding: '2px 7px',
               }}>
                 필터 {activeCount}
@@ -262,7 +262,7 @@ export default function RoomsPage() {
           </span>
 
           <div style={{
-            display: 'flex', background: '#f1f5f9', borderRadius: 999, padding: 3,
+            display: 'flex', background: 'var(--bg-tertiary)', borderRadius: 999, padding: 3,
           }}>
             {(['map', 'list'] as const).map(mode => (
               <button
@@ -271,9 +271,9 @@ export default function RoomsPage() {
                 style={{
                   padding: '4px 12px', borderRadius: 999, border: 'none', cursor: 'pointer',
                   fontSize: 12, fontWeight: 700,
-                  background: viewMode === mode ? '#fff' : 'transparent',
-                  color: viewMode === mode ? '#0f172a' : '#94a3b8',
-                  boxShadow: viewMode === mode ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                  background: viewMode === mode ? 'var(--bg-elevated)' : 'transparent',
+                  color: viewMode === mode ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                  boxShadow: viewMode === mode ? 'var(--shadow-xs)' : 'none',
                   transition: 'all .15s', whiteSpace: 'nowrap',
                 }}
               >
@@ -283,7 +283,7 @@ export default function RoomsPage() {
           </div>
 
           <Link href="/rooms/liked" style={{
-            fontSize: 12, color: '#64748b', fontWeight: 700, textDecoration: 'none',
+            fontSize: 12, color: 'var(--text-secondary)', fontWeight: 700, textDecoration: 'none',
             display: 'flex', alignItems: 'center', gap: 3, whiteSpace: 'nowrap',
           }}>
             🤍 찜
@@ -302,7 +302,7 @@ export default function RoomsPage() {
         )}
         {loading ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 200 }}>
-            <span style={{ fontSize: 14, color: '#94a3b8' }}>불러오는 중…</span>
+            <span style={{ fontSize: 14, color: 'var(--text-tertiary)' }}>불러오는 중…</span>
           </div>
         ) : filtered.length === 0 ? (
           <div style={{
@@ -310,7 +310,7 @@ export default function RoomsPage() {
             justifyContent: 'center', padding: '60px 24px', gap: 12,
           }}>
             <span style={{ fontSize: 48 }}>{isFiltered ? '🔍' : '🏠'}</span>
-            <p style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', margin: 0 }}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
               {isFiltered ? '조건에 맞는 방이 없어요' : '아직 등록된 매물이 없어요'}
             </p>
             {isFiltered && (
@@ -318,8 +318,8 @@ export default function RoomsPage() {
                 onClick={() => setFilters(DEFAULT_FILTERS)}
                 style={{
                   marginTop: 4, padding: '8px 20px', borderRadius: 999,
-                  background: '#f1f5f9', border: 'none', cursor: 'pointer',
-                  fontSize: 13, fontWeight: 600, color: '#475569',
+                  background: 'var(--bg-tertiary)', border: 'none', cursor: 'pointer',
+                  fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)',
                 }}
               >
                 필터 초기화

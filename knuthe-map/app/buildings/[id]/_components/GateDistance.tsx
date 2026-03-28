@@ -46,7 +46,7 @@ export default function GateDistance({ gates }: Props) {
                 className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
                 style={
                   isNearest
-                    ? { background: '#3b82f6', color: '#fff' }
+                    ? { background: '#3b82f6', color: 'var(--text-inverse)' }
                     : { background: '#f3f4f6', color: '#9ca3af' }
                 }
               >

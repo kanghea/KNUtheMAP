@@ -88,10 +88,10 @@ export default function UnitsClient({ buildingId, totalFloors, initialUnits }: P
     : units.filter((u) => u.status === activeTab)
 
   const cardStyle: React.CSSProperties = {
-    background: '#fff',
+    background: 'var(--bg-elevated)',
     borderRadius: 20,
-    border: '1px solid #f1f5f9',
-    boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+    border: '1px solid var(--border-primary)',
+    boxShadow: 'var(--shadow-xs)',
     padding: '16px 18px',
     display: 'flex',
     alignItems: 'center',
@@ -103,12 +103,12 @@ export default function UnitsClient({ buildingId, totalFloors, initialUnits }: P
     height: 30,
     borderRadius: 8,
     border: '1.5px solid #e2e8f0',
-    background: '#fff',
+    background: 'var(--bg-elevated)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
-    color: '#64748b',
+    color: 'var(--text-secondary)',
     flexShrink: 0,
   }
 
@@ -128,8 +128,8 @@ export default function UnitsClient({ buildingId, totalFloors, initialUnits }: P
                   padding: '6px 14px',
                   borderRadius: 20,
                   border: isActive ? 'none' : '1.5px solid #e2e8f0',
-                  background: isActive ? '#2563eb' : '#fff',
-                  color: isActive ? '#fff' : '#64748b',
+                  background: isActive ? '#2563eb' : 'var(--bg-elevated)',
+                  color: isActive ? 'var(--bg-elevated)' : 'var(--text-secondary)',
                   fontSize: 12,
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -147,7 +147,7 @@ export default function UnitsClient({ buildingId, totalFloors, initialUnits }: P
           style={{
             display: 'flex', alignItems: 'center', gap: 5,
             padding: '7px 14px', borderRadius: 12,
-            background: '#2563eb', color: '#fff',
+            background: 'var(--color-primary)', color: 'var(--text-inverse)',
             border: 'none', cursor: 'pointer',
             fontSize: 12, fontWeight: 700,
           }}
@@ -159,18 +159,18 @@ export default function UnitsClient({ buildingId, totalFloors, initialUnits }: P
       {/* Unit list */}
       {filteredUnits.length === 0 ? (
         <div style={{
-          background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+          background: 'var(--bg-elevated)', borderRadius: 20, border: '1px solid var(--border-primary)',
+          boxShadow: 'var(--shadow-xs)',
           padding: '40px 20px', textAlign: 'center',
         }}>
-          <p style={{ fontSize: 14, color: '#94a3b8', margin: '0 0 12px' }}>
+          <p style={{ fontSize: 14, color: 'var(--text-tertiary)', margin: '0 0 12px' }}>
             등록된 호실이 없어요
           </p>
           <button
             onClick={() => setEditUnit(null)}
             style={{
               padding: '8px 18px', borderRadius: 10,
-              background: '#2563eb', color: '#fff',
+              background: 'var(--color-primary)', color: 'var(--text-inverse)',
               border: 'none', cursor: 'pointer',
               fontSize: 12, fontWeight: 700,
             }}
@@ -189,7 +189,7 @@ export default function UnitsClient({ buildingId, totalFloors, initialUnits }: P
                 {/* Thumbnail */}
                 <div style={{
                   width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-                  background: '#f1f5f9', overflow: 'hidden',
+                  background: 'var(--bg-tertiary)', overflow: 'hidden',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   {mainImgUrl ? (
@@ -201,7 +201,7 @@ export default function UnitsClient({ buildingId, totalFloors, initialUnits }: P
                     />
                   ) : (
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                      stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="3" width="18" height="18" rx="2"/>
                       <circle cx="8.5" cy="8.5" r="1.5"/>
                       <polyline points="21 15 16 10 5 21"/>
@@ -211,10 +211,10 @@ export default function UnitsClient({ buildingId, totalFloors, initialUnits }: P
 
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', lineHeight: 1.3 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3 }}>
                     {unit.floor}층 {unit.unit_number}
                   </div>
-                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
+                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
                     {[unit.room_type, unit.area_m2 != null ? `${unit.area_m2}㎡` : null]
                       .filter(Boolean).join(' · ') || '정보 없음'}
                   </div>
@@ -241,7 +241,7 @@ export default function UnitsClient({ buildingId, totalFloors, initialUnits }: P
                   <button
                     onClick={() => handleDelete(unit)}
                     disabled={deleting === unit.id}
-                    style={{ ...iconBtnStyle, color: '#ef4444', borderColor: '#fecaca' }}
+                    style={{ ...iconBtnStyle, color: 'var(--color-red)', borderColor: '#fecaca' }}
                     title="삭제"
                   >
                     <TrashIcon />

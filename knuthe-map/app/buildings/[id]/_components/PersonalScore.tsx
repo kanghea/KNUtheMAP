@@ -16,10 +16,10 @@ interface Props {
 }
 
 const GRADE_CONFIG = {
-  S: { label: 'S', color: '#7c3aed', bg: '#ede9fe', border: '#ddd6fe', text: '완벽하게 잘 맞아요!' },
-  A: { label: 'A', color: '#2563eb', bg: '#dbeafe', border: '#bfdbfe', text: '잘 맞는 건물이에요' },
+  S: { label: 'S', color: 'var(--color-purple)', bg: '#ede9fe', border: '#ddd6fe', text: '완벽하게 잘 맞아요!' },
+  A: { label: 'A', color: 'var(--color-primary)', bg: '#dbeafe', border: '#bfdbfe', text: '잘 맞는 건물이에요' },
   B: { label: 'B', color: '#059669', bg: '#d1fae5', border: '#a7f3d0', text: '대체로 괜찮아요' },
-  C: { label: 'C', color: '#d97706', bg: '#fef3c7', border: '#fde68a', text: '아쉬운 점이 있어요' },
+  C: { label: 'C', color: 'var(--color-amber)', bg: '#fef3c7', border: '#fde68a', text: '아쉬운 점이 있어요' },
   D: { label: 'D', color: '#dc2626', bg: '#fee2e2', border: '#fecaca', text: '잘 맞지 않을 수 있어요' },
 }
 
@@ -28,7 +28,7 @@ function Stars({ n, color }: { n: number; color: string }) {
     <span className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map((i) => (
         <svg key={i} width="12" height="12" viewBox="0 0 24 24"
-          fill={i <= n ? color : '#e5e7eb'}>
+          fill={i <= n ? color : 'var(--star-empty)'}>
           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
         </svg>
       ))}
@@ -75,7 +75,7 @@ export default function PersonalScore({ grade, dept, priorities, factors }: Prop
         </div>
         <span
           className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-lg font-black"
-          style={{ background: cfg.color, color: '#fff' }}
+          style={{ background: cfg.color, color: 'var(--text-inverse)' }}
         >
           {cfg.label}
         </span>
@@ -99,7 +99,7 @@ export default function PersonalScore({ grade, dept, priorities, factors }: Prop
               <span
                 className="shrink-0 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center"
                 style={isTop
-                  ? { background: cfg.color, color: '#fff' }
+                  ? { background: cfg.color, color: 'var(--text-inverse)' }
                   : { background: '#f3f4f6', color: '#9ca3af' }
                 }
               >

@@ -85,7 +85,7 @@ export default function MapView({ filters, initialZone, flyTo }: MapViewProps) {
         paint: {
           'circle-radius': 7,
           'circle-color': '#1e40af',
-          'circle-stroke-color': '#fff',
+          'circle-stroke-color': '#ffffff',
           'circle-stroke-width': 2,
           'circle-opacity': 0.92,
         },
@@ -122,10 +122,10 @@ export default function MapView({ filters, initialZone, flyTo }: MapViewProps) {
           .setLngLat(e.lngLat)
           .setHTML(`
             <div style="padding:12px 14px;font-family:inherit">
-              <p style="margin:0 0 4px;font-size:11px;color:#6b7280;letter-spacing:.06em">경북대학교 출입문</p>
-              <h3 style="margin:0 0 10px;font-size:16px;font-weight:800;color:#0f172a">${name}</h3>
-              <div style="height:80px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center">
-                <span style="font-size:12px;color:#94a3b8">사진 준비 중</span>
+              <p style="margin:0 0 4px;font-size:11px;color:var(--text-secondary);letter-spacing:.06em">경북대학교 출입문</p>
+              <h3 style="margin:0 0 10px;font-size:16px;font-weight:800;color:var(--text-primary)">${name}</h3>
+              <div style="height:80px;background:var(--bg-tertiary);border-radius:8px;display:flex;align-items:center;justify-content:center">
+                <span style="font-size:12px;color:var(--text-secondary)">사진 준비 중</span>
               </div>
             </div>
           `)
@@ -222,7 +222,7 @@ export default function MapView({ filters, initialZone, flyTo }: MapViewProps) {
         const el = document.createElement('div')
         el.style.cssText = [
           'display:flex', 'align-items:center', 'gap:0',
-          'background:#2563eb', 'color:#fff',
+          'background:var(--color-primary)', 'color:var(--bg-elevated)',
           'border-radius:999px',
           'box-shadow:0 3px 10px rgba(37,99,235,0.45)',
           'cursor:pointer', 'pointer-events:auto',
@@ -255,7 +255,7 @@ export default function MapView({ filters, initialZone, flyTo }: MapViewProps) {
 
         // hover effect
         el.addEventListener('mouseenter', () => { el.style.background = '#1d4ed8'; map.getCanvas().style.cursor = 'pointer' })
-        el.addEventListener('mouseleave', () => { el.style.background = '#2563eb'; map.getCanvas().style.cursor = '' })
+        el.addEventListener('mouseleave', () => { el.style.background = 'var(--color-primary)'; map.getCanvas().style.cursor = '' })
 
         const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
           .setLngLat([zone.lng, zone.lat])
@@ -304,7 +304,7 @@ export default function MapView({ filters, initialZone, flyTo }: MapViewProps) {
             'text-max-width': 8,
           },
           paint: {
-            'text-color': '#1f2937',
+            'text-color': '#0f172a',
             'text-halo-color': 'rgba(255,255,255,0.92)',
             'text-halo-width': 1.5,
           },

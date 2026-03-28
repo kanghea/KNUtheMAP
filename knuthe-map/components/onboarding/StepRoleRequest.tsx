@@ -59,13 +59,13 @@ export default function StepRoleRequest({ role, onSubmitted, onBack }: Props) {
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '11px 14px', borderRadius: 12,
-    border: '1.5px solid #e2e8f0', fontSize: 13, color: '#0f172a',
-    background: '#fff', outline: 'none', boxSizing: 'border-box',
+    border: '1.5px solid #e2e8f0', fontSize: 13, color: 'var(--text-primary)',
+    background: 'var(--bg-elevated)', outline: 'none', boxSizing: 'border-box',
   }
 
   const label = (txt: string, required = false) => (
-    <p style={{ fontSize: 11, fontWeight: 600, color: '#64748b', margin: '0 0 6px' }}>
-      {txt}{required && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
+    <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', margin: '0 0 6px' }}>
+      {txt}{required && <span style={{ color: 'var(--color-red)', marginLeft: 2 }}>*</span>}
     </p>
   )
 
@@ -79,10 +79,10 @@ export default function StepRoleRequest({ role, onSubmitted, onBack }: Props) {
       }}>
         <span style={{ fontSize: 22 }}>{isOwner ? '🏠' : '🏢'}</span>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
             {isOwner ? '건물주 신청' : '공인중개사 신청'}
           </div>
-          <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+          <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
             관리자 검토 후 승인 알림을 드려요 (보통 1~2일 소요)
           </div>
         </div>
@@ -138,7 +138,7 @@ export default function StepRoleRequest({ role, onSubmitted, onBack }: Props) {
       </div>
 
       {error && (
-        <p style={{ margin: 0, fontSize: 12, color: '#ef4444' }}>{error}</p>
+        <p style={{ margin: 0, fontSize: 12, color: 'var(--color-red)' }}>{error}</p>
       )}
 
       <div style={{ display: 'flex', gap: 8 }}>
@@ -146,13 +146,13 @@ export default function StepRoleRequest({ role, onSubmitted, onBack }: Props) {
           onClick={onBack}
           style={{
             width: 46, height: 46, borderRadius: 12, flexShrink: 0,
-            border: '1.5px solid #e2e8f0', background: '#fff',
+            border: '1.5px solid #e2e8f0', background: 'var(--bg-elevated)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer',
           }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            stroke="var(--text-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6"/>
           </svg>
         </button>
@@ -161,7 +161,7 @@ export default function StepRoleRequest({ role, onSubmitted, onBack }: Props) {
           disabled={submitting}
           style={{
             flex: 1, height: 46, borderRadius: 12, border: 'none',
-            background: submitting ? '#93c5fd' : '#2563eb', color: '#fff',
+            background: submitting ? '#93c5fd' : '#2563eb', color: 'var(--text-inverse)',
             fontSize: 14, fontWeight: 700, cursor: submitting ? 'default' : 'pointer',
           }}
         >

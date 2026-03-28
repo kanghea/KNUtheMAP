@@ -148,12 +148,12 @@ export default function UnitModal({ unit, defaultFloor, buildingId, onClose, onS
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '10px 12px', borderRadius: 10,
-    border: '1.5px solid #e2e8f0', fontSize: 13, color: '#0f172a',
-    background: '#fff', outline: 'none', boxSizing: 'border-box',
+    border: '1.5px solid #e2e8f0', fontSize: 13, color: 'var(--text-primary)',
+    background: 'var(--bg-elevated)', outline: 'none', boxSizing: 'border-box',
   }
   const label = (txt: string, req = false) => (
-    <p style={{ fontSize: 11, fontWeight: 600, color: '#64748b', margin: '0 0 5px' }}>
-      {txt}{req && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
+    <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', margin: '0 0 5px' }}>
+      {txt}{req && <span style={{ color: 'var(--color-red)', marginLeft: 2 }}>*</span>}
     </p>
   )
 
@@ -166,19 +166,19 @@ export default function UnitModal({ unit, defaultFloor, buildingId, onClose, onS
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div style={{
-        background: '#fff', borderRadius: '20px 20px 0 0',
+        background: 'var(--bg-elevated)', borderRadius: '20px 20px 0 0',
         width: '100%', maxWidth: 520,
         padding: '20px 20px 36px',
         maxHeight: '90vh', overflowY: 'auto',
       }}>
         {/* 핸들 */}
-        <div style={{ width: 36, height: 4, borderRadius: 2, background: '#e2e8f0', margin: '0 auto 18px' }} />
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--bg-tertiary)', margin: '0 auto 18px' }} />
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', margin: 0 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
             {isNew ? '호실 추가' : `${unit!.unit_number} 수정`}
           </h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#94a3b8' }}>닫기</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--text-tertiary)' }}>닫기</button>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -231,7 +231,7 @@ export default function UnitModal({ unit, defaultFloor, buildingId, onClose, onS
           {/* 이미지 */}
           <div>
             {label('사진')}
-            <p style={{ fontSize: 11, color: '#94a3b8', margin: '-2px 0 8px' }}>
+            <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '-2px 0 8px' }}>
               클릭하면 대표 사진으로 설정됩니다
             </p>
 
@@ -258,8 +258,8 @@ export default function UnitModal({ unit, defaultFloor, buildingId, onClose, onS
                     {isMain && (
                       <div style={{
                         position: 'absolute', top: 5, left: 5,
-                        background: '#2563eb', borderRadius: 6,
-                        padding: '2px 6px', fontSize: 9, fontWeight: 700, color: '#fff',
+                        background: 'var(--color-primary)', borderRadius: 6,
+                        padding: '2px 6px', fontSize: 9, fontWeight: 700, color: 'var(--text-inverse)',
                       }}>
                         대표
                       </div>
@@ -270,7 +270,7 @@ export default function UnitModal({ unit, defaultFloor, buildingId, onClose, onS
                       <div style={{
                         position: 'absolute', bottom: 4, left: 4,
                         background: 'rgba(0,0,0,0.5)', borderRadius: 4,
-                        padding: '1px 5px', fontSize: 9, color: '#fff',
+                        padding: '1px 5px', fontSize: 9, color: 'var(--text-inverse)',
                       }}>
                         NEW
                       </div>
@@ -283,7 +283,7 @@ export default function UnitModal({ unit, defaultFloor, buildingId, onClose, onS
                         position: 'absolute', top: 4, right: 4,
                         width: 22, height: 22, borderRadius: '50%',
                         background: 'rgba(0,0,0,0.6)', border: 'none',
-                        color: '#fff', fontSize: 11, cursor: 'pointer',
+                        color: 'var(--text-inverse)', fontSize: 11, cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}
                     >✕</button>
@@ -296,13 +296,13 @@ export default function UnitModal({ unit, defaultFloor, buildingId, onClose, onS
                 onClick={() => fileInputRef.current?.click()}
                 style={{
                   aspectRatio: '1', borderRadius: 12,
-                  border: '2px dashed #e2e8f0', background: '#f8fafc',
+                  border: '2px dashed #e2e8f0', background: 'var(--bg-secondary)',
                   cursor: 'pointer', display: 'flex', flexDirection: 'column',
                   alignItems: 'center', justifyContent: 'center', gap: 4,
                 }}
               >
-                <span style={{ fontSize: 22, color: '#94a3b8' }}>+</span>
-                <span style={{ fontSize: 10, color: '#94a3b8' }}>사진 추가</span>
+                <span style={{ fontSize: 22, color: 'var(--text-tertiary)' }}>+</span>
+                <span style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>사진 추가</span>
               </button>
             </div>
 
@@ -316,21 +316,21 @@ export default function UnitModal({ unit, defaultFloor, buildingId, onClose, onS
             />
 
             {images.filter((i) => i.type === 'file').length > 0 && (
-              <p style={{ fontSize: 11, color: '#64748b', margin: '6px 0 0' }}>
+              <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: '6px 0 0' }}>
                 새 사진 {images.filter((i) => i.type === 'file').length}장 — 저장 시 자동 업로드
               </p>
             )}
           </div>
 
-          {error    && <p style={{ margin: 0, fontSize: 12, color: '#ef4444' }}>{error}</p>}
-          {progress && <p style={{ margin: 0, fontSize: 12, color: '#2563eb' }}>{progress}</p>}
+          {error    && <p style={{ margin: 0, fontSize: 12, color: 'var(--color-red)' }}>{error}</p>}
+          {progress && <p style={{ margin: 0, fontSize: 12, color: 'var(--color-primary)' }}>{progress}</p>}
 
           <button
             onClick={handleSave}
             disabled={saving}
             style={{
               padding: '13px', borderRadius: 12, border: 'none',
-              background: saving ? '#93c5fd' : '#2563eb', color: '#fff',
+              background: saving ? '#93c5fd' : '#2563eb', color: 'var(--text-inverse)',
               fontSize: 13, fontWeight: 700, cursor: saving ? 'default' : 'pointer',
               marginTop: 4,
             }}

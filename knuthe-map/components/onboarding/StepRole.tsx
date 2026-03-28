@@ -13,7 +13,7 @@ const ROLES = [
     emoji: '🔍',
     title: '방 구하기 (학생)',
     desc: '경북대 주변 매물을 찾고\n건물 정보·리뷰를 확인해요',
-    color: '#2563eb',
+    color: 'var(--color-primary)',
     bg: '#eff6ff',
   },
   {
@@ -21,7 +21,7 @@ const ROLES = [
     emoji: '🏠',
     title: '건물주',
     desc: '내 건물 호실을 직접 관리하고\n임대 계약을 등록해요',
-    color: '#16a34a',
+    color: 'var(--color-green)',
     bg: '#f0fdf4',
     badge: '관리자 승인 필요',
   },
@@ -30,7 +30,7 @@ const ROLES = [
     emoji: '🏢',
     title: '공인중개사',
     desc: '여러 건물 매물을 등록·관리하고\n통계와 계약을 한 곳에서 확인해요',
-    color: '#7c3aed',
+    color: 'var(--color-purple)',
     bg: '#f5f3ff',
     badge: '관리자 승인 필요',
   },
@@ -49,14 +49,14 @@ export default function StepRole({ selected, onSelect }: Props) {
               display: 'flex', alignItems: 'center', gap: 14,
               padding: '16px 18px', borderRadius: 16, textAlign: 'left',
               border: active ? `2px solid ${r.color}` : '2px solid #e2e8f0',
-              background: active ? r.bg : '#fff',
+              background: active ? r.bg : 'var(--bg-elevated)',
               cursor: 'pointer', transition: 'border .15s, background .15s',
               width: '100%',
             }}
           >
             <span style={{
               width: 46, height: 46, borderRadius: 14, flexShrink: 0,
-              background: active ? r.bg : '#f8fafc',
+              background: active ? r.bg : 'var(--bg-secondary)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 22, border: active ? `1.5px solid ${r.color}40` : '1.5px solid #f1f5f9',
             }}>
@@ -64,19 +64,19 @@ export default function StepRole({ selected, onSelect }: Props) {
             </span>
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3 }}>
-                <span style={{ fontSize: 15, fontWeight: 700, color: active ? r.color : '#0f172a' }}>
+                <span style={{ fontSize: 15, fontWeight: 700, color: active ? r.color : 'var(--text-primary)' }}>
                   {r.title}
                 </span>
                 {r.badge && (
                   <span style={{
                     fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 999,
-                    background: '#fef3c7', color: '#92400e',
+                    background: 'var(--color-amber-bg)', color: '#92400e',
                   }}>
                     {r.badge}
                   </span>
                 )}
               </div>
-              <span style={{ fontSize: 12, color: '#64748b', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
+              <span style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
                 {r.desc}
               </span>
             </div>

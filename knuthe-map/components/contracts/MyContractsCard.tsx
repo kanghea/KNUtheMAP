@@ -91,28 +91,28 @@ export default function MyContractsCard({ initialContracts, hideHeader }: Props)
   if (loggedIn === false) {
     return (
       <div style={{
-        background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.04)', marginBottom: 16,
+        background: 'var(--bg-elevated)', borderRadius: 20, border: '1px solid var(--border-primary)',
+        boxShadow: 'var(--shadow-xs)', marginBottom: 16,
         padding: '20px',
       }}>
         {!hideHeader && (
-          <h2 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: '0 0 12px' }}>
+          <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 12px' }}>
             내 계약 관리
           </h2>
         )}
         <div style={{
-          background: '#f8fafc', borderRadius: 14, padding: '20px',
+          background: 'var(--bg-secondary)', borderRadius: 14, padding: '20px',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10,
         }}>
           <span style={{ fontSize: 28 }}>📋</span>
-          <p style={{ margin: 0, fontSize: 13, color: '#64748b', textAlign: 'center', lineHeight: 1.6 }}>
+          <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center', lineHeight: 1.6 }}>
             로그인하면 내가 제보한<br />계약 내역을 관리할 수 있어요
           </p>
           <Link
             href="/login"
             style={{
               marginTop: 4, padding: '10px 24px', borderRadius: 999,
-              background: '#2563eb', color: '#fff',
+              background: 'var(--color-primary)', color: 'var(--text-inverse)',
               fontSize: 13, fontWeight: 700, textDecoration: 'none',
             }}
           >
@@ -127,15 +127,15 @@ export default function MyContractsCard({ initialContracts, hideHeader }: Props)
   if (loading || loggedIn === null) {
     return (
       <div style={{
-        background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.04)', marginBottom: 16,
+        background: 'var(--bg-elevated)', borderRadius: 20, border: '1px solid var(--border-primary)',
+        boxShadow: 'var(--shadow-xs)', marginBottom: 16,
         padding: '20px',
       }}>
         {!hideHeader && (
-          <h2 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: '0 0 12px' }}>내 계약 관리</h2>
+          <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 12px' }}>내 계약 관리</h2>
         )}
         <div style={{ height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: 13, color: '#94a3b8' }}>불러오는 중…</span>
+          <span style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>불러오는 중…</span>
         </div>
       </div>
     )
@@ -145,22 +145,22 @@ export default function MyContractsCard({ initialContracts, hideHeader }: Props)
   if (contracts?.length === 0) {
     return (
       <div style={{
-        background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.04)', marginBottom: 16,
+        background: 'var(--bg-elevated)', borderRadius: 20, border: '1px solid var(--border-primary)',
+        boxShadow: 'var(--shadow-xs)', marginBottom: 16,
         padding: '20px',
       }}>
         {!hideHeader && (
-          <h2 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: '0 0 12px' }}>내 계약 관리</h2>
+          <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 12px' }}>내 계약 관리</h2>
         )}
         <div style={{
-          background: '#f8fafc', borderRadius: 14, padding: '20px',
+          background: 'var(--bg-secondary)', borderRadius: 14, padding: '20px',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
         }}>
           <span style={{ fontSize: 28 }}>📭</span>
-          <p style={{ margin: 0, fontSize: 13, color: '#64748b', textAlign: 'center' }}>
+          <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center' }}>
             아직 제보한 거래 내역이 없어요
           </p>
-          <p style={{ margin: 0, fontSize: 12, color: '#94a3b8', textAlign: 'center' }}>
+          <p style={{ margin: 0, fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center' }}>
             건물 페이지에서 실거주 리뷰를 작성하면<br />자동으로 등록됩니다
           </p>
         </div>
@@ -171,8 +171,8 @@ export default function MyContractsCard({ initialContracts, hideHeader }: Props)
   // ── 목록 ──────────────────────────────────────────────────────────
   return (
     <div style={{
-      background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-      boxShadow: '0 2px 12px rgba(0,0,0,0.04)', marginBottom: 16,
+      background: 'var(--bg-elevated)', borderRadius: 20, border: '1px solid var(--border-primary)',
+      boxShadow: 'var(--shadow-xs)', marginBottom: 16,
       overflow: 'hidden',
     }}>
       {!hideHeader && (
@@ -180,8 +180,8 @@ export default function MyContractsCard({ initialContracts, hideHeader }: Props)
           padding: '18px 20px 12px',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
-          <h2 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: 0 }}>내 계약 관리</h2>
-          <span style={{ fontSize: 12, color: '#94a3b8' }}>{contracts?.length}건</span>
+          <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>내 계약 관리</h2>
+          <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{contracts?.length}건</span>
         </div>
       )}
 
@@ -207,18 +207,18 @@ export default function MyContractsCard({ initialContracts, hideHeader }: Props)
 
             {/* 정보 */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 2 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>
                 {priceLabel(c)}
               </div>
-              <div style={{ fontSize: 11, color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div style={{ fontSize: 11, color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {buildingLabel(c)}
-                {metaLabel(c) && <span style={{ color: '#94a3b8' }}> · {metaLabel(c)}</span>}
+                {metaLabel(c) && <span style={{ color: 'var(--text-tertiary)' }}> · {metaLabel(c)}</span>}
               </div>
             </div>
 
             {/* 날짜 */}
             {c.contract_date && (
-              <span style={{ fontSize: 11, color: '#94a3b8', flexShrink: 0 }}>
+              <span style={{ fontSize: 11, color: 'var(--text-tertiary)', flexShrink: 0 }}>
                 {c.contract_date.slice(0, 7)}
               </span>
             )}

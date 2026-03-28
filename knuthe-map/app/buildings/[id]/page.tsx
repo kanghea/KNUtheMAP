@@ -72,7 +72,7 @@ const BookmarkIcon = () => (
   </svg>
 )
 
-const StarIcon = ({ fill = '#f59e0b', size = 13 }: { fill?: string; size?: number }) => (
+const StarIcon = ({ fill = 'var(--star-filled)', size = 13 }: { fill?: string; size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={fill}>
     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
   </svg>
@@ -299,7 +299,7 @@ export default async function BuildingPage({
   const naverClientId = process.env.NAVER_MAP_CLIENT_ID ?? ''
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen" style={{ background: 'var(--bg-elevated)' }}>
 
       {/* ── 로드뷰 헤더 ───────────────────────────────────────── */}
       <div className="relative" style={{ height: 360 }}>
@@ -347,16 +347,16 @@ export default async function BuildingPage({
       <div className="max-w-2xl mx-auto">
 
         {/* ── 건물 타이틀 카드 ─────────────────────────────────── */}
-        <div className="px-5 pt-5 pb-4 border-b border-gray-100">
+        <div className="px-5 pt-5 pb-4" style={{ borderBottom: '1px solid var(--border-primary)' }}>
           {/* 이름 + 평점 */}
           <div className="flex items-start justify-between gap-3">
-            <h1 className="text-[1.3rem] font-bold text-gray-900 leading-tight">{title}</h1>
+            <h1 className="text-[1.3rem] font-bold leading-tight" style={{ color: 'var(--text-primary)' }}>{title}</h1>
             <div className="flex items-center gap-1 shrink-0 mt-0.5">
-              <StarIcon fill="#f59e0b" size={16} />
-              <span className="text-base font-bold text-gray-800">
+              <StarIcon fill="var(--star-filled)" size={16} />
+              <span className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>
                 {avgRating !== null ? avgRating.toFixed(1) : '–'}
               </span>
-              <span className="text-sm text-gray-400">({reviews.length}개)</span>
+              <span className="text-sm" style={{ color: 'var(--text-tertiary)' }}>({reviews.length}개)</span>
             </div>
           </div>
 
@@ -364,18 +364,18 @@ export default async function BuildingPage({
           <div className="mt-3 flex flex-col gap-1.5">
             {b.address && (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500 border border-gray-300 rounded px-1.5 py-0.5 shrink-0 leading-none">
+                <span className="text-xs rounded px-1.5 py-0.5 shrink-0 leading-none" style={{ color: 'var(--text-secondary)', border: '1px solid var(--border-strong)' }}>
                   도로명
                 </span>
-                <span className="text-sm text-gray-700">{b.address}</span>
+                <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{b.address}</span>
               </div>
             )}
             {b.bd_mgt_sn && (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500 border border-gray-300 rounded px-1.5 py-0.5 shrink-0 leading-none">
+                <span className="text-xs rounded px-1.5 py-0.5 shrink-0 leading-none" style={{ color: 'var(--text-secondary)', border: '1px solid var(--border-strong)' }}>
                   관리번호
                 </span>
-                <span className="text-sm text-gray-500 font-mono text-xs">{b.bd_mgt_sn}</span>
+                <span className="text-sm font-mono text-xs" style={{ color: 'var(--text-secondary)' }}>{b.bd_mgt_sn}</span>
               </div>
             )}
           </div>
@@ -385,12 +385,12 @@ export default async function BuildingPage({
         <TransactionTabs transactions={transactions} summary={txSummary} />
 
         {/* ── 건물 소개 ─────────────────────────────────────────── */}
-        <section className="px-5 pt-7 pb-6 border-b border-gray-100">
-          <h2 className="text-[1.15rem] font-bold text-gray-900 mb-4">{title} 소개</h2>
+        <section className="px-5 pt-7 pb-6" style={{ borderBottom: '1px solid var(--border-primary)' }}>
+          <h2 className="text-[1.15rem] font-bold mb-4" style={{ color: 'var(--text-primary)' }}>{title} 소개</h2>
 
           {/* 지도 (스트리트맵) */}
           {mapboxStaticImg && (
-            <div className="rounded-xl overflow-hidden border border-gray-200">
+            <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border-secondary)' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={mapboxStaticImg}
@@ -402,14 +402,14 @@ export default async function BuildingPage({
           )}
 
           {/* 건물 정보 그리드 */}
-          <div className="border border-t-0 border-gray-200 rounded-b-xl px-5 pt-1 pb-3">
+          <div className="rounded-b-xl px-5 pt-1 pb-3" style={{ border: '1px solid var(--border-secondary)', borderTop: 0 }}>
             <InfoExpand building={b} />
           </div>
         </section>
 
         {/* ── 내 기준 적합도 ────────────────────────────────────── */}
         {prefs && personalFactors.length > 0 && (
-          <section className="px-5 pt-6 pb-5 border-b border-gray-100">
+          <section className="px-5 pt-6 pb-5" style={{ borderBottom: '1px solid var(--border-primary)' }}>
             <PersonalScore
               grade={prefs.grade}
               dept={prefs.dept}
@@ -421,14 +421,14 @@ export default async function BuildingPage({
 
         {/* ── 가까운 출입문 ─────────────────────────────────────── */}
         {nearestGates.length > 0 && (
-          <section className="px-5 pt-6 pb-5 border-b border-gray-100">
+          <section className="px-5 pt-6 pb-5" style={{ borderBottom: '1px solid var(--border-primary)' }}>
             <GateDistance gates={nearestGates} />
           </section>
         )}
 
         {/* ── 연식 정규분포 ─────────────────────────────────────── */}
         {currentAge != null && zoneAges.length >= 5 && b.use_apr_day && (
-          <section className="px-5 pt-6 pb-5 border-b border-gray-100">
+          <section className="px-5 pt-6 pb-5" style={{ borderBottom: '1px solid var(--border-primary)' }}>
             <AgeDistribution
               ages={zoneAges}
               currentAge={currentAge}
@@ -439,18 +439,18 @@ export default async function BuildingPage({
         )}
 
         {/* ── 리뷰 섹션 ─────────────────────────────────────────── */}
-        <section className="px-5 pt-7 pb-6 border-b border-gray-100">
-          <h2 className="text-[1.15rem] font-bold text-gray-900 mb-5">
+        <section className="px-5 pt-7 pb-6" style={{ borderBottom: '1px solid var(--border-primary)' }}>
+          <h2 className="text-[1.15rem] font-bold mb-5" style={{ color: 'var(--text-primary)' }}>
             살아본 사람들의 이야기 👋
           </h2>
 
           {/* 관심등록 카드 */}
-          <div className="border border-gray-200 rounded-xl px-5 py-4 flex items-center justify-between mb-6">
+          <div className="rounded-xl px-5 py-4 flex items-center justify-between mb-6" style={{ border: '1px solid var(--border-secondary)' }}>
             <div>
-              <p className="text-sm font-semibold text-gray-800">이 건물에 관심 있으신가요?</p>
-              <p className="text-xs text-gray-400 mt-0.5">관심등록 하면 새로운 리뷰를 알려드려요!</p>
+              <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>이 건물에 관심 있으신가요?</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>관심등록 하면 새로운 리뷰를 알려드려요!</p>
             </div>
-            <button className="w-10 h-10 border border-gray-200 rounded-xl flex items-center justify-center text-gray-400 hover:bg-gray-50 transition-colors">
+            <button className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors" style={{ border: '1px solid var(--border-secondary)', color: 'var(--text-tertiary)' }}>
               <BookmarkIcon />
             </button>
           </div>
@@ -466,7 +466,7 @@ export default async function BuildingPage({
         {/* ── 주변 건물 ─────────────────────────────────────────── */}
         {nearby.length > 0 && (
           <section className="px-5 pt-7 pb-6">
-            <h2 className="text-[1.15rem] font-bold text-gray-900 mb-5">
+            <h2 className="text-[1.15rem] font-bold mb-5" style={{ color: 'var(--text-primary)' }}>
               다른 사람들은 옆 집도 함께 봤어요!
             </h2>
             <div>
@@ -479,16 +479,16 @@ export default async function BuildingPage({
                   <Link
                     key={n.id}
                     href={`/buildings/${n.id}`}
-                    className={`flex items-center gap-3.5 py-3.5 transition-colors hover:bg-gray-50
-                      -mx-2 px-2 rounded-xl ${i < nearby.length - 1 ? 'border-b border-gray-100' : ''}`}
+                    className="flex items-center gap-3.5 py-3.5 transition-colors -mx-2 px-2 rounded-xl"
+                    style={{ borderBottom: i < nearby.length - 1 ? '1px solid var(--border-primary)' : 'none' }}
                   >
                     <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
                       <HouseIcon />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{nTitle}</p>
+                      <p className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{nTitle}</p>
                       {nSub && (
-                        <p className="text-xs text-gray-400 mt-0.5 truncate">{nSub}</p>
+                        <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-tertiary)' }}>{nSub}</p>
                       )}
                     </div>
                     {/* 거리 */}
@@ -496,7 +496,7 @@ export default async function BuildingPage({
                       {formatDist(n.distM)}
                     </span>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                      stroke="#d1d5db" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                      stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
                       className="shrink-0">
                       <path d="M9 18l6-6-6-6" />
                     </svg>

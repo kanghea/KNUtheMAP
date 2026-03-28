@@ -21,26 +21,26 @@ export default async function AdminUsersPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', paddingBottom: 100 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-secondary)', paddingBottom: 100 }}>
       <header style={{
         position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #f1f5f9',
+        background: 'var(--bg-overlay)', backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid var(--border-primary)',
         display: 'flex', alignItems: 'center', gap: 12,
         padding: '14px 20px',
       }}>
         <Link href="/admin" style={{
-          width: 34, height: 34, borderRadius: 10, background: '#f1f5f9',
+          width: 34, height: 34, borderRadius: 10, background: 'var(--bg-tertiary)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
         }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151"
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)"
             strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6"/>
           </svg>
         </Link>
         <div>
-          <h1 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>사용자 관리</h1>
-          <p style={{ fontSize: 11, color: '#94a3b8', margin: '2px 0 0' }}>
+          <h1 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>사용자 관리</h1>
+          <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: '2px 0 0' }}>
             전체 {(users ?? []).length}명
           </p>
         </div>

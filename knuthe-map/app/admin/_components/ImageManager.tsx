@@ -51,15 +51,15 @@ export default function ImageManager({ bucket, entityId, images, onSave, onClose
       display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
     }} onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
       <div style={{
-        background: '#fff', borderRadius: '20px 20px 0 0',
+        background: 'var(--bg-elevated)', borderRadius: '20px 20px 0 0',
         width: '100%', maxWidth: 560, maxHeight: '80vh',
         display: 'flex', flexDirection: 'column',
         padding: '20px 20px 0',
       }}>
         {/* 헤더 */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', margin: 0 }}>이미지 관리</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#94a3b8' }}>✕</button>
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>이미지 관리</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--text-tertiary)' }}>✕</button>
         </div>
 
         {/* 이미지 그리드 */}
@@ -75,7 +75,7 @@ export default function ImageManager({ bucket, entityId, images, onSave, onClose
                     position: 'absolute', top: 4, right: 4,
                     width: 22, height: 22, borderRadius: '50%',
                     background: 'rgba(0,0,0,0.65)', border: 'none',
-                    color: '#fff', fontSize: 12, cursor: 'pointer',
+                    color: 'var(--text-inverse)', fontSize: 12, cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>✕</button>
               </div>
@@ -87,13 +87,13 @@ export default function ImageManager({ bucket, entityId, images, onSave, onClose
               disabled={uploading}
               style={{
                 aspectRatio: '1', borderRadius: 10,
-                border: '2px dashed #e2e8f0', background: '#f8fafc',
+                border: '2px dashed #e2e8f0', background: 'var(--bg-secondary)',
                 cursor: 'pointer', display: 'flex', flexDirection: 'column',
                 alignItems: 'center', justifyContent: 'center', gap: 4,
                 opacity: uploading ? 0.5 : 1,
               }}>
-              <span style={{ fontSize: 22, color: '#94a3b8' }}>+</span>
-              <span style={{ fontSize: 10, color: '#94a3b8' }}>{uploading ? '업로드 중…' : '추가'}</span>
+              <span style={{ fontSize: 22, color: 'var(--text-tertiary)' }}>+</span>
+              <span style={{ fontSize: 10, color: 'var(--text-tertiary)' }}>{uploading ? '업로드 중…' : '추가'}</span>
             </button>
           </div>
 
@@ -106,23 +106,23 @@ export default function ImageManager({ bucket, entityId, images, onSave, onClose
             onChange={(e) => { if (e.target.files?.length) upload(e.target.files) }}
           />
 
-          {error && <p style={{ fontSize: 12, color: '#ef4444', marginTop: 8 }}>{error}</p>}
+          {error && <p style={{ fontSize: 12, color: 'var(--color-red)', marginTop: 8 }}>{error}</p>}
           {list.length === 0 && !uploading && (
-            <p style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', marginTop: 16 }}>
+            <p style={{ fontSize: 12, color: 'var(--text-tertiary)', textAlign: 'center', marginTop: 16 }}>
               아직 이미지가 없어요. + 버튼으로 추가하세요.
             </p>
           )}
         </div>
 
         {/* 저장 버튼 */}
-        <div style={{ borderTop: '1px solid #f1f5f9', padding: '12px 0 20px' }}>
+        <div style={{ borderTop: '1px solid var(--border-primary)', padding: '12px 0 20px' }}>
           <button
             onClick={handleSave}
             disabled={saving || uploading}
             style={{
               width: '100%', padding: '13px', borderRadius: 12, border: 'none',
               background: (saving || uploading) ? '#93c5fd' : '#2563eb',
-              color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+              color: 'var(--text-inverse)', fontSize: 14, fontWeight: 700, cursor: 'pointer',
             }}>
             {saving ? '저장 중…' : '저장'}
           </button>

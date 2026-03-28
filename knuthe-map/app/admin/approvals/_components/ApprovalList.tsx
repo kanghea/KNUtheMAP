@@ -66,13 +66,13 @@ export default function ApprovalList({ requests }: { requests: Request[] }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
 
       {/* 탭 */}
-      <div style={{ display: 'flex', gap: 6, background: '#f1f5f9', borderRadius: 10, padding: 4 }}>
+      <div style={{ display: 'flex', gap: 6, background: 'var(--bg-tertiary)', borderRadius: 10, padding: 4 }}>
         {(['pending', 'all'] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)} style={{
             flex: 1, padding: '8px', borderRadius: 8, border: 'none', cursor: 'pointer',
             fontSize: 12, fontWeight: 600,
-            background: tab === t ? '#fff' : 'transparent',
-            color: tab === t ? '#0f172a' : '#94a3b8',
+            background: tab === t ? 'var(--bg-elevated)' : 'transparent',
+            color: tab === t ? 'var(--text-primary)' : 'var(--text-tertiary)',
             boxShadow: tab === t ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
           }}>
             {t === 'pending' ? `대기 중 (${list.filter((r) => r.status === 'pending').length})` : '전체'}
@@ -81,7 +81,7 @@ export default function ApprovalList({ requests }: { requests: Request[] }) {
       </div>
 
       {filtered.length === 0 && (
-        <div style={{ padding: '32px 0', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
+        <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>
           {tab === 'pending' ? '대기 중인 신청이 없어요' : '신청 내역이 없어요'}
         </div>
       )}
@@ -90,7 +90,7 @@ export default function ApprovalList({ requests }: { requests: Request[] }) {
         const ss = STATUS_STYLE[req.status]
         return (
           <div key={req.id} style={{
-            background: '#fff', borderRadius: 16, border: '1px solid #f1f5f9',
+            background: 'var(--bg-elevated)', borderRadius: 16, border: '1px solid var(--border-primary)',
             boxShadow: '0 2px 8px rgba(0,0,0,0.03)', overflow: 'hidden',
           }}>
             <div style={{ padding: '16px 18px' }}>
@@ -112,46 +112,46 @@ export default function ApprovalList({ requests }: { requests: Request[] }) {
                       {ss.label}
                     </span>
                   </div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>
                     {req.business_name ?? '(사업체명 없음)'}
                   </div>
-                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
+                  <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 2 }}>
                     {req.users.nickname ?? req.users.email} · {req.users.email}
                   </div>
                 </div>
-                <div style={{ fontSize: 10, color: '#94a3b8', textAlign: 'right', flexShrink: 0 }}>
+                <div style={{ fontSize: 10, color: 'var(--text-tertiary)', textAlign: 'right', flexShrink: 0 }}>
                   {new Date(req.created_at).toLocaleDateString('ko-KR')}
                 </div>
               </div>
 
               {/* 상세 정보 */}
               <div style={{
-                background: '#f8fafc', borderRadius: 10, padding: '10px 12px',
+                background: 'var(--bg-secondary)', borderRadius: 10, padding: '10px 12px',
                 display: 'flex', flexDirection: 'column', gap: 4, marginBottom: req.status === 'pending' ? 12 : 0,
               }}>
                 {req.address && (
-                  <div style={{ fontSize: 12, color: '#475569' }}>
-                    <span style={{ color: '#94a3b8' }}>주소: </span>{req.address}
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                    <span style={{ color: 'var(--text-tertiary)' }}>주소: </span>{req.address}
                   </div>
                 )}
                 {req.license_number && (
-                  <div style={{ fontSize: 12, color: '#475569' }}>
-                    <span style={{ color: '#94a3b8' }}>등록번호: </span>{req.license_number}
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                    <span style={{ color: 'var(--text-tertiary)' }}>등록번호: </span>{req.license_number}
                   </div>
                 )}
                 {req.phone && (
-                  <div style={{ fontSize: 12, color: '#475569' }}>
-                    <span style={{ color: '#94a3b8' }}>연락처: </span>{req.phone}
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                    <span style={{ color: 'var(--text-tertiary)' }}>연락처: </span>{req.phone}
                   </div>
                 )}
                 {req.memo && (
-                  <div style={{ fontSize: 12, color: '#475569' }}>
-                    <span style={{ color: '#94a3b8' }}>메모: </span>{req.memo}
+                  <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                    <span style={{ color: 'var(--text-tertiary)' }}>메모: </span>{req.memo}
                   </div>
                 )}
                 {req.reject_reason && (
                   <div style={{ fontSize: 12, color: '#dc2626' }}>
-                    <span style={{ color: '#94a3b8' }}>거절 사유: </span>{req.reject_reason}
+                    <span style={{ color: 'var(--text-tertiary)' }}>거절 사유: </span>{req.reject_reason}
                   </div>
                 )}
               </div>
@@ -165,7 +165,7 @@ export default function ApprovalList({ requests }: { requests: Request[] }) {
                     style={{
                       flex: 1, padding: '10px', borderRadius: 10,
                       background: processing === req.id ? '#86efac' : '#16a34a',
-                      color: '#fff', border: 'none', cursor: 'pointer',
+                      color: 'var(--text-inverse)', border: 'none', cursor: 'pointer',
                       fontSize: 13, fontWeight: 700,
                     }}
                   >
@@ -199,9 +199,9 @@ export default function ApprovalList({ requests }: { requests: Request[] }) {
           onClick={(e) => { if (e.target === e.currentTarget) setRejectId(null) }}
         >
           <div style={{
-            background: '#fff', borderRadius: 20, padding: '24px 20px', width: '100%', maxWidth: 400,
+            background: 'var(--bg-elevated)', borderRadius: 20, padding: '24px 20px', width: '100%', maxWidth: 400,
           }}>
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', margin: '0 0 14px' }}>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 14px' }}>
               거절 사유 입력
             </h3>
             <textarea
@@ -218,7 +218,7 @@ export default function ApprovalList({ requests }: { requests: Request[] }) {
               <button onClick={() => setRejectId(null)}
                 style={{
                   flex: 1, padding: '11px', borderRadius: 10,
-                  background: '#f1f5f9', color: '#64748b', border: 'none', cursor: 'pointer',
+                  background: 'var(--bg-tertiary)', color: 'var(--text-secondary)', border: 'none', cursor: 'pointer',
                   fontSize: 13, fontWeight: 600,
                 }}>
                 취소
@@ -226,7 +226,7 @@ export default function ApprovalList({ requests }: { requests: Request[] }) {
               <button onClick={handleReject}
                 style={{
                   flex: 1, padding: '11px', borderRadius: 10,
-                  background: '#dc2626', color: '#fff', border: 'none', cursor: 'pointer',
+                  background: '#dc2626', color: 'var(--text-inverse)', border: 'none', cursor: 'pointer',
                   fontSize: 13, fontWeight: 700,
                 }}>
                 거절 확정

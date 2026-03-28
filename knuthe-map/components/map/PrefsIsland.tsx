@@ -6,12 +6,8 @@ import { type Role } from '@/lib/useRole'
 
 // ── 아이콘 ───────────────────────────────────────────────────────────────────
 
-function Ic({ active, children }: { active: boolean; children: React.ReactNode }) {
-  return <>{children}</>
-}
-
 function IconHome({ active }: { active: boolean }) {
-  const c = active ? '#fff' : 'rgba(255,255,255,0.45)'
+  const c = active ? 'var(--overlay-text)' : 'var(--overlay-text-faint)'
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
       stroke={c} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -22,7 +18,7 @@ function IconHome({ active }: { active: boolean }) {
 }
 
 function IconMap({ active }: { active: boolean }) {
-  const c = active ? '#fff' : 'rgba(255,255,255,0.45)'
+  const c = active ? 'var(--overlay-text)' : 'var(--overlay-text-faint)'
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
       stroke={c} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -34,7 +30,7 @@ function IconMap({ active }: { active: boolean }) {
 }
 
 function IconRooms({ active }: { active: boolean }) {
-  const c = active ? '#fff' : 'rgba(255,255,255,0.45)'
+  const c = active ? 'var(--overlay-text)' : 'var(--overlay-text-faint)'
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
       stroke={c} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -45,7 +41,7 @@ function IconRooms({ active }: { active: boolean }) {
 }
 
 function IconReview({ active }: { active: boolean }) {
-  const c = active ? '#fff' : 'rgba(255,255,255,0.45)'
+  const c = active ? 'var(--overlay-text)' : 'var(--overlay-text-faint)'
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
       stroke={c} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -55,7 +51,7 @@ function IconReview({ active }: { active: boolean }) {
 }
 
 function IconBuilding({ active }: { active: boolean }) {
-  const c = active ? '#fff' : 'rgba(255,255,255,0.45)'
+  const c = active ? 'var(--overlay-text)' : 'var(--overlay-text-faint)'
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
       stroke={c} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -67,7 +63,7 @@ function IconBuilding({ active }: { active: boolean }) {
 }
 
 function IconList({ active }: { active: boolean }) {
-  const c = active ? '#fff' : 'rgba(255,255,255,0.45)'
+  const c = active ? 'var(--overlay-text)' : 'var(--overlay-text-faint)'
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
       stroke={c} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -82,7 +78,7 @@ function IconList({ active }: { active: boolean }) {
 }
 
 function IconChart({ active }: { active: boolean }) {
-  const c = active ? '#fff' : 'rgba(255,255,255,0.45)'
+  const c = active ? 'var(--overlay-text)' : 'var(--overlay-text-faint)'
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
       stroke={c} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -94,7 +90,7 @@ function IconChart({ active }: { active: boolean }) {
 }
 
 function IconCheck({ active }: { active: boolean }) {
-  const c = active ? '#fff' : 'rgba(255,255,255,0.45)'
+  const c = active ? 'var(--overlay-text)' : 'var(--overlay-text-faint)'
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
       stroke={c} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -105,7 +101,7 @@ function IconCheck({ active }: { active: boolean }) {
 }
 
 function IconMe({ active }: { active: boolean }) {
-  const c = active ? '#fff' : 'rgba(255,255,255,0.45)'
+  const c = active ? 'var(--overlay-text)' : 'var(--overlay-text-faint)'
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
       stroke={c} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -116,7 +112,7 @@ function IconMe({ active }: { active: boolean }) {
 }
 
 function NavDivider() {
-  return <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.1)', flexShrink: 0 }} />
+  return <div style={{ width: 1, height: 20, background: 'var(--overlay-border)', flexShrink: 0 }} />
 }
 
 // ── nav 설정 ─────────────────────────────────────────────────────────────────
@@ -186,7 +182,7 @@ export default function PrefsIsland({ initialRole = 'tenant' }: { initialRole?: 
     padding:        '6px 12px',
     borderRadius:   999,
     textDecoration: 'none',
-    background:     active ? 'rgba(255,255,255,0.12)' : 'transparent',
+    background:     active ? 'var(--overlay-active)' : 'transparent',
     transition:     'background .15s',
     flexShrink:     0,
   })
@@ -194,7 +190,7 @@ export default function PrefsIsland({ initialRole = 'tenant' }: { initialRole?: 
   const lblStyle = (active: boolean): React.CSSProperties => ({
     fontSize:   10,
     fontWeight: 600,
-    color:      active ? '#fff' : 'rgba(255,255,255,0.4)',
+    color:      active ? 'var(--overlay-text)' : 'var(--overlay-text-faint)',
     whiteSpace: 'nowrap',
   })
 
@@ -206,9 +202,9 @@ export default function PrefsIsland({ initialRole = 'tenant' }: { initialRole?: 
       transform:    'translateX(-50%)',
       zIndex:       30,
       width:        'max-content',
-      background:   '#0a0a0a',
-      border:       '1px solid rgba(255,255,255,0.13)',
-      boxShadow:    '0 8px 32px rgba(0,0,0,.55)',
+      background:   'var(--overlay-bg)',
+      border:       '1px solid var(--overlay-border)',
+      boxShadow:    'var(--overlay-shadow)',
       borderRadius: 999,
       overflow:     'hidden',
     }}>

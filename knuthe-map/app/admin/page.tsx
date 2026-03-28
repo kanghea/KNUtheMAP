@@ -27,10 +27,10 @@ export default async function AdminPage() {
   ])
 
   const stats = [
-    { label: '승인 대기',   value: pendingCount  ?? 0, icon: '⏳', color: '#d97706', bg: '#fffbeb', href: '/admin/approvals' },
-    { label: '전체 사용자', value: userCount      ?? 0, icon: '👥', color: '#2563eb', bg: '#eff6ff', href: '/admin/users' },
+    { label: '승인 대기',   value: pendingCount  ?? 0, icon: '⏳', color: 'var(--color-amber)', bg: '#fffbeb', href: '/admin/approvals' },
+    { label: '전체 사용자', value: userCount      ?? 0, icon: '👥', color: 'var(--color-primary)', bg: '#eff6ff', href: '/admin/users' },
     { label: '활성 건물',   value: buildingCount  ?? 0, icon: '🏢', color: '#0891b2', bg: '#ecfeff', href: '/admin/buildings' },
-    { label: '활성 방',     value: roomCount      ?? 0, icon: '🚪', color: '#7c3aed', bg: '#f5f3ff', href: '/admin/rooms' },
+    { label: '활성 방',     value: roomCount      ?? 0, icon: '🚪', color: 'var(--color-purple)', bg: '#f5f3ff', href: '/admin/rooms' },
   ]
 
   const menus = [
@@ -41,14 +41,14 @@ export default async function AdminPage() {
   ]
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', paddingBottom: 100 }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-secondary)', paddingBottom: 100 }}>
       <header style={{
         position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #f1f5f9',
+        background: 'var(--bg-overlay)', backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid var(--border-primary)',
         padding: '14px 20px',
       }}>
-        <h1 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>관리자 대시보드</h1>
+        <h1 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>관리자 대시보드</h1>
       </header>
       <div style={{ maxWidth: 520, margin: '0 auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
@@ -67,8 +67,8 @@ export default async function AdminPage() {
         </div>
 
         <div style={{
-          background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.04)', overflow: 'hidden',
+          background: 'var(--bg-elevated)', borderRadius: 20, border: '1px solid var(--border-primary)',
+          boxShadow: 'var(--shadow-xs)', overflow: 'hidden',
         }}>
           {menus.map((item, i) => (
             <Link key={item.href} href={item.href} style={{
@@ -76,14 +76,14 @@ export default async function AdminPage() {
               textDecoration: 'none', borderBottom: i < menus.length - 1 ? '1px solid #f8fafc' : 'none',
             }}>
               <span style={{
-                width: 40, height: 40, borderRadius: 12, background: '#f8fafc',
+                width: 40, height: 40, borderRadius: 12, background: 'var(--bg-secondary)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0,
               }}>{item.icon}</span>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{item.label}</div>
-                <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>{item.desc}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)' }}>{item.label}</div>
+                <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 1 }}>{item.desc}</div>
               </div>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1"
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)"
                 strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 18l6-6-6-6"/>
               </svg>
