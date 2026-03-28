@@ -216,12 +216,12 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
   return (
     <>
       <style>{`
-        .saf-thumb::-webkit-slider-thumb {
+        .di-thumb::-webkit-slider-thumb {
           -webkit-appearance: none; pointer-events: all;
           width: 18px; height: 18px; border-radius: 50%;
           background: #fff; cursor: grab; box-shadow: 0 2px 6px rgba(0,0,0,.55);
         }
-        .saf-thumb::-moz-range-thumb {
+        .di-thumb::-moz-range-thumb {
           pointer-events: all; width: 18px; height: 18px; border-radius: 50%;
           background: #fff; cursor: grab; border: none; box-shadow: 0 2px 6px rgba(0,0,0,.55);
         }
