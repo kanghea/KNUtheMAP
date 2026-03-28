@@ -276,23 +276,23 @@ export default function ContractCard({ contract: c, onEdit, onEnd, onRenew }: Pr
         onClick={() => { setShowHistory((v) => !v); setEditing(false) }}
         style={{
           width: '100%', padding: '10px 16px', background: 'none',
-          border: 'none', borderTop: '1px solid #f8fafc', cursor: 'pointer',
+          border: 'none', borderTop: '1px solid rgba(255,255,255,0.07)', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           textAlign: 'left',
         }}
       >
-        <span style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8' }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.35)' }}>
           가격 변동 이력 ({c.user_contract_history.length}건)
         </span>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-          stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+          stroke="rgba(255,255,255,0.35)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
           style={{ transform: showHistory ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
           <path d="M6 9l6 6 6-6"/>
         </svg>
       </button>
 
       {showHistory && (
-        <div style={{ padding: '12px 16px 16px', borderTop: '1px solid #f1f5f9' }}>
+        <div style={{ padding: '12px 16px 16px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
           <HistoryTimeline history={c.user_contract_history} />
         </div>
       )}

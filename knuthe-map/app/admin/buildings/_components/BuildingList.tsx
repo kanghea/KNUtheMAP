@@ -190,8 +190,8 @@ export default function BuildingList({ buildings }: { buildings: Building[] }) {
                   </div>
                   <button onClick={() => toggleActive(b)} disabled={saving === b.id} style={{
                     padding: '5px 8px', borderRadius: 8, border: 'none',
-                    background: b.is_active ? '#fee2e2' : '#dcfce7',
-                    color: b.is_active ? '#dc2626' : '#16a34a',
+                    background: b.is_active ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)',
+                    color: b.is_active ? '#f87171' : '#4ade80',
                     fontSize: 11, fontWeight: 600, cursor: 'pointer',
                     opacity: saving === b.id ? 0.5 : 1,
                   }}>
