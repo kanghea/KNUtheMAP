@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createSupabaseServer } from '@/lib/supabase-server'
 import ContractsClient from './_components/ContractsClient'
+import type { Contract } from './_components/ContractsClient'
 
 export default async function OwnerContractsPage() {
   const supabase = await createSupabaseServer()
@@ -81,7 +82,7 @@ export default async function OwnerContractsPage() {
       <div style={{ maxWidth: 520, margin: '0 auto', padding: '20px 16px' }}>
         <ContractsClient
           buildingId={building.id}
-          initialContracts={contracts ?? []}
+          initialContracts={(contracts ?? []) as unknown as Contract[]}
           units={unitOptions ?? []}
         />
       </div>
