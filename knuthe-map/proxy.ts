@@ -48,7 +48,7 @@ function isCsrfSafe(request: NextRequest): boolean {
   return false
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // ── CSRF 검사 ─────────────────────────────────────────────────────────────
   if (!isCsrfSafe(request)) {
     return new NextResponse('Forbidden', { status: 403 })

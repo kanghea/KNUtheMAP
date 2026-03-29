@@ -51,9 +51,29 @@ function Row({
 }) {
   if (value == null) return null
   return (
-    <div className="grid grid-cols-[160px_1fr] items-start py-3.5 border-b border-gray-100 last:border-0">
-      <dt className={`text-sm ${dim ? 'text-gray-400' : 'text-gray-500'}`}>{label}</dt>
-      <dd className={`text-sm ${dim ? 'text-gray-400' : 'text-gray-800'}`}>{value}</dd>
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: '130px 1fr',
+      alignItems: 'flex-start',
+      padding: '13px 0',
+      borderBottom: '1px solid rgba(255,255,255,0.07)',
+    }}>
+      <dt style={{
+        fontSize: 13,
+        color: 'rgba(255,255,255,0.45)',
+        lineHeight: 1.5,
+      }}>
+        {label}
+      </dt>
+      <dd style={{
+        fontSize: 13,
+        color: dim ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.88)',
+        lineHeight: 1.5,
+        wordBreak: 'break-all',
+        margin: 0,
+      }}>
+        {value}
+      </dd>
     </div>
   )
 }
@@ -68,7 +88,7 @@ export default function InfoExpand({ building: b }: { building: BuildingInfo }) 
 
   return (
     <div>
-      <dl>
+      <dl style={{ margin: 0 }}>
         <Row label="건물명"    value={b.name?.trim() || '–'} />
         <Row label="세대수"    value={b.hhld_cnt != null ? `${b.hhld_cnt}세대` : '–'} />
         <Row label="도로명 주소" value={b.address || '–'} dim />
@@ -87,15 +107,41 @@ export default function InfoExpand({ building: b }: { building: BuildingInfo }) 
         )}
       </dl>
 
-      <div className="flex justify-center mt-4 mb-1">
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, marginBottom: 4 }}>
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-1 px-6 py-2.5 border border-gray-300 rounded-full text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+          style={{
+            display:        'flex',
+            alignItems:     'center',
+            gap:            6,
+            padding:        '9px 24px',
+            borderRadius:   999,
+            border:         '1px solid rgba(255,255,255,0.15)',
+            background:     'transparent',
+            cursor:         'pointer',
+            fontSize:       13,
+            fontWeight:     600,
+            color:          'rgba(255,255,255,0.7)',
+            transition:     'background .15s, border-color .15s',
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.06)'
+            ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.28)'
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
+            ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.15)'
+          }}
         >
           {expanded ? '접기' : '더보기'}
           <span
-            className="inline-block transition-transform duration-200"
-            style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+            style={{
+              display:         'inline-block',
+              transition:      'transform .2s',
+              transform:       expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+              fontSize:        11,
+              lineHeight:      1,
+            }}
           >
             ∨
           </span>
