@@ -5,23 +5,18 @@ import { createBrowserSupabase } from '@/lib/supabase-browser'
 
 export type Role = 'tenant' | 'owner' | 'agent' | 'admin'
 
-/** document.cookie에서 knu_role 값을 읽는 헬퍼 */
-function readRoleCookie(): Role | null {
-  if (typeof document === 'undefined') return null
-  const match = document.cookie.match(/(?:^|;\s*)knu_role=([^;]+)/)
-  return (match?.[1] as Role) ?? null
-}
-
-/** knu_role 쿠키를 갱신하는 헬퍼 (30일) */
-function writeRoleCookie(role: Role) {
-  if (typeof document === 'undefined') return
-  const maxAge = 60 * 60 * 24 * 30
-  document.cookie = `knu_role=${role}; path=/; max-age=${maxAge}; samesite=lax`
-}
-
+/**
+ * 클라이언트에서 현재 사용자의 role을 반환합니다.
+ *
+ * 보안 설계:
+ *  - knu_role 쿠키는 HttpOnly이므로 document.cookie로 읽기 불가.
+ *    → XSS로 role 쿠키를 탈취할 수 없습니다.
+ *  - role은 항상 Supabase DB에서 직접 조회 (권위적인 출처).
+ *  - 서버가 렌더한 initialRole(PrefsIsland prop)이 DB 조회 완료 전
+ *    네비게이션 바에 표시되므로 깜빡임이 없습니다.
+ */
 export function useRole(): Role | null {
-  // 쿠키에 role이 있으면 즉시 반환 → 초기 렌더에서 깜빡임 없음
-  const [role, setRole] = useState<Role | null>(() => readRoleCookie())
+  const [role, setRole] = useState<Role | null>(null)
 
   useEffect(() => {
     const supabase = createBrowserSupabase()
@@ -36,13 +31,7 @@ export function useRole(): Role | null {
         .eq('id', user.id)
         .single()
 
-      const freshRole = (data?.role as Role) ?? 'tenant'
-      setRole(freshRole)
-
-      // DB 값이 쿠키와 다르면(role 변경 반영) 쿠키 동기화
-      if (freshRole !== readRoleCookie()) {
-        writeRoleCookie(freshRole)
-      }
+      setRole((data?.role as Role) ?? 'tenant')
     }
 
     load()

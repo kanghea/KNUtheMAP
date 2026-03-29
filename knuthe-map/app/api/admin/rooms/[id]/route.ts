@@ -1,18 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServer } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
+import { requireRole } from '@/lib/auth-guard'
 
-async function requireAdmin() {
-  const supabase = await createSupabaseServer()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return false
-  const { data } = await supabase.from('users').select('role').eq('id', user.id).single()
-  return data?.role === 'admin'
-}
-
-// PATCH /api/admin/rooms/[id] — is_active 토글 or images 업데이트
+// PATCH /api/admin/rooms/[id]
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!await requireAdmin()) return NextResponse.json({ error: '권한 없음' }, { status: 403 })
+  const supabase = await createSupabaseServer()
+  const guard = await requireRole(supabase, 'admin')
+  if (!guard.ok) return guard.response
 
   const { id } = await params
   const body = await req.json()
@@ -32,7 +27,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
 // DELETE /api/admin/rooms/[id]
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!await requireAdmin()) return NextResponse.json({ error: '권한 없음' }, { status: 403 })
+  const supabase = await createSupabaseServer()
+  const guard = await requireRole(supabase, 'admin')
+  if (!guard.ok) return guard.response
 
   const { id } = await params
   const service = createServiceClient()

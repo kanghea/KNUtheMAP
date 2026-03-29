@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createSupabaseServer } from '@/lib/supabase-server'
 import { parsePrefs } from '@/lib/prefs'
+import { sealRole, ROLE_COOKIE_NAME, ROLE_COOKIE_OPTIONS } from '@/lib/role-cookie'
+import type { Role } from '@/lib/useRole'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -28,24 +30,20 @@ export async function GET(request: Request) {
           .eq('id', data.user.id)
       }
 
-      // knu_role 쿠키 설정 → layout.tsx가 DB 조회 없이 역할을 즉시 읽을 수 있게 함
+      // DB에서 role 조회 → AES-256-GCM 암호화 후 HttpOnly 쿠키에 저장
+      // HttpOnly: JS에서 document.cookie로 읽기/쓰기 불가 → XSS로부터 보호
       const { data: profile } = await supabase
         .from('users')
         .select('role')
         .eq('id', data.user.id)
         .single()
-      const role = profile?.role ?? 'tenant'
+      const role = (profile?.role ?? 'tenant') as Role
+
       const response = NextResponse.redirect(`${origin}${next}`)
-      response.cookies.set('knu_role', role, {
-        path:     '/',
-        maxAge:   60 * 60 * 24, // 24시간 (role 변경 반영 최대 지연 시간)
-        sameSite: 'lax',
-        secure:   process.env.NODE_ENV === 'production',
-      })
+      response.cookies.set(ROLE_COOKIE_NAME, sealRole(role), ROLE_COOKIE_OPTIONS)
       return response
     }
 
-    // exchangeCodeForSession 실패 시 에러 내용을 에러 페이지로 전달
     const msg = error?.message ?? 'unknown_error'
     return NextResponse.redirect(`${origin}/auth/error?msg=${encodeURIComponent(msg)}`)
   }

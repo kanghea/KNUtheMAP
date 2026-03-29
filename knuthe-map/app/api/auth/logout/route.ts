@@ -1,6 +1,7 @@
 import { createSupabaseServer } from '@/lib/supabase-server'
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { ROLE_COOKIE_NAME } from '@/lib/role-cookie'
 
 export async function POST(request: NextRequest) {
   const cookieStore = await cookies()
@@ -25,8 +26,8 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // role 캐시 쿠키 삭제 (다른 사용자가 같은 기기 사용 시 role 누출 방지)
-  response.cookies.set('knu_role', '', { maxAge: 0, path: '/' })
+  // 암호화된 role 쿠키 삭제 (HttpOnly 속성 유지하며 만료)
+  response.cookies.set(ROLE_COOKIE_NAME, '', { maxAge: 0, path: '/', httpOnly: true })
 
   return response
 }

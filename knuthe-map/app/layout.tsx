@@ -5,6 +5,7 @@ import PrefsIsland from "@/components/map/PrefsIsland";
 import Providers from "./providers";
 import { cookies } from "next/headers";
 import { getServerRole } from "@/lib/auth-server";
+import { unsealRole, ROLE_COOKIE_NAME } from "@/lib/role-cookie";
 import type { Role } from "@/lib/useRole";
 
 const geistSans = localFont({
@@ -27,13 +28,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // knu_role 쿠키 우선 사용 → DB 조회 없이 즉시 반환 (~0ms).
-  // 쿠키 없을 때만 getServerRole()로 폴백 (cache()로 page.tsx와 공유).
+  // 암호화된 knu_role 쿠키 우선 복호화 → DB 조회 없이 즉시 반환 (~0ms).
+  // unsealRole()이 GCM 인증 태그를 검증하므로 변조된 쿠키는 null 반환.
+  // 쿠키 없거나 복호화 실패 시 getServerRole()로 폴백 (cache()로 page.tsx와 공유).
   let role: Role = 'tenant'
   try {
-    const jar        = await cookies()
-    const roleCookie = jar.get('knu_role')?.value as Role | undefined
-    role = roleCookie ?? await getServerRole()
+    const jar    = await cookies()
+    const sealed = jar.get(ROLE_COOKIE_NAME)?.value
+    role = (sealed ? unsealRole(sealed) : null) ?? await getServerRole()
   } catch {}
 
   return (
