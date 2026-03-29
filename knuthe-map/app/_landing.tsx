@@ -47,7 +47,7 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
   const topPriority = prefs.priorities.slice(0, 3)
   const gradeLabel  = prefs.grade ? `${prefs.grade}` : null
   const heroLabel   = [gradeLabel, prefs.dept].filter(Boolean).join(' · ') || null
-  const hero        = (prefs.zone && ZONE_THEME[prefs.zone]) ?? DEFAULT_HERO
+  const hero        = (prefs.zone ? ZONE_THEME[prefs.zone] : null) ?? DEFAULT_HERO
   const isDark      = (prefs.theme ?? 'dark') === 'dark'
 
   // ── 테마 변수 ────────────────────────────────────────────────

@@ -49,7 +49,7 @@ export default function OnboardingClient() {
   // ── 세입자 온보딩 완료 ────────────────────────────────────────────────────
   const handleTenantComplete = () => {
     const zone = getZoneByDept(dept)
-    savePrefs({ grade: grade || null, dept: dept || null, zone: zone ?? null, priorities, gate: gate.gate })
+    savePrefs({ grade: grade || null, dept: dept || null, zone: zone ?? null, priorities, gate: gate.gate, theme: null })
 
     const params = new URLSearchParams()
     if (zone)              params.set('zone', zone)
