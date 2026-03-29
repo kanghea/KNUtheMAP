@@ -235,7 +235,7 @@ export default function OnboardingClient() {
       onSkip={handleSkip}
     >
       {step === 0 && <StepGrade      selected={grade || null}  onSelect={setGrade} />}
-      {step === 1 && <StepDepartment selected={dept  || null}  onSelect={setDept} />}
+      {step === 1 && <StepDepartment selected={dept  || null}  onSelect={setDept} tok={tok} />}
       {step === 2 && <StepPriority   value={priorities}        onChange={setPriorities} />}
       {step === 3 && <StepGate       value={gate}              onChange={setGate} />}
       <BottomBar
