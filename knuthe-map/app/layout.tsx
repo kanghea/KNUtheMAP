@@ -3,7 +3,8 @@ import localFont from "next/font/local";
 import "./globals.css";
 import PrefsIsland from "@/components/map/PrefsIsland";
 import Providers from "./providers";
-import { createSupabaseServer } from "@/lib/supabase-server";
+import { cookies } from "next/headers";
+import { getServerRole } from "@/lib/auth-server";
 import type { Role } from "@/lib/useRole";
 
 const geistSans = localFont({
@@ -26,15 +27,13 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // knu_role 쿠키 우선 사용 → DB 조회 없이 즉시 반환 (~0ms).
+  // 쿠키 없을 때만 getServerRole()로 폴백 (cache()로 page.tsx와 공유).
   let role: Role = 'tenant'
   try {
-    const supabase = await createSupabaseServer()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      const { data } = await supabase
-        .from('users').select('role').eq('id', user.id).single()
-      if (data?.role) role = data.role as Role
-    }
+    const jar        = await cookies()
+    const roleCookie = jar.get('knu_role')?.value as Role | undefined
+    role = roleCookie ?? await getServerRole()
   } catch {}
 
   return (
