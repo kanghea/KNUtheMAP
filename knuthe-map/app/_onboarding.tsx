@@ -11,6 +11,7 @@ import StepGrade              from '@/components/onboarding/StepGrade'
 import StepDepartment         from '@/components/onboarding/StepDepartment'
 import StepPriority           from '@/components/onboarding/StepPriority'
 import StepGate               from '@/components/onboarding/StepGate'
+import StepTheme              from '@/components/onboarding/StepTheme'
 
 // ── 세입자 전용 스텝 ──────────────────────────────────────────────────────────
 const TENANT_STEPS = [
@@ -18,6 +19,7 @@ const TENANT_STEPS = [
   { id: 'dept',     title: '학과는요?',                       sub: '학과 위치에 가까운 구역부터 보여드릴게요' },
   { id: 'priority', title: '방 구할 때 뭐가 제일 중요해요?',  sub: '중요한 순서대로 하나씩 탭해 주세요' },
   { id: 'gate',     title: '학교 올 때 주로 어느 문 쓰세요?', sub: '가장 가까운 건물부터 순위를 매겨드릴게요' },
+  { id: 'theme',    title: '화면 테마를 선택해주세요',         sub: '언제든지 메인 화면에서 바꿀 수 있어요' },
 ]
 
 type Phase = 'role' | 'role-request' | 'role-pending' | 'tenant-steps'
@@ -35,6 +37,7 @@ export default function OnboardingClient() {
   const [dept,       setDept]       = useState('')
   const [priorities, setPriorities] = useState<string[]>([])
   const [gate,       setGate]       = useState<{ gate: string | null; minutes: number | null }>({ gate: null, minutes: null })
+  const [theme,      setTheme]      = useState<'light' | 'dark' | null>(null)
 
   // ── 역할 선택 → 다음 단계 분기 ────────────────────────────────────────────
   const handleRoleNext = () => {
@@ -49,7 +52,7 @@ export default function OnboardingClient() {
   // ── 세입자 온보딩 완료 ────────────────────────────────────────────────────
   const handleTenantComplete = () => {
     const zone = getZoneByDept(dept)
-    savePrefs({ grade: grade || null, dept: dept || null, zone: zone ?? null, priorities, gate: gate.gate, theme: null })
+    savePrefs({ grade: grade || null, dept: dept || null, zone: zone ?? null, priorities, gate: gate.gate, theme: theme ?? 'dark' })
 
     const params = new URLSearchParams()
     if (zone)              params.set('zone', zone)
@@ -159,6 +162,7 @@ export default function OnboardingClient() {
       {step === 1 && <StepDepartment selected={dept  || null}  onSelect={setDept} />}
       {step === 2 && <StepPriority   value={priorities}        onChange={setPriorities} />}
       {step === 3 && <StepGate       value={gate}              onChange={setGate} />}
+      {step === 4 && <StepTheme      selected={theme}          onSelect={setTheme} />}
       <BottomBar
         canNext={canNext}
         onNext={handleTenantNext}
