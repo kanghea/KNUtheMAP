@@ -34,7 +34,7 @@ function buildingName(c: UserContract) {
 
 function ActionLabel({ action }: { action: HistoryEntry['action'] }) {
   const map = { created: '계약 등록', updated: '내용 변경', renewed: '연장 계약', ended: '계약 종료' }
-  const colors = { created: '#16a34a', updated: '#2563eb', renewed: '#7c3aed', ended: '#dc2626' }
+  const colors = { created: '#4ade80', updated: '#2563eb', renewed: '#a78bfa', ended: '#ef4444' }
   return (
     <span style={{
       fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999,
@@ -47,7 +47,7 @@ function ActionLabel({ action }: { action: HistoryEntry['action'] }) {
 
 function HistoryTimeline({ history }: { history: HistoryEntry[] }) {
   if (history.length === 0) return (
-    <p style={{ fontSize: 12, color: '#94a3b8', textAlign: 'center', padding: '12px 0' }}>
+    <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', textAlign: 'center', padding: '12px 0' }}>
       변경 이력이 없습니다
     </p>
   )
@@ -62,33 +62,33 @@ function HistoryTimeline({ history }: { history: HistoryEntry[] }) {
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: 16 }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#2563eb', flexShrink: 0, marginTop: 3 }} />
             {i < history.length - 1 && (
-              <div style={{ flex: 1, width: 1, background: '#e2e8f0', marginTop: 3 }} />
+              <div style={{ flex: 1, width: 1, background: 'rgba(255,255,255,0.12)', marginTop: 3 }} />
             )}
           </div>
 
           <div style={{ flex: 1, paddingBottom: 4 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
               <ActionLabel action={h.action} />
-              <span style={{ fontSize: 10, color: '#94a3b8' }}>
+              <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>
                 {new Date(h.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' })}
               </span>
             </div>
 
             {h.changed_fields && Object.entries(h.changed_fields).map(([field, [oldVal, newVal]]) => (
-              <div key={field} style={{ fontSize: 11, color: '#475569', marginBottom: 2 }}>
-                <span style={{ color: '#94a3b8' }}>{FIELD_LABELS[field] ?? field}: </span>
+              <div key={field} style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', marginBottom: 2 }}>
+                <span style={{ color: 'rgba(255,255,255,0.35)' }}>{FIELD_LABELS[field] ?? field}: </span>
                 <span style={{ textDecoration: 'line-through', color: '#ef4444' }}>
                   {typeof oldVal === 'number' ? `${(oldVal as number).toLocaleString()}만` : String(oldVal ?? '-')}
                 </span>
                 {' → '}
-                <span style={{ color: '#16a34a', fontWeight: 600 }}>
+                <span style={{ color: '#4ade80', fontWeight: 600 }}>
                   {typeof newVal === 'number' ? `${(newVal as number).toLocaleString()}만` : String(newVal ?? '-')}
                 </span>
               </div>
             ))}
 
             {h.action === 'created' || h.action === 'renewed' ? (
-              <div style={{ fontSize: 11, color: '#475569' }}>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)' }}>
                 {`${(h.snapshot.contract_type as string)} · 보증금 ${((h.snapshot.deposit as number) ?? 0).toLocaleString()}만`}
                 {h.snapshot.monthly_rent ? ` / 월세 ${((h.snapshot.monthly_rent as number)).toLocaleString()}만` : ''}
               </div>

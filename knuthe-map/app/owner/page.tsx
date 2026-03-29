@@ -31,31 +31,31 @@ export default async function OwnerPage() {
     .single()
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', paddingBottom: 100 }}>
+    <div style={{ minHeight: '100vh', background: '#0a0a0a', paddingBottom: 100 }}>
 
       {/* 헤더 */}
       <header style={{
         position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #f1f5f9',
+        background: 'rgba(17,17,17,0.92)', backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '14px 20px',
       }}>
         <div>
-          <h1 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>건물주 대시보드</h1>
+          <h1 style={{ fontSize: 16, fontWeight: 800, color: '#ffffff', margin: 0 }}>건물주 대시보드</h1>
           {ownerBuilding?.buildings && (
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            <p style={{ fontSize: 11, color: '#94a3b8', margin: '2px 0 0' }}>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '2px 0 0' }}>
               {(ownerBuilding.buildings as any).name ?? (ownerBuilding.buildings as any).address}
             </p>
           )}
         </div>
         <Link href="/me" style={{
-          width: 34, height: 34, borderRadius: 10, background: '#f1f5f9',
+          width: 34, height: 34, borderRadius: 10, background: 'rgba(255,255,255,0.07)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           textDecoration: 'none',
         }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151"
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)"
             strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
             <circle cx="12" cy="7" r="4"/>

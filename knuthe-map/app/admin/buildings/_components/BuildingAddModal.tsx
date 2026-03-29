@@ -95,13 +95,14 @@ export default function BuildingAddModal({ onCreated, onClose }: Props) {
       display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
     }} onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
       <div style={{
-        background: '#fff', borderRadius: '20px 20px 0 0',
+        background: '#111111', borderRadius: '20px 20px 0 0',
         width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto',
         padding: '20px 20px 32px',
+        border: '1px solid rgba(255,255,255,0.08)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>건물 추가</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#94a3b8' }}>✕</button>
+          <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: '#ffffff' }}>건물 추가</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'rgba(255,255,255,0.35)' }}>✕</button>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -117,7 +118,7 @@ export default function BuildingAddModal({ onCreated, onClose }: Props) {
               />
               <button onClick={searchGeo} disabled={geoLoading} style={{
                 padding: '10px 14px', borderRadius: 10, border: 'none',
-                background: geoLoading ? '#93c5fd' : '#2563eb',
+                background: geoLoading ? 'rgba(37,99,235,0.5)' : '#2563eb',
                 color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
               }}>
                 {geoLoading ? '검색 중…' : '검색'}
@@ -128,10 +129,10 @@ export default function BuildingAddModal({ onCreated, onClose }: Props) {
 
             {/* 좌표 확인 */}
             {geo && (
-              <div style={{ marginTop: 8, background: '#f0fdf4', borderRadius: 10, padding: '10px 12px', border: '1px solid #bbf7d0' }}>
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#16a34a', margin: '0 0 2px' }}>좌표 확인 완료</p>
-                <p style={{ fontSize: 11, color: '#475569', margin: 0 }}>{geo.roadAddress}</p>
-                <p style={{ fontSize: 10, color: '#94a3b8', margin: '2px 0 0' }}>
+              <div style={{ marginTop: 8, background: 'rgba(34,197,94,0.1)', borderRadius: 10, padding: '10px 12px', border: '1px solid rgba(34,197,94,0.3)' }}>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#4ade80', margin: '0 0 2px' }}>좌표 확인 완료</p>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', margin: 0 }}>{geo.roadAddress}</p>
+                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', margin: '2px 0 0' }}>
                   lat {geo.lat.toFixed(6)}, lng {geo.lng.toFixed(6)}
                 </p>
               </div>
@@ -140,13 +141,13 @@ export default function BuildingAddModal({ onCreated, onClose }: Props) {
             {/* 후보 목록 */}
             {geo && geo.candidates.length > 1 && (
               <div style={{ marginTop: 6 }}>
-                <p style={{ fontSize: 11, color: '#94a3b8', margin: '0 0 4px' }}>다른 결과 선택:</p>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '0 0 4px' }}>다른 결과 선택:</p>
                 {geo.candidates.map((c, i) => (
                   <button key={i} onClick={() => selectCandidate(c)} style={{
                     display: 'block', width: '100%', textAlign: 'left',
                     padding: '6px 10px', borderRadius: 8, marginBottom: 3,
-                    border: '1px solid #e2e8f0', background: '#fff',
-                    fontSize: 11, color: '#475569', cursor: 'pointer',
+                    border: '1px solid rgba(255,255,255,0.12)', background: '#1a1a1a',
+                    fontSize: 11, color: 'rgba(255,255,255,0.65)', cursor: 'pointer',
                   }}>{c.label}</button>
                 ))}
               </div>
@@ -189,7 +190,7 @@ export default function BuildingAddModal({ onCreated, onClose }: Props) {
 
           <button onClick={handleSubmit} disabled={submitting} style={{
             width: '100%', padding: '13px', borderRadius: 12, border: 'none',
-            background: submitting ? '#93c5fd' : '#2563eb',
+            background: submitting ? 'rgba(37,99,235,0.5)' : '#2563eb',
             color: '#fff', fontSize: 14, fontWeight: 700, cursor: submitting ? 'default' : 'pointer',
           }}>
             {submitting ? '등록 중…' : '건물 등록'}

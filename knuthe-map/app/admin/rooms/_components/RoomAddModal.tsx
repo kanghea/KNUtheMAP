@@ -146,10 +146,11 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
 
   const inp: React.CSSProperties = {
     width: '100%', padding: '10px 12px', borderRadius: 10,
-    border: '1.5px solid #e2e8f0', fontSize: 16, outline: 'none', boxSizing: 'border-box',
+    border: '1.5px solid rgba(255,255,255,0.15)', fontSize: 16, outline: 'none', boxSizing: 'border-box',
+    background: '#1a1a1a', color: '#ffffff',
   }
   const lbl = (t: string, req = false) => (
-    <p style={{ fontSize: 11, fontWeight: 600, color: '#64748b', margin: '0 0 5px' }}>
+    <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.5)', margin: '0 0 5px' }}>
       {t}{req && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
     </p>
   )
@@ -160,13 +161,14 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
       display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
     }} onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
       <div style={{
-        background: '#fff', borderRadius: '20px 20px 0 0',
+        background: '#111111', borderRadius: '20px 20px 0 0',
         width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto',
         padding: '20px 20px 32px',
+        border: '1px solid rgba(255,255,255,0.08)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>방(매물) 추가</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#94a3b8' }}>✕</button>
+          <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: '#ffffff' }}>방(매물) 추가</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'rgba(255,255,255,0.35)' }}>✕</button>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -175,13 +177,13 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
           <div>
             {lbl('건물 선택', true)}
             {selected ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 10, background: '#f0fdf4', border: '1.5px solid #bbf7d0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 10, background: 'rgba(34,197,94,0.1)', border: '1.5px solid rgba(34,197,94,0.3)' }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{selected.name}</div>
-                  <div style={{ fontSize: 11, color: '#94a3b8' }}>{selected.address}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#ffffff' }}>{selected.name}</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{selected.address}</div>
                 </div>
                 <button onClick={() => { setSelected(null); setQuery(''); setBuildings([]) }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 14 }}>✕</button>
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.35)', fontSize: 14 }}>✕</button>
               </div>
             ) : (
               <>
@@ -190,19 +192,19 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                 />
-                {searching && <p style={{ fontSize: 11, color: '#94a3b8', margin: '4px 0 0' }}>검색 중…</p>}
+                {searching && <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '4px 0 0' }}>검색 중…</p>}
                 {buildings.length > 0 && (
-                  <div style={{ marginTop: 4, border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden' }}>
+                  <div style={{ marginTop: 4, border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, overflow: 'hidden' }}>
                     {buildings.map((b) => (
                       <button key={b.id}
                         onClick={() => { setSelected(b); setQuery(b.name ?? ''); setBuildings([]) }}
                         style={{
                           display: 'block', width: '100%', textAlign: 'left',
-                          padding: '10px 12px', border: 'none', borderBottom: '1px solid #f8fafc',
-                          background: '#fff', cursor: 'pointer',
+                          padding: '10px 12px', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.07)',
+                          background: '#1a1a1a', cursor: 'pointer',
                         }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>{b.name}</div>
-                        <div style={{ fontSize: 11, color: '#94a3b8' }}>{b.address}</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#ffffff' }}>{b.name}</div>
+                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{b.address}</div>
                       </button>
                     ))}
                   </div>
@@ -218,9 +220,9 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
               {(['월세','전세','매매'] as const).map((t) => (
                 <button key={t} onClick={() => setContractType(t)} style={{
                   flex: 1, padding: '9px', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                  border: contractType === t ? '2px solid #2563eb' : '1.5px solid #e2e8f0',
-                  background: contractType === t ? '#eff6ff' : '#fff',
-                  color: contractType === t ? '#2563eb' : '#64748b',
+                  border: contractType === t ? '2px solid #2563eb' : '1.5px solid rgba(255,255,255,0.15)',
+                  background: contractType === t ? 'rgba(37,99,235,0.15)' : '#1a1a1a',
+                  color: contractType === t ? '#2563eb' : 'rgba(255,255,255,0.5)',
                 }}>{t}</button>
               ))}
             </div>

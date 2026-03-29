@@ -19,11 +19,11 @@ function normalPDF(x: number, μ: number, σ: number) {
 // ── 등급 정의 ──────────────────────────────────────────────────────
 
 const GRADES = [
-  { max: 10,       label: '신축',    emoji: '✨', color: '#10b981', bg: '#d1fae5', border: '#a7f3d0' },
-  { max: 20,       label: '준신축',  emoji: '🏠', color: '#3b82f6', bg: '#dbeafe', border: '#bfdbfe' },
-  { max: 30,       label: '보통',    emoji: '🏡', color: '#6b7280', bg: '#f3f4f6', border: '#e5e7eb' },
-  { max: 40,       label: '노후',    emoji: '🔧', color: '#f59e0b', bg: '#fef3c7', border: '#fde68a' },
-  { max: Infinity, label: '구형',    emoji: '⚠️', color: '#ef4444', bg: '#fee2e2', border: '#fecaca' },
+  { max: 10,       label: '신축',    emoji: '✨', color: '#10b981', bg: 'rgba(16,185,129,0.15)', border: 'rgba(16,185,129,0.3)' },
+  { max: 20,       label: '준신축',  emoji: '🏠', color: '#3b82f6', bg: 'rgba(59,130,246,0.15)', border: 'rgba(59,130,246,0.3)' },
+  { max: 30,       label: '보통',    emoji: '🏡', color: 'rgba(255,255,255,0.65)', bg: 'rgba(255,255,255,0.07)', border: 'rgba(255,255,255,0.12)' },
+  { max: 40,       label: '노후',    emoji: '🔧', color: '#f59e0b', bg: 'rgba(245,158,11,0.15)', border: 'rgba(245,158,11,0.3)' },
+  { max: Infinity, label: '구형',    emoji: '⚠️', color: '#ef4444', bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)' },
 ]
 function getGrade(age: number) {
   return GRADES.find((g) => age <= g.max)!
@@ -128,13 +128,13 @@ export default function AgeDistribution({ ages, currentAge, zone, builtYear }: P
   for (let y = Math.ceil(minAge / 10) * 10; y <= maxAge; y += 10) axisTicks.push(y)
 
   return (
-    <div className="border border-gray-200 rounded-2xl overflow-hidden">
+    <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
 
       {/* ── 헤더 ────────────────────────────────────────────────── */}
       <div className="px-5 pt-5 pb-4 flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-sm font-bold text-gray-900">건물 연식 분포</h3>
-          <p className="text-xs text-gray-400 mt-0.5">{zone} · {ages.length}개 건물 기준</p>
+          <h3 className="text-sm font-bold" style={{ color: '#ffffff' }}>건물 연식 분포</h3>
+          <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>{zone} · {ages.length}개 건물 기준</p>
         </div>
         <span
           className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1"
@@ -146,8 +146,8 @@ export default function AgeDistribution({ ages, currentAge, zone, builtYear }: P
 
       {/* ── 인사이트 텍스트 ──────────────────────────────────────── */}
       <div
-        className="mx-5 mb-4 px-4 py-3 rounded-xl text-xs text-gray-700 leading-relaxed"
-        style={{ background: grade.bg, borderLeft: `3px solid ${grade.color}` }}
+        className="mx-5 mb-4 px-4 py-3 rounded-xl text-xs leading-relaxed"
+        style={{ background: grade.bg, borderLeft: `3px solid ${grade.color}`, color: grade.color }}
       >
         {insight}
       </div>
@@ -160,7 +160,7 @@ export default function AgeDistribution({ ages, currentAge, zone, builtYear }: P
           <rect
             x={q25X} y={MT}
             width={Math.max(0, q75X - q25X)} height={PH}
-            fill="#f0f9ff" rx="0"
+            fill="rgba(37,99,235,0.12)" rx="0"
           />
 
           {/* 히스토그램 막대 */}
@@ -189,14 +189,14 @@ export default function AgeDistribution({ ages, currentAge, zone, builtYear }: P
           <path d={curvePath} fill="none" stroke="#3b82f6" strokeWidth="1.8" strokeLinejoin="round" opacity="0.7" />
 
           {/* X축 */}
-          <line x1={ML} y1={baseY} x2={W - MR} y2={baseY} stroke="#e5e7eb" strokeWidth="1" />
+          <line x1={ML} y1={baseY} x2={W - MR} y2={baseY} stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
 
           {/* 평균선 */}
           <line
             x1={meanX} y1={MT} x2={meanX} y2={baseY}
-            stroke="#94a3b8" strokeWidth="1" strokeDasharray="3,2"
+            stroke="rgba(255,255,255,0.35)" strokeWidth="1" strokeDasharray="3,2"
           />
-          <text x={meanX} y={MT - 4} textAnchor="middle" fontSize="8.5" fill="#94a3b8" fontWeight="600">
+          <text x={meanX} y={MT - 4} textAnchor="middle" fontSize="8.5" fill="rgba(255,255,255,0.35)" fontWeight="600">
             구역 평균
           </text>
 
@@ -212,7 +212,7 @@ export default function AgeDistribution({ ages, currentAge, zone, builtYear }: P
             cy={MT + (1 - normalPDF(currentAge, μ, σ) / maxPDF) * PH}
             r="5"
             fill={grade.color}
-            stroke="white"
+            stroke="#111111"
             strokeWidth="2"
           />
 
@@ -236,8 +236,8 @@ export default function AgeDistribution({ ages, currentAge, zone, builtYear }: P
           {/* 축 레이블 */}
           {axisTicks.map((y) => (
             <g key={y}>
-              <line x1={tx(y)} y1={baseY} x2={tx(y)} y2={baseY + 4} stroke="#d1d5db" strokeWidth="1" />
-              <text x={tx(y)} y={baseY + 15} textAnchor="middle" fontSize="9" fill="#9ca3af">{y}년</text>
+              <line x1={tx(y)} y1={baseY} x2={tx(y)} y2={baseY + 4} stroke="rgba(255,255,255,0.12)" strokeWidth="1" />
+              <text x={tx(y)} y={baseY + 15} textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.35)">{y}년</text>
             </g>
           ))}
 
@@ -246,8 +246,8 @@ export default function AgeDistribution({ ages, currentAge, zone, builtYear }: P
             const cy = MT + (1 - r) * PH
             return (
               <g key={r}>
-                <line x1={ML} y1={cy} x2={W - MR} y2={cy} stroke="#f1f5f9" strokeWidth="1" />
-                <text x={ML - 3} y={cy + 3} textAnchor="end" fontSize="8" fill="#cbd5e1">
+                <line x1={ML} y1={cy} x2={W - MR} y2={cy} stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
+                <text x={ML - 3} y={cy + 3} textAnchor="end" fontSize="8" fill="rgba(255,255,255,0.25)">
                   {Math.round(r * maxCount)}
                 </text>
               </g>
@@ -257,40 +257,40 @@ export default function AgeDistribution({ ages, currentAge, zone, builtYear }: P
       </div>
 
       {/* ── 인사이트 카드 3개 ─────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-px bg-gray-100 border-t border-gray-100">
+      <div className="grid grid-cols-3 gap-px" style={{ background: 'rgba(255,255,255,0.07)', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
         {/* 준공 연도 */}
-        <div className="bg-white px-4 py-3.5 text-center">
-          <p className="text-xs text-gray-400 mb-1">준공 연도</p>
-          <p className="text-base font-bold text-gray-900">{builtYear}년</p>
-          <p className="text-[11px] text-gray-400 mt-0.5">{currentAge}년 경과</p>
+        <div className="px-4 py-3.5 text-center" style={{ background: '#111111' }}>
+          <p className="text-xs mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>준공 연도</p>
+          <p className="text-base font-bold" style={{ color: '#ffffff' }}>{builtYear}년</p>
+          <p className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>{currentAge}년 경과</p>
         </div>
 
         {/* 구역 순위 */}
-        <div className="bg-white px-4 py-3.5 text-center">
-          <p className="text-xs text-gray-400 mb-1">구역 내 순위</p>
+        <div className="px-4 py-3.5 text-center" style={{ background: '#111111' }}>
+          <p className="text-xs mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>구역 내 순위</p>
           <p className="text-base font-bold" style={{ color: grade.color }}>
             {pct <= 0.5
               ? `신축 상위 ${Math.round(pct * 100)}%`
               : `노후 상위 ${Math.round((1 - pct) * 100)}%`}
           </p>
-          <p className="text-[11px] text-gray-400 mt-0.5">
+          <p className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
             {ages.length}개 건물 중
           </p>
         </div>
 
         {/* 비슷한 연식 */}
-        <div className="bg-white px-4 py-3.5 text-center">
-          <p className="text-xs text-gray-400 mb-1">비슷한 연식</p>
-          <p className="text-base font-bold text-gray-900">{similarCount}개</p>
-          <p className="text-[11px] text-gray-400 mt-0.5">±7년 이내 건물</p>
+        <div className="px-4 py-3.5 text-center" style={{ background: '#111111' }}>
+          <p className="text-xs mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>비슷한 연식</p>
+          <p className="text-base font-bold" style={{ color: '#ffffff' }}>{similarCount}개</p>
+          <p className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>±7년 이내 건물</p>
         </div>
       </div>
 
       {/* ── 평균 대비 요약 ────────────────────────────────────────── */}
-      <div className="px-5 py-3 bg-gray-50 flex items-center justify-between">
-        <span className="text-xs text-gray-500">
-          구역 평균 <strong className="text-gray-700">{μ.toFixed(1)}년</strong>
-          {' · '}표준편차 <strong className="text-gray-700">{σ.toFixed(1)}년</strong>
+      <div className="px-5 py-3 flex items-center justify-between" style={{ background: 'rgba(255,255,255,0.03)' }}>
+        <span className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
+          구역 평균 <strong style={{ color: 'rgba(255,255,255,0.8)' }}>{μ.toFixed(1)}년</strong>
+          {' · '}표준편차 <strong style={{ color: 'rgba(255,255,255,0.8)' }}>{σ.toFixed(1)}년</strong>
         </span>
         <span className="text-xs font-semibold" style={{ color: grade.color }}>
           {currentAge > μ

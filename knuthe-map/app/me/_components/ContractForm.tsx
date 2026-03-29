@@ -118,27 +118,27 @@ export default function ContractForm({ renewal, onSaved, onCancel }: Props) {
   }
 
   const label = (txt: string) => (
-    <p style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', margin: '0 0 6px',
+    <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.35)', margin: '0 0 6px',
       textTransform: 'uppercase', letterSpacing: '0.05em' }}>{txt}</p>
   )
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '10px 12px', borderRadius: 10,
-    border: '1.5px solid #e2e8f0', fontSize: 16, color: '#0f172a',
-    background: '#fff', outline: 'none', boxSizing: 'border-box',
+    border: '1.5px solid rgba(255,255,255,0.15)', fontSize: 16, color: '#ffffff',
+    background: '#1a1a1a', outline: 'none', boxSizing: 'border-box',
   }
 
   return (
     <div style={{
-      background: '#f8fafc', borderRadius: 16,
-      border: '1.5px solid #e2e8f0', padding: '18px 16px', marginBottom: 10,
+      background: '#111111', borderRadius: 16,
+      border: '1.5px solid rgba(255,255,255,0.08)', padding: '18px 16px', marginBottom: 10,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: '#ffffff' }}>
           {renewal ? '계약 연장' : '새 계약 추가'}
         </span>
         <button onClick={onCancel} style={{ background: 'none', border: 'none', cursor: 'pointer',
-          fontSize: 12, color: '#94a3b8' }}>취소</button>
+          fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>취소</button>
       </div>
 
       {/* ── 건물 검색 ──────────────────────────────────────── */}
@@ -149,22 +149,22 @@ export default function ContractForm({ renewal, onSaved, onCancel }: Props) {
             {selectedBldg ? (
               <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                background: '#eff6ff', border: '1.5px solid #bfdbfe',
+                background: 'rgba(37,99,235,0.15)', border: '1.5px solid rgba(37,99,235,0.3)',
                 borderRadius: 10, padding: '10px 12px',
               }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#1d4ed8' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#60a5fa' }}>
                     {selectedBldg.name ?? selectedBldg.address}
                   </div>
                   {selectedBldg.name && (
-                    <div style={{ fontSize: 11, color: '#60a5fa', marginTop: 2 }}>
+                    <div style={{ fontSize: 11, color: '#93c5fd', marginTop: 2 }}>
                       {selectedBldg.address}
                     </div>
                   )}
                 </div>
                 <button onClick={() => { setSelectedBldg(null); setQuery('') }}
                   style={{ background: 'none', border: 'none', cursor: 'pointer',
-                    fontSize: 11, color: '#60a5fa', flexShrink: 0, marginLeft: 8 }}>
+                    fontSize: 11, color: '#93c5fd', flexShrink: 0, marginLeft: 8 }}>
                   변경
                 </button>
               </div>
@@ -177,12 +177,12 @@ export default function ContractForm({ renewal, onSaved, onCancel }: Props) {
                   onChange={(e) => setQuery(e.target.value)}
                 />
                 {searching && (
-                  <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>검색 중…</p>
+                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 4 }}>검색 중…</p>
                 )}
                 {results.length > 0 && (
                   <div style={{
-                    border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden',
-                    marginTop: 4, background: '#fff',
+                    border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, overflow: 'hidden',
+                    marginTop: 4, background: '#1a1a1a',
                   }}>
                     {results.map((b) => (
                       <button
@@ -190,14 +190,14 @@ export default function ContractForm({ renewal, onSaved, onCancel }: Props) {
                         onClick={() => { setSelectedBldg(b); setQuery(''); setResults([]) }}
                         style={{
                           width: '100%', textAlign: 'left', padding: '10px 12px',
-                          background: 'none', border: 'none', borderBottom: '1px solid #f8fafc',
+                          background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.07)',
                           cursor: 'pointer', display: 'block',
                         }}
                       >
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#ffffff' }}>
                           {b.name ?? '(이름 없음)'}
                         </div>
-                        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>
+                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 1 }}>
                           {b.address}
                         </div>
                       </button>
@@ -207,7 +207,7 @@ export default function ContractForm({ renewal, onSaved, onCancel }: Props) {
                 <button
                   onClick={() => setUseManual(true)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer',
-                    fontSize: 11, color: '#94a3b8', padding: '4px 0', marginTop: 2 }}
+                    fontSize: 11, color: 'rgba(255,255,255,0.35)', padding: '4px 0', marginTop: 2 }}
                 >
                   건물을 찾을 수 없어요 →  직접 입력
                 </button>
@@ -224,7 +224,7 @@ export default function ContractForm({ renewal, onSaved, onCancel }: Props) {
             />
             <button onClick={() => { setUseManual(false); setManualAddress('') }}
               style={{ background: 'none', border: 'none', cursor: 'pointer',
-                fontSize: 11, color: '#94a3b8', padding: '4px 0', marginTop: 2 }}>
+                fontSize: 11, color: 'rgba(255,255,255,0.35)', padding: '4px 0', marginTop: 2 }}>
               ← 건물 검색으로 돌아가기
             </button>
           </>
@@ -275,9 +275,9 @@ export default function ContractForm({ renewal, onSaved, onCancel }: Props) {
               onClick={() => setContractType(t)}
               style={{
                 flex: 1, padding: '9px', borderRadius: 10, fontSize: 13, fontWeight: 600,
-                border: contractType === t ? '1.5px solid #2563eb' : '1.5px solid #e2e8f0',
-                background: contractType === t ? '#eff6ff' : '#fff',
-                color: contractType === t ? '#2563eb' : '#64748b',
+                border: contractType === t ? '1.5px solid #2563eb' : '1.5px solid rgba(255,255,255,0.12)',
+                background: contractType === t ? 'rgba(37,99,235,0.15)' : 'rgba(255,255,255,0.05)',
+                color: contractType === t ? '#2563eb' : 'rgba(255,255,255,0.5)',
                 cursor: 'pointer',
               }}
             >{t}</button>
