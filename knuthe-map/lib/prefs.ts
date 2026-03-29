@@ -6,6 +6,7 @@ export interface UserPrefs {
   zone:       string | null   // getZoneByDept 결과 e.g. '쪽문'
   priorities: string[]        // e.g. ['security','dist','size']
   gate:       string | null   // e.g. '쪽문'
+  theme:      'dark' | 'light' // UI 테마
 }
 
 // 우선순위 차원 메타데이터 (StepPriority와 공유)
@@ -28,7 +29,9 @@ export function encodePrefs(p: UserPrefs): string {
 
 export function parsePrefs(raw: string): UserPrefs | null {
   try {
-    return JSON.parse(decodeURIComponent(raw)) as UserPrefs
+    const parsed = JSON.parse(decodeURIComponent(raw))
+    // 이전 버전 쿠키 호환: theme 없으면 dark 기본값
+    return { theme: 'dark', ...parsed } as UserPrefs
   } catch {
     return null
   }
