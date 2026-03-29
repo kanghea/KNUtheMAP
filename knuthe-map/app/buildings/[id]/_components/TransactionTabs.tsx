@@ -36,51 +36,62 @@ function fmtPrice(rent: number | null, deposit: number) {
 
 export default function TransactionTabs({ transactions, summary }: Props) {
   return (
-    <div className="px-5 py-5 border-b border-gray-100">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-bold text-gray-900">월세 실거래가</h3>
+    <div style={{ padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', margin: 0 }}>월세 실거래가</h3>
         {summary && (
-          <span className="text-xs text-gray-400">
-            평균 <strong className="text-gray-700">{summary.avg_rent}만원</strong>
+          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>
+            평균 <strong style={{ color: 'rgba(255,255,255,0.7)' }}>{summary.avg_rent}만원</strong>
             {' '}({summary.min_rent}~{summary.max_rent}만원)
           </span>
         )}
       </div>
 
       {/* 테이블 헤더 */}
-      <div className="grid grid-cols-[2fr_3fr_1.5fr_1.5fr_1fr] border-b border-gray-200 pb-2.5">
-        <span className="text-xs text-gray-500">계약일</span>
-        <span className="text-xs font-bold text-gray-700">실거래가 (만원)</span>
-        <span className="text-xs text-gray-500 text-right">면적</span>
-        <span className="text-xs text-gray-500 text-right">층·호</span>
-        <span className="text-xs text-gray-500 text-right">출처</span>
+      <div style={{
+        display: 'grid', gridTemplateColumns: '2fr 3fr 1.5fr 1.5fr 1fr',
+        borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 10, marginBottom: 2,
+      }}>
+        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>계약일</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.6)' }}>실거래가 (만원)</span>
+        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', textAlign: 'right' }}>면적</span>
+        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', textAlign: 'right' }}>층·호</span>
+        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', textAlign: 'right' }}>출처</span>
       </div>
 
       {transactions.length === 0 ? (
-        <div className="flex flex-col items-center py-8 gap-2.5">
-          <div className="w-8 h-8 rounded-full border-2 border-gray-200 flex items-center justify-center">
-            <span className="text-gray-300 text-base font-bold leading-none select-none">!</span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '32px 0', gap: 10 }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: '50%',
+            border: '2px solid rgba(255,255,255,0.12)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 16, fontWeight: 700, lineHeight: 1 }}>!</span>
           </div>
-          <p className="text-sm text-gray-400">실거래 기록이 없습니다.</p>
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.35)', margin: 0 }}>실거래 기록이 없습니다.</p>
         </div>
       ) : (
         <div>
           {transactions.map((t, i) => (
-            <div key={i} className="grid grid-cols-[2fr_3fr_1.5fr_1.5fr_1fr] py-2.5 border-b border-gray-50 last:border-0">
-              <span className="text-xs text-gray-400">{fmtDate(t.contract_date)}</span>
-              <span className="text-sm font-semibold text-gray-800">{fmtPrice(t.rent, t.deposit)}</span>
-              <span className="text-xs text-gray-500 text-right">
+            <div key={i} style={{
+              display: 'grid', gridTemplateColumns: '2fr 3fr 1.5fr 1.5fr 1fr',
+              padding: '10px 0',
+              borderBottom: i < transactions.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+            }}>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>{fmtDate(t.contract_date)}</span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>{fmtPrice(t.rent, t.deposit)}</span>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'right' }}>
                 {t.area_m2 ? `${t.area_m2.toFixed(1)}㎡` : '–'}
               </span>
-              <span className="text-xs text-gray-500 text-right">
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'right' }}>
                 {[t.floor ? `${t.floor}층` : null, t.unit_number].filter(Boolean).join(' ') || '–'}
               </span>
-              <span className="text-xs text-right">
+              <span style={{ fontSize: 12, textAlign: 'right' }}>
                 {t.source === 'user_contract'
-                  ? <span className="text-blue-500 font-semibold">실거주</span>
+                  ? <span style={{ color: '#60a5fa', fontWeight: 600 }}>실거주</span>
                   : t.source === 'review'
-                  ? <span className="text-green-500">리뷰</span>
-                  : <span className="text-gray-300">–</span>
+                  ? <span style={{ color: '#4ade80' }}>리뷰</span>
+                  : <span style={{ color: 'rgba(255,255,255,0.2)' }}>–</span>
                 }
               </span>
             </div>

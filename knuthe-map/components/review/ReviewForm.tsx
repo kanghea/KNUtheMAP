@@ -12,10 +12,16 @@ const CAT_FIELDS = [
   { key: 'rating_cost', label: '가성비' },
 ]
 
+const inputStyle: React.CSSProperties = {
+  width: '100%', padding: '10px 12px', borderRadius: 10,
+  border: '1.5px solid rgba(255,255,255,0.12)', fontSize: 16, color: '#ffffff',
+  background: '#1a1a1a', outline: 'none', boxSizing: 'border-box',
+}
+
 function StarInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const [hover, setHover] = useState(0)
   return (
-    <div className="flex gap-1">
+    <div style={{ display: 'flex', gap: 4 }}>
       {[1, 2, 3, 4, 5].map((i) => (
         <button
           key={i}
@@ -23,9 +29,10 @@ function StarInput({ value, onChange }: { value: number; onChange: (v: number) =
           onClick={() => onChange(i)}
           onMouseEnter={() => setHover(i)}
           onMouseLeave={() => setHover(0)}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
         >
           <svg width="22" height="22" viewBox="0 0 24 24"
-            fill={i <= (hover || value) ? '#f59e0b' : '#e5e7eb'}>
+            fill={i <= (hover || value) ? '#f59e0b' : 'rgba(255,255,255,0.15)'}>
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
           </svg>
         </button>
@@ -91,21 +98,30 @@ export default function ReviewForm({ buildingId, onSuccess, onCancel }: Props) {
     onSuccess()
   }
 
+  const labelStyle: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)', margin: '0 0 6px' }
+
   return (
-    <form onSubmit={handleSubmit} className="border border-gray-200 rounded-xl p-5 flex flex-col gap-5">
-      <h3 className="text-sm font-bold text-gray-900">리뷰 작성</h3>
+    <form
+      onSubmit={handleSubmit}
+      style={{
+        border: '1.5px solid rgba(255,255,255,0.08)', borderRadius: 12,
+        padding: 20, display: 'flex', flexDirection: 'column', gap: 20,
+        background: '#111111',
+      }}
+    >
+      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', margin: 0 }}>리뷰 작성</h3>
 
       {/* 종합 별점 */}
       <div>
-        <p className="text-xs font-semibold text-gray-500 mb-2">종합 평점 <span className="text-red-400">*</span></p>
+        <p style={labelStyle}>종합 평점 <span style={{ color: '#f87171' }}>*</span></p>
         <StarInput value={form.rating_overall} onChange={(v) => set('rating_overall', v)} />
       </div>
 
       {/* 세부 평점 */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
         {CAT_FIELDS.map(({ key, label }) => (
           <div key={key}>
-            <p className="text-xs text-gray-400 mb-1">{label}</p>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '0 0 4px' }}>{label}</p>
             <StarInput value={form[key as keyof typeof form] as number} onChange={(v) => set(key, v)} />
           </div>
         ))}
@@ -113,102 +129,105 @@ export default function ReviewForm({ buildingId, onSuccess, onCancel }: Props) {
 
       {/* 내용 */}
       <div>
-        <p className="text-xs font-semibold text-gray-500 mb-1.5">
-          내용 <span className="text-red-400">*</span>
-          <span className="text-gray-300 font-normal ml-1">최소 20자</span>
+        <p style={labelStyle}>
+          내용 <span style={{ color: '#f87171' }}>*</span>
+          <span style={{ color: 'rgba(255,255,255,0.25)', fontWeight: 400, marginLeft: 4 }}>최소 20자</span>
         </p>
         <textarea
           value={form.content}
           onChange={(e) => set('content', e.target.value)}
           placeholder="실제 거주 경험을 솔직하게 적어주세요..."
           rows={4}
-          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 placeholder-gray-300 resize-none focus:outline-none focus:border-blue-400"
+          style={{ ...inputStyle, resize: 'none', lineHeight: 1.5, height: 'auto' }}
         />
-        <p className="text-xs text-gray-300 mt-1 text-right">{form.content.length}자</p>
+        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 4, textAlign: 'right' }}>{form.content.length}자</p>
       </div>
 
       {/* 장단점 */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <div>
-          <p className="text-xs text-gray-400 mb-1.5">장점</p>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '0 0 6px' }}>장점</p>
           <input
             value={form.pros}
             onChange={(e) => set('pros', e.target.value)}
             placeholder="예: 조용하고 채광 좋음"
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:border-blue-400"
+            style={inputStyle}
           />
         </div>
         <div>
-          <p className="text-xs text-gray-400 mb-1.5">단점</p>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '0 0 6px' }}>단점</p>
           <input
             value={form.cons}
             onChange={(e) => set('cons', e.target.value)}
             placeholder="예: 주차 불편"
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:border-blue-400"
+            style={inputStyle}
           />
         </div>
       </div>
 
       {/* 거주 정보 */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
         <div>
-          <p className="text-xs text-gray-400 mb-1.5">방 종류</p>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '0 0 6px' }}>방 종류</p>
           <select
             value={form.room_type}
             onChange={(e) => set('room_type', e.target.value)}
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-blue-400 bg-white"
+            style={{ ...inputStyle, cursor: 'pointer' }}
           >
             <option value="">선택</option>
             {ROOM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
         <div>
-          <p className="text-xs text-gray-400 mb-1.5">층수</p>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '0 0 6px' }}>층수</p>
           <input
             type="number" min={1} max={50}
             value={form.floor}
             onChange={(e) => set('floor', e.target.value)}
             placeholder="예: 3"
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:border-blue-400"
+            style={inputStyle}
           />
         </div>
         <div>
-          <p className="text-xs text-gray-400 mb-1.5">거주 시작</p>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '0 0 6px' }}>거주 시작</p>
           <input
             type="month"
             value={form.lived_from}
             onChange={(e) => set('lived_from', e.target.value ? `${e.target.value}-01` : '')}
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-blue-400"
+            style={inputStyle}
           />
         </div>
         <div>
-          <p className="text-xs text-gray-400 mb-1.5">거주 종료</p>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '0 0 6px' }}>거주 종료</p>
           <input
             type="month"
             value={form.lived_to}
             onChange={(e) => set('lived_to', e.target.value ? `${e.target.value}-01` : '')}
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-blue-400"
+            style={inputStyle}
           />
         </div>
       </div>
 
       {/* 월세 정보 */}
       <div>
-        <p className="text-xs font-semibold text-gray-500 mb-2">월세 정보 <span className="text-gray-300 font-normal">(선택 — 입력 시 거래 기록에 자동 등록됩니다)</span></p>
-        <div className="grid grid-cols-3 gap-3">
+        <p style={labelStyle}>
+          월세 정보
+          <span style={{ color: 'rgba(255,255,255,0.25)', fontWeight: 400, marginLeft: 4 }}>(선택 — 입력 시 거래 기록에 자동 등록됩니다)</span>
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
           {[
             { key: 'deposit', label: '보증금 (만원)' },
             { key: 'rent',    label: '월세 (만원)' },
             { key: 'maintenance', label: '관리비 (만원)' },
           ].map(({ key, label }) => (
             <div key={key}>
-              <p className="text-xs text-gray-400 mb-1.5">{label}</p>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '0 0 6px' }}>{label}</p>
               <input
                 type="number" min={0}
                 value={form[key as keyof typeof form] as string}
                 onChange={(e) => set(key, e.target.value)}
                 placeholder="0"
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:border-blue-400"
+                style={inputStyle}
               />
             </div>
           ))}
@@ -216,31 +235,40 @@ export default function ReviewForm({ buildingId, onSuccess, onCancel }: Props) {
       </div>
 
       {/* 익명 */}
-      <label className="flex items-center gap-2 cursor-pointer">
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
         <input
           type="checkbox"
           checked={form.is_anonymous}
           onChange={(e) => set('is_anonymous', e.target.checked)}
-          className="rounded"
+          style={{ width: 16, height: 16, cursor: 'pointer' }}
         />
-        <span className="text-sm text-gray-600">익명으로 작성</span>
+        <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)' }}>익명으로 작성</span>
       </label>
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && <p style={{ margin: 0, fontSize: 14, color: '#f87171' }}>{error}</p>}
 
       {/* 버튼 */}
-      <div className="flex gap-2 pt-1">
+      <div style={{ display: 'flex', gap: 8, paddingTop: 4 }}>
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 border border-gray-200 text-gray-500 font-semibold py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors"
+          style={{
+            flex: 1, border: '1px solid rgba(255,255,255,0.12)',
+            color: 'rgba(255,255,255,0.5)', fontWeight: 600, padding: '12px',
+            borderRadius: 12, fontSize: 14, cursor: 'pointer', background: 'transparent',
+          }}
         >
           취소
         </button>
         <button
           type="submit"
           disabled={submitting}
-          className="flex-1 bg-blue-600 text-white font-semibold py-3 rounded-xl text-sm hover:bg-blue-700 transition-colors disabled:opacity-60"
+          style={{
+            flex: 1, background: '#2563eb', color: '#ffffff',
+            fontWeight: 600, padding: '12px', borderRadius: 12,
+            fontSize: 14, cursor: submitting ? 'default' : 'pointer',
+            border: 'none', opacity: submitting ? 0.6 : 1,
+          }}
         >
           {submitting ? '등록 중...' : '리뷰 등록'}
         </button>

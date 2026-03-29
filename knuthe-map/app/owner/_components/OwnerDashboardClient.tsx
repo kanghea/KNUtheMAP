@@ -132,7 +132,7 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#ffffff' }}>
                   {b.name ?? '이름 없는 건물'}
                 </div>
                 <button
@@ -141,7 +141,7 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
                   style={{
                     background: 'none', border: 'none', cursor: 'pointer',
                     padding: '2px', display: 'flex', alignItems: 'center',
-                    color: '#94a3b8',
+                    color: 'rgba(255,255,255,0.35)',
                   }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -152,15 +152,15 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
                 </button>
               </div>
             )}
-            <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>{b.address}</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 3 }}>{b.address}</div>
             {b.total_floors && (
-              <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{b.total_floors}층 건물</div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 2 }}>{b.total_floors}층 건물</div>
             )}
           </div>
 
           <Link href="/owner/units" style={{
-            fontSize: 12, fontWeight: 600, color: '#2563eb',
-            background: '#eff6ff', padding: '6px 12px', borderRadius: 8,
+            fontSize: 12, fontWeight: 600, color: '#60a5fa',
+            background: 'rgba(37,99,235,0.15)', padding: '6px 12px', borderRadius: 8,
             textDecoration: 'none', flexShrink: 0,
           }}>
             호실 관리
@@ -168,9 +168,9 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
         </div>
 
         {/* 전담 중개사 */}
-        <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid #f1f5f9' }}>
+        <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8' }}>전담 중개사</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.35)' }}>전담 중개사</span>
             <Link href="/owner/agent" style={{ fontSize: 11, color: '#2563eb', textDecoration: 'none' }}>
               {building.dedicated_agent ? '변경' : '설정하기 →'}
             </Link>
@@ -178,18 +178,18 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
           {building.dedicated_agent ? (
             <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{
-                width: 30, height: 30, borderRadius: '50%', background: '#eff6ff',
+                width: 30, height: 30, borderRadius: '50%', background: 'rgba(37,99,235,0.12)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
               }}>🏢</div>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#ffffff' }}>
                   {building.dedicated_agent.nickname ?? building.dedicated_agent.email}
                 </div>
-                <div style={{ fontSize: 11, color: '#94a3b8' }}>{building.dedicated_agent.email}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{building.dedicated_agent.email}</div>
               </div>
             </div>
           ) : (
-            <p style={{ margin: '6px 0 0', fontSize: 12, color: '#94a3b8' }}>
+            <p style={{ margin: '6px 0 0', fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>
               설정된 전담 중개사가 없어요
             </p>
           )}
@@ -198,14 +198,14 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
 
       {/* 호실 현황 */}
       <div style={{
-        background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '18px 20px',
+        background: '#111111', borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.4)', padding: '18px 20px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
           <div>
-            <h2 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: 0 }}>호실 현황</h2>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', margin: 0 }}>호실 현황</h2>
             {b.total_floors && (
-              <p style={{ fontSize: 11, color: '#94a3b8', margin: '2px 0 0' }}>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '2px 0 0' }}>
                 지상 {b.total_floors}층 건물
               </p>
             )}
@@ -225,7 +225,7 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
         </div>
 
         {loading ? (
-          <div style={{ padding: '32px 0', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
+          <div style={{ padding: '32px 0', textAlign: 'center', color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>
             불러오는 중…
           </div>
         ) : (
@@ -245,13 +245,13 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
           { href: '/owner/units',     label: '호실 관리', icon: '🏠', desc: '호실 정보 수정' },
         ].map((item) => (
           <Link key={item.href} href={item.href} style={{
-            background: '#fff', borderRadius: 16, padding: '16px',
-            border: '1px solid #f1f5f9', boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+            background: '#111111', borderRadius: 16, padding: '16px',
+            border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
             textDecoration: 'none', display: 'flex', flexDirection: 'column', gap: 6,
           }}>
             <span style={{ fontSize: 22 }}>{item.icon}</span>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{item.label}</div>
-            <div style={{ fontSize: 11, color: '#94a3b8' }}>{item.desc}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#ffffff' }}>{item.label}</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{item.desc}</div>
           </Link>
         ))}
       </div>

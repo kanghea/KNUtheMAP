@@ -148,11 +148,11 @@ export default function UnitModal({ unit, defaultFloor, buildingId, onClose, onS
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '10px 12px', borderRadius: 10,
-    border: '1.5px solid #e2e8f0', fontSize: 13, color: '#0f172a',
-    background: '#fff', outline: 'none', boxSizing: 'border-box',
+    border: '1.5px solid rgba(255,255,255,0.12)', fontSize: 16, color: '#ffffff',
+    background: '#1a1a1a', outline: 'none', boxSizing: 'border-box',
   }
   const label = (txt: string, req = false) => (
-    <p style={{ fontSize: 11, fontWeight: 600, color: '#64748b', margin: '0 0 5px' }}>
+    <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)', margin: '0 0 5px' }}>
       {txt}{req && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
     </p>
   )
@@ -166,19 +166,19 @@ export default function UnitModal({ unit, defaultFloor, buildingId, onClose, onS
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div style={{
-        background: '#fff', borderRadius: '20px 20px 0 0',
+        background: '#111111', borderRadius: '20px 20px 0 0',
         width: '100%', maxWidth: 520,
         padding: '20px 20px 36px',
         maxHeight: '90vh', overflowY: 'auto',
       }}>
         {/* 핸들 */}
-        <div style={{ width: 36, height: 4, borderRadius: 2, background: '#e2e8f0', margin: '0 auto 18px' }} />
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.12)', margin: '0 auto 18px' }} />
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', margin: 0 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: '#ffffff', margin: 0 }}>
             {isNew ? '호실 추가' : `${unit!.unit_number} 수정`}
           </h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#94a3b8' }}>닫기</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>닫기</button>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -231,7 +231,7 @@ export default function UnitModal({ unit, defaultFloor, buildingId, onClose, onS
           {/* 이미지 */}
           <div>
             {label('사진')}
-            <p style={{ fontSize: 11, color: '#94a3b8', margin: '-2px 0 8px' }}>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '-2px 0 8px' }}>
               클릭하면 대표 사진으로 설정됩니다
             </p>
 
@@ -296,13 +296,13 @@ export default function UnitModal({ unit, defaultFloor, buildingId, onClose, onS
                 onClick={() => fileInputRef.current?.click()}
                 style={{
                   aspectRatio: '1', borderRadius: 12,
-                  border: '2px dashed #e2e8f0', background: '#f8fafc',
+                  border: '2px dashed rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)',
                   cursor: 'pointer', display: 'flex', flexDirection: 'column',
                   alignItems: 'center', justifyContent: 'center', gap: 4,
                 }}
               >
-                <span style={{ fontSize: 22, color: '#94a3b8' }}>+</span>
-                <span style={{ fontSize: 10, color: '#94a3b8' }}>사진 추가</span>
+                <span style={{ fontSize: 22, color: 'rgba(255,255,255,0.35)' }}>+</span>
+                <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>사진 추가</span>
               </button>
             </div>
 
@@ -316,14 +316,14 @@ export default function UnitModal({ unit, defaultFloor, buildingId, onClose, onS
             />
 
             {images.filter((i) => i.type === 'file').length > 0 && (
-              <p style={{ fontSize: 11, color: '#64748b', margin: '6px 0 0' }}>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', margin: '6px 0 0' }}>
                 새 사진 {images.filter((i) => i.type === 'file').length}장 — 저장 시 자동 업로드
               </p>
             )}
           </div>
 
           {error    && <p style={{ margin: 0, fontSize: 12, color: '#ef4444' }}>{error}</p>}
-          {progress && <p style={{ margin: 0, fontSize: 12, color: '#2563eb' }}>{progress}</p>}
+          {progress && <p style={{ margin: 0, fontSize: 12, color: '#60a5fa' }}>{progress}</p>}
 
           <button
             onClick={handleSave}

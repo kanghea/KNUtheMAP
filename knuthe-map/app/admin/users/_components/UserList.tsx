@@ -13,10 +13,10 @@ interface User {
 const ROLE_OPTIONS = ['tenant', 'owner', 'agent', 'admin']
 
 const ROLE_STYLE: Record<string, { bg: string; color: string; label: string }> = {
-  tenant: { bg: '#f1f5f9', color: '#475569', label: '학생' },
-  owner:  { bg: '#f0fdf4', color: '#16a34a', label: '건물주' },
-  agent:  { bg: '#f5f3ff', color: '#7c3aed', label: '중개사' },
-  admin:  { bg: '#fef3c7', color: '#92400e', label: '관리자' },
+  tenant: { bg: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)',  label: '학생' },
+  owner:  { bg: 'rgba(34,197,94,0.15)',   color: '#4ade80',                label: '건물주' },
+  agent:  { bg: 'rgba(124,58,237,0.15)',  color: '#a78bfa',                label: '중개사' },
+  admin:  { bg: 'rgba(245,158,11,0.15)',  color: '#fbbf24',                label: '관리자' },
 }
 
 export default function UserList({ users }: { users: User[] }) {
@@ -56,20 +56,20 @@ export default function UserList({ users }: { users: User[] }) {
         onChange={(e) => setSearch(e.target.value)}
         style={{
           width: '100%', padding: '10px 14px', borderRadius: 12,
-          border: '1.5px solid #e2e8f0', fontSize: 13, color: '#0f172a',
-          background: '#fff', outline: 'none', boxSizing: 'border-box',
+          border: '1.5px solid rgba(255,255,255,0.12)', fontSize: 16, color: '#ffffff',
+          background: '#1a1a1a', outline: 'none', boxSizing: 'border-box',
         }}
       />
 
       {/* 역할 필터 탭 */}
-      <div style={{ display: 'flex', gap: 6, background: '#f1f5f9', borderRadius: 10, padding: 4 }}>
+      <div style={{ display: 'flex', gap: 6, background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: 4 }}>
         {(['all', ...ROLE_OPTIONS] as const).map((r) => (
           <button key={r} onClick={() => setRoleFilter(r)} style={{
             flex: 1, padding: '7px 4px', borderRadius: 8, border: 'none', cursor: 'pointer',
             fontSize: 11, fontWeight: 600,
-            background: roleFilter === r ? '#fff' : 'transparent',
-            color: roleFilter === r ? '#0f172a' : '#94a3b8',
-            boxShadow: roleFilter === r ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+            background: roleFilter === r ? '#1a1a1a' : 'transparent',
+            color: roleFilter === r ? '#ffffff' : 'rgba(255,255,255,0.35)',
+            boxShadow: roleFilter === r ? '0 1px 4px rgba(0,0,0,0.4)' : 'none',
           }}>
             {r === 'all' ? `전체 (${list.length})` : (ROLE_STYLE[r]?.label ?? r)}
           </button>
@@ -77,7 +77,7 @@ export default function UserList({ users }: { users: User[] }) {
       </div>
 
       {filtered.length === 0 && (
-        <div style={{ padding: '32px 0', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
+        <div style={{ padding: '32px 0', textAlign: 'center', color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>
           검색 결과가 없어요
         </div>
       )}
@@ -86,8 +86,8 @@ export default function UserList({ users }: { users: User[] }) {
         const rs = ROLE_STYLE[u.role] ?? ROLE_STYLE.tenant
         return (
           <div key={u.id} style={{
-            background: '#fff', borderRadius: 14, border: '1px solid #f1f5f9',
-            boxShadow: '0 1px 6px rgba(0,0,0,0.03)', padding: '14px 16px',
+            background: '#111111', borderRadius: 14, border: '1px solid rgba(255,255,255,0.08)',
+            boxShadow: '0 1px 6px rgba(0,0,0,0.4)', padding: '14px 16px',
             display: 'flex', alignItems: 'center', gap: 12,
           }}>
             {/* 아바타 */}
@@ -102,15 +102,15 @@ export default function UserList({ users }: { users: User[] }) {
 
             {/* 정보 */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a',
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#ffffff',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {u.nickname ?? '(닉네임 없음)'}
               </div>
-              <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1,
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 1,
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {u.email}
               </div>
-              <div style={{ fontSize: 10, color: '#cbd5e1', marginTop: 2 }}>
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', marginTop: 2 }}>
                 가입 {new Date(u.created_at).toLocaleDateString('ko-KR')}
               </div>
             </div>

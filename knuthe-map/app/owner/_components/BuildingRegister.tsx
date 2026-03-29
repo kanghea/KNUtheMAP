@@ -55,21 +55,21 @@ export default function BuildingRegister({ onRegistered }: Props) {
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '12px 14px', borderRadius: 12,
-    border: '1.5px solid #e2e8f0', fontSize: 13, color: '#0f172a',
-    background: '#fff', outline: 'none', boxSizing: 'border-box',
+    border: '1.5px solid rgba(255,255,255,0.12)', fontSize: 16, color: '#ffffff',
+    background: '#1a1a1a', outline: 'none', boxSizing: 'border-box',
   }
 
   return (
     <div style={{
-      background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-      boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '24px 20px',
+      background: '#111111', borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)',
+      boxShadow: '0 2px 12px rgba(0,0,0,0.4)', padding: '24px 20px',
     }}>
       <div style={{ textAlign: 'center', marginBottom: 24 }}>
         <div style={{ fontSize: 40, marginBottom: 10 }}>🏠</div>
-        <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>
+        <h2 style={{ fontSize: 18, fontWeight: 800, color: '#ffffff', margin: '0 0 6px' }}>
           관리할 건물을 등록해주세요
         </h2>
-        <p style={{ fontSize: 13, color: '#94a3b8', margin: 0 }}>
+        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', margin: 0 }}>
           건물을 검색해서 등록하면 호실·계약 관리를 시작할 수 있어요
         </p>
       </div>
@@ -83,11 +83,12 @@ export default function BuildingRegister({ onRegistered }: Props) {
             onChange={(e) => setQuery(e.target.value)}
           />
           {searching && (
-            <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>검색 중…</p>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 6 }}>검색 중…</p>
           )}
           {results.length > 0 && (
             <div style={{
-              border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden', marginTop: 8,
+              border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, overflow: 'hidden', marginTop: 8,
+              background: '#1a1a1a',
             }}>
               {results.map((b) => (
                 <button
@@ -95,14 +96,14 @@ export default function BuildingRegister({ onRegistered }: Props) {
                   onClick={() => { setSelected(b); setResults([]) }}
                   style={{
                     width: '100%', textAlign: 'left', padding: '12px 14px',
-                    background: 'none', border: 'none', borderBottom: '1px solid #f8fafc',
+                    background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.07)',
                     cursor: 'pointer',
                   }}
                 >
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#ffffff' }}>
                     {b.name ?? '(이름 없음)'}
                   </div>
-                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{b.address}</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>{b.address}</div>
                 </button>
               ))}
             </div>
@@ -111,21 +112,21 @@ export default function BuildingRegister({ onRegistered }: Props) {
       ) : (
         <>
           <div style={{
-            background: '#eff6ff', border: '1.5px solid #bfdbfe',
+            background: 'rgba(37,99,235,0.12)', border: '1.5px solid rgba(37,99,235,0.3)',
             borderRadius: 12, padding: '14px 16px', marginBottom: 16,
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#1d4ed8' }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#60a5fa' }}>
                 {selected.name ?? '이름 없는 건물'}
               </div>
-              <div style={{ fontSize: 11, color: '#60a5fa', marginTop: 3 }}>{selected.address}</div>
+              <div style={{ fontSize: 11, color: '#93c5fd', marginTop: 3 }}>{selected.address}</div>
               {selected.total_floors && (
-                <div style={{ fontSize: 11, color: '#60a5fa' }}>{selected.total_floors}층</div>
+                <div style={{ fontSize: 11, color: '#93c5fd' }}>{selected.total_floors}층</div>
               )}
             </div>
             <button onClick={() => setSelected(null)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: '#60a5fa' }}>
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: '#93c5fd' }}>
               변경
             </button>
           </div>

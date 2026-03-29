@@ -51,9 +51,12 @@ function Row({
 }) {
   if (value == null) return null
   return (
-    <div className="grid grid-cols-[160px_1fr] items-start py-3.5 border-b border-gray-100 last:border-0">
-      <dt className={`text-sm ${dim ? 'text-gray-400' : 'text-gray-500'}`}>{label}</dt>
-      <dd className={`text-sm ${dim ? 'text-gray-400' : 'text-gray-800'}`}>{value}</dd>
+    <div style={{
+      display: 'grid', gridTemplateColumns: '160px 1fr', alignItems: 'flex-start',
+      padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,0.07)',
+    }}>
+      <dt style={{ fontSize: 14, color: dim ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.4)' }}>{label}</dt>
+      <dd style={{ fontSize: 14, color: dim ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.8)', margin: 0 }}>{value}</dd>
     </div>
   )
 }
@@ -68,7 +71,7 @@ export default function InfoExpand({ building: b }: { building: BuildingInfo }) 
 
   return (
     <div>
-      <dl>
+      <dl style={{ margin: 0 }}>
         <Row label="건물명"    value={b.name?.trim() || '–'} />
         <Row label="세대수"    value={b.hhld_cnt != null ? `${b.hhld_cnt}세대` : '–'} />
         <Row label="도로명 주소" value={b.address || '–'} dim />
@@ -87,15 +90,22 @@ export default function InfoExpand({ building: b }: { building: BuildingInfo }) 
         )}
       </dl>
 
-      <div className="flex justify-center mt-4 mb-1">
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, marginBottom: 4 }}>
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-1 px-6 py-2.5 border border-gray-300 rounded-full text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 4,
+            padding: '8px 24px', border: '1px solid rgba(255,255,255,0.15)',
+            borderRadius: 999, fontSize: 14, color: 'rgba(255,255,255,0.5)',
+            background: 'transparent', cursor: 'pointer', transition: 'background .15s',
+          }}
         >
           {expanded ? '접기' : '더보기'}
           <span
-            className="inline-block transition-transform duration-200"
-            style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+            style={{
+              display: 'inline-block', transition: 'transform 0.2s',
+              transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+            }}
           >
             ∨
           </span>

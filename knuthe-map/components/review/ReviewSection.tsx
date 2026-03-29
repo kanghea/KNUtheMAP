@@ -28,10 +28,10 @@ interface Review {
 
 function Stars({ rating, size = 15 }: { rating: number; size?: number }) {
   return (
-    <div className="flex gap-0.5">
+    <div style={{ display: 'flex', gap: 2 }}>
       {[1, 2, 3, 4, 5].map((i) => (
         <svg key={i} width={size} height={size} viewBox="0 0 24 24"
-          fill={i <= Math.round(rating) ? '#f59e0b' : '#e5e7eb'}>
+          fill={i <= Math.round(rating) ? '#f59e0b' : 'rgba(255,255,255,0.15)'}>
           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
         </svg>
       ))}
@@ -89,46 +89,59 @@ export default function ReviewSection({ buildingId, buildingName, initialReviews
   return (
     <>
       {/* ── 종합 평점 카드 ──────────────────────────────────────── */}
-      <div className="border border-gray-200 rounded-xl overflow-hidden mb-3">
-        <div className="grid grid-cols-2 divide-x divide-gray-200">
-          <div className="px-5 py-5 flex flex-col items-center justify-center gap-1.5">
-            <span className="text-xs text-gray-400 flex items-center gap-1">
+      <div style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, overflow: 'hidden', marginBottom: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: 'none' }}>
+          {/* 왼쪽: 종합 평점 */}
+          <div style={{
+            padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center',
+            justifyContent: 'center', gap: 6,
+            borderRight: '1px solid rgba(255,255,255,0.08)',
+          }}>
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', display: 'flex', alignItems: 'center', gap: 4 }}>
               집 종합평점
-              <span className="w-3.5 h-3.5 rounded-full border border-gray-300 text-gray-400 flex items-center justify-center text-[9px] font-bold leading-none">i</span>
+              <span style={{
+                width: 14, height: 14, borderRadius: '50%',
+                border: '1px solid rgba(255,255,255,0.2)',
+                color: 'rgba(255,255,255,0.35)',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 9, fontWeight: 700, lineHeight: 1,
+              }}>i</span>
             </span>
-            <div className="flex items-baseline gap-1 mt-0.5">
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginTop: 2 }}>
               {avg !== null ? (
                 <>
-                  <span className="text-[1.75rem] font-bold text-gray-900 leading-none">{avg.toFixed(1)}</span>
-                  <span className="text-sm text-gray-400">/ 5</span>
+                  <span style={{ fontSize: 28, fontWeight: 700, color: '#ffffff', lineHeight: 1 }}>{avg.toFixed(1)}</span>
+                  <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.35)' }}>/ 5</span>
                 </>
               ) : (
                 <>
-                  <span className="text-[1.75rem] font-bold text-gray-300 leading-none">–</span>
-                  <span className="text-sm text-gray-300">/ 5</span>
+                  <span style={{ fontSize: 28, fontWeight: 700, color: 'rgba(255,255,255,0.2)', lineHeight: 1 }}>–</span>
+                  <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.2)' }}>/ 5</span>
                 </>
               )}
             </div>
-            <div className="flex gap-0.5 mt-1">
+            <div style={{ display: 'flex', gap: 2, marginTop: 4 }}>
               {avg !== null ? <Stars rating={avg} /> : [1,2,3,4,5].map((i) => (
-                <svg key={i} width="15" height="15" viewBox="0 0 24 24" fill="#e5e7eb">
+                <svg key={i} width="15" height="15" viewBox="0 0 24 24" fill="rgba(255,255,255,0.1)">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                 </svg>
               ))}
             </div>
           </div>
-          <div className="px-5 py-5 flex flex-col justify-center gap-2.5">
+
+          {/* 오른쪽: 카테고리 평점 */}
+          <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 10 }}>
             {CAT_KEYS.map(({ key, label }) => {
               const val = avgCat(key)
               return (
-                <div key={key} className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500 w-[3.5rem] shrink-0">{label}</span>
-                  <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', width: 56, flexShrink: 0 }}>{label}</span>
+                  <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 999, overflow: 'hidden' }}>
                     {val !== null && (
-                      <div className="h-full bg-amber-400 rounded-full" style={{ width: `${(val / 5) * 100}%` }} />
+                      <div style={{ height: '100%', background: '#f59e0b', borderRadius: 999, width: `${(val / 5) * 100}%` }} />
                     )}
                   </div>
-                  <span className="text-xs w-4 text-right shrink-0" style={{ color: val !== null ? '#f59e0b' : '#d1d5db' }}>
+                  <span style={{ fontSize: 11, width: 16, textAlign: 'right', flexShrink: 0, color: val !== null ? '#f59e0b' : 'rgba(255,255,255,0.2)' }}>
                     {val !== null ? val.toFixed(1) : '–'}
                   </span>
                 </div>
@@ -139,26 +152,31 @@ export default function ReviewSection({ buildingId, buildingName, initialReviews
       </div>
 
       {/* ── 리뷰 헤더 ───────────────────────────────────────────── */}
-      <div className="flex items-center justify-between mb-4 mt-6">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-white bg-emerald-500 rounded-md px-2 py-0.5">건물 리뷰</span>
-          <span className="text-sm font-semibold text-gray-800">{buildingName}</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, marginTop: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{
+            fontSize: 11, fontWeight: 600, color: '#ffffff',
+            background: '#059669', borderRadius: 6, padding: '2px 8px',
+          }}>건물 리뷰</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>{buildingName}</span>
         </div>
         {avg !== null && (
-          <div className="flex items-center gap-1">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="#f59e0b">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
             </svg>
-            <span className="text-sm font-semibold text-gray-700">{avg.toFixed(1)}</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>{avg.toFixed(1)}</span>
           </div>
         )}
       </div>
 
       {/* ── 리뷰 목록 ───────────────────────────────────────────── */}
       {reviews.length === 0 && !showForm ? (
-        <p className="text-sm text-gray-400 text-center py-8">아직 등록된 리뷰가 없습니다.</p>
+        <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.35)', textAlign: 'center', padding: '32px 0' }}>
+          아직 등록된 리뷰가 없습니다.
+        </p>
       ) : (
-        <div className="flex flex-col gap-3 mb-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
           {reviews.map((r) => <ReviewCard key={r.id} review={r} />)}
         </div>
       )}
@@ -173,7 +191,11 @@ export default function ReviewSection({ buildingId, buildingName, initialReviews
       ) : (
         <button
           onClick={handleWriteClick}
-          className="w-full bg-blue-600 text-white font-semibold py-3.5 rounded-xl text-sm hover:bg-blue-700 transition-colors"
+          style={{
+            width: '100%', background: '#2563eb', color: '#ffffff',
+            fontWeight: 600, padding: '14px', borderRadius: 12, fontSize: 14,
+            border: 'none', cursor: 'pointer',
+          }}
         >
           {loggedIn ? '건물 리뷰 작성하기' : '로그인하고 리뷰 작성하기'}
         </button>

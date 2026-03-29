@@ -25,9 +25,9 @@ interface Props {
 type FilterTab = 'all' | 'vacant' | 'occupied' | 'reserved'
 
 const STATUS_CONFIG = {
-  vacant:   { bg: '#fee2e2', color: '#dc2626', label: '공실' },
-  occupied: { bg: '#dcfce7', color: '#15803d', label: '입주' },
-  reserved: { bg: '#fef9c3', color: '#a16207', label: '예약' },
+  vacant:   { bg: 'rgba(239,68,68,0.12)',  color: '#f87171', label: '공실' },
+  occupied: { bg: 'rgba(34,197,94,0.12)',  color: '#4ade80', label: '입주' },
+  reserved: { bg: 'rgba(234,179,8,0.12)',  color: '#fbbf24', label: '예약' },
 }
 
 const FILTER_TABS: { key: FilterTab; label: string }[] = [
@@ -88,10 +88,10 @@ export default function UnitsClient({ buildingId, totalFloors, initialUnits }: P
     : units.filter((u) => u.status === activeTab)
 
   const cardStyle: React.CSSProperties = {
-    background: '#fff',
+    background: '#111111',
     borderRadius: 20,
-    border: '1px solid #f1f5f9',
-    boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
     padding: '16px 18px',
     display: 'flex',
     alignItems: 'center',
@@ -102,13 +102,13 @@ export default function UnitsClient({ buildingId, totalFloors, initialUnits }: P
     width: 30,
     height: 30,
     borderRadius: 8,
-    border: '1.5px solid #e2e8f0',
-    background: '#fff',
+    border: '1.5px solid rgba(255,255,255,0.12)',
+    background: '#1a1a1a',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     cursor: 'pointer',
-    color: '#64748b',
+    color: 'rgba(255,255,255,0.5)',
     flexShrink: 0,
   }
 
@@ -127,9 +127,9 @@ export default function UnitsClient({ buildingId, totalFloors, initialUnits }: P
                 style={{
                   padding: '6px 14px',
                   borderRadius: 20,
-                  border: isActive ? 'none' : '1.5px solid #e2e8f0',
-                  background: isActive ? '#2563eb' : '#fff',
-                  color: isActive ? '#fff' : '#64748b',
+                  border: isActive ? 'none' : '1.5px solid rgba(255,255,255,0.12)',
+                  background: isActive ? '#2563eb' : 'transparent',
+                  color: isActive ? '#fff' : 'rgba(255,255,255,0.5)',
                   fontSize: 12,
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -159,11 +159,11 @@ export default function UnitsClient({ buildingId, totalFloors, initialUnits }: P
       {/* Unit list */}
       {filteredUnits.length === 0 ? (
         <div style={{
-          background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+          background: '#111111', borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
           padding: '40px 20px', textAlign: 'center',
         }}>
-          <p style={{ fontSize: 14, color: '#94a3b8', margin: '0 0 12px' }}>
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.35)', margin: '0 0 12px' }}>
             등록된 호실이 없어요
           </p>
           <button
@@ -189,7 +189,7 @@ export default function UnitsClient({ buildingId, totalFloors, initialUnits }: P
                 {/* Thumbnail */}
                 <div style={{
                   width: 40, height: 40, borderRadius: 10, flexShrink: 0,
-                  background: '#f1f5f9', overflow: 'hidden',
+                  background: 'rgba(255,255,255,0.08)', overflow: 'hidden',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   {mainImgUrl ? (
@@ -201,7 +201,7 @@ export default function UnitsClient({ buildingId, totalFloors, initialUnits }: P
                     />
                   ) : (
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                      stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      stroke="rgba(255,255,255,0.25)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="3" width="18" height="18" rx="2"/>
                       <circle cx="8.5" cy="8.5" r="1.5"/>
                       <polyline points="21 15 16 10 5 21"/>
@@ -211,10 +211,10 @@ export default function UnitsClient({ buildingId, totalFloors, initialUnits }: P
 
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', lineHeight: 1.3 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', lineHeight: 1.3 }}>
                     {unit.floor}층 {unit.unit_number}
                   </div>
-                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>
                     {[unit.room_type, unit.area_m2 != null ? `${unit.area_m2}㎡` : null]
                       .filter(Boolean).join(' · ') || '정보 없음'}
                   </div>

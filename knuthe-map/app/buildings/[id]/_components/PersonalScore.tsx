@@ -16,19 +16,19 @@ interface Props {
 }
 
 const GRADE_CONFIG = {
-  S: { label: 'S', color: '#7c3aed', bg: '#ede9fe', border: '#ddd6fe', text: '완벽하게 잘 맞아요!' },
-  A: { label: 'A', color: '#2563eb', bg: '#dbeafe', border: '#bfdbfe', text: '잘 맞는 건물이에요' },
-  B: { label: 'B', color: '#059669', bg: '#d1fae5', border: '#a7f3d0', text: '대체로 괜찮아요' },
-  C: { label: 'C', color: '#d97706', bg: '#fef3c7', border: '#fde68a', text: '아쉬운 점이 있어요' },
-  D: { label: 'D', color: '#dc2626', bg: '#fee2e2', border: '#fecaca', text: '잘 맞지 않을 수 있어요' },
+  S: { label: 'S', color: '#a78bfa', bg: 'rgba(124,58,237,0.12)', border: 'rgba(124,58,237,0.25)', text: '완벽하게 잘 맞아요!' },
+  A: { label: 'A', color: '#60a5fa', bg: 'rgba(37,99,235,0.12)',  border: 'rgba(37,99,235,0.25)',  text: '잘 맞는 건물이에요' },
+  B: { label: 'B', color: '#4ade80', bg: 'rgba(5,150,105,0.12)',  border: 'rgba(5,150,105,0.25)',  text: '대체로 괜찮아요' },
+  C: { label: 'C', color: '#fbbf24', bg: 'rgba(217,119,6,0.12)',  border: 'rgba(217,119,6,0.25)',  text: '아쉬운 점이 있어요' },
+  D: { label: 'D', color: '#f87171', bg: 'rgba(220,38,38,0.12)',  border: 'rgba(220,38,38,0.25)',  text: '잘 맞지 않을 수 있어요' },
 }
 
 function Stars({ n, color }: { n: number; color: string }) {
   return (
-    <span className="flex gap-0.5">
+    <span style={{ display: 'flex', gap: 2 }}>
       {[1, 2, 3, 4, 5].map((i) => (
         <svg key={i} width="12" height="12" viewBox="0 0 24 24"
-          fill={i <= n ? color : '#e5e7eb'}>
+          fill={i <= n ? color : 'rgba(255,255,255,0.12)'}>
           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
         </svg>
       ))}
@@ -60,23 +60,26 @@ export default function PersonalScore({ grade, dept, priorities, factors }: Prop
   const cfg = GRADE_CONFIG[overallGrade]
 
   return (
-    <div className="border border-gray-200 rounded-2xl overflow-hidden">
+    <div style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, overflow: 'hidden' }}>
 
       {/* 헤더 */}
-      <div
-        className="px-5 pt-5 pb-4 flex items-start justify-between gap-3"
-        style={{ background: cfg.bg, borderBottom: `1px solid ${cfg.border}` }}
-      >
+      <div style={{
+        padding: '20px 20px 16px', display: 'flex', alignItems: 'flex-start',
+        justifyContent: 'space-between', gap: 12,
+        background: cfg.bg, borderBottom: `1px solid ${cfg.border}`,
+      }}>
         <div>
-          <h3 className="text-sm font-bold text-gray-900">내 기준 적합도</h3>
-          <p className="text-xs mt-0.5" style={{ color: cfg.color }}>
+          <h3 style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', margin: 0 }}>내 기준 적합도</h3>
+          <p style={{ fontSize: 11, marginTop: 2, color: cfg.color }}>
             {grade && <>{grade} · </>}{dept && <>{dept} · </>}{cfg.text}
           </p>
         </div>
-        <span
-          className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-lg font-black"
-          style={{ background: cfg.color, color: '#fff' }}
-        >
+        <span style={{
+          flexShrink: 0, width: 40, height: 40, borderRadius: 10,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 18, fontWeight: 900,
+          background: cfg.color, color: '#fff',
+        }}>
           {cfg.label}
         </span>
       </div>
@@ -91,27 +94,30 @@ export default function PersonalScore({ grade, dept, priorities, factors }: Prop
           return (
             <div
               key={pid}
-              className={`flex items-center gap-3 px-5 py-3.5 ${
-                i < topPriorities.length - 1 ? 'border-b border-gray-100' : ''
-              }`}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '14px 20px',
+                borderBottom: i < topPriorities.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+              }}
             >
               {/* 순위 뱃지 */}
-              <span
-                className="shrink-0 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center"
-                style={isTop
+              <span style={{
+                flexShrink: 0, width: 20, height: 20, borderRadius: '50%',
+                fontSize: 10, fontWeight: 700,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                ...(isTop
                   ? { background: cfg.color, color: '#fff' }
-                  : { background: '#f3f4f6', color: '#9ca3af' }
-                }
-              >
+                  : { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)' }),
+              }}>
                 {i + 1}
               </span>
 
               {/* 이모지 + 라벨 */}
-              <span className="text-base shrink-0">{meta.icon}</span>
-              <span className="text-sm font-semibold text-gray-700 flex-1">{meta.label}</span>
+              <span style={{ fontSize: 16, flexShrink: 0 }}>{meta.icon}</span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.7)', flex: 1 }}>{meta.label}</span>
 
               {/* 세부 텍스트 */}
-              <span className="text-xs text-gray-400 shrink-0">{f.detail}</span>
+              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', flexShrink: 0 }}>{f.detail}</span>
 
               {/* 별점 */}
               <Stars n={f.stars} color={cfg.color} />
@@ -121,8 +127,8 @@ export default function PersonalScore({ grade, dept, priorities, factors }: Prop
       </div>
 
       {/* 하단 */}
-      <div className="px-5 py-3 bg-gray-50 border-t border-gray-100">
-        <span className="text-xs text-gray-400">
+      <div style={{ padding: '12px 20px', background: 'rgba(255,255,255,0.03)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
           우선순위 기반 · 상위 {topPriorities.length}개 반영 · 지도에서 설정 변경 가능
         </span>
       </div>
