@@ -1,11 +1,12 @@
 // 사용자 온보딩 설정 — 쿠키 저장/읽기
 
 export interface UserPrefs {
-  grade:      string | null   // e.g. '27학번'
-  dept:       string | null   // e.g. '경영학부'
-  zone:       string | null   // getZoneByDept 결과 e.g. '쪽문'
-  priorities: string[]        // e.g. ['security','dist','size']
-  gate:       string | null   // e.g. '쪽문'
+  grade:      string | null          // e.g. '27학번'
+  dept:       string | null          // e.g. '경영학부'
+  zone:       string | null          // getZoneByDept 결과 e.g. '쪽문'
+  priorities: string[]               // e.g. ['security','dist','size']
+  gate:       string | null          // e.g. '쪽문'
+  theme:      'light' | 'dark' | null  // UI 테마 (null = dark 기본값)
 }
 
 // 우선순위 차원 메타데이터 (StepPriority와 공유)

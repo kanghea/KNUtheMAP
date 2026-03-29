@@ -22,8 +22,6 @@ const ROOM_OPTIONS = [
 
 const GATE_MINUTES = [5, 10, 15, 20]
 
-// ── 유틸 ──────────────────────────────────────────────────────────────
-
 const fmtWon = (v: number) => `${v.toLocaleString()}만`
 const fmtAge = (v: number) => v === 0 ? '신축' : `${v}년`
 
@@ -40,16 +38,16 @@ function isDefault(f: MapFilters): boolean {
 
 // ── 칩 ───────────────────────────────────────────────────────────────
 
-function Chip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+function Chip({ label, active, onClick, isDark }: { label: string; active: boolean; onClick: () => void; isDark: boolean }) {
   return (
     <button
       onClick={onClick}
       style={{
         padding: '6px 13px', borderRadius: 999, fontSize: 12,
         fontWeight: active ? 700 : 500,
-        border: active ? '1.5px solid #2563eb' : '1.5px solid rgba(255,255,255,0.12)',
-        background: active ? 'rgba(37,99,235,0.2)' : 'rgba(255,255,255,0.05)',
-        color: active ? '#60a5fa' : 'rgba(255,255,255,0.5)',
+        border: active ? '1.5px solid #2563eb' : `1.5px solid ${isDark ? 'rgba(255,255,255,0.12)' : '#e2e8f0'}`,
+        background: active ? (isDark ? 'rgba(37,99,235,0.2)' : '#eff6ff') : (isDark ? 'rgba(255,255,255,0.05)' : '#fff'),
+        color: active ? (isDark ? '#60a5fa' : '#2563eb') : (isDark ? 'rgba(255,255,255,0.5)' : '#64748b'),
         cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
       }}
     >
@@ -61,19 +59,18 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
 // ── 듀얼 레인지 슬라이더 ──────────────────────────────────────────────
 
 function DualRange({
-  min, max, from, to, step = 1, onChange, fmtMin, fmtMax,
+  min, max, from, to, step = 1, onChange, fmtMin, fmtMax, isDark,
 }: {
   min: number; max: number; from: number; to: number; step?: number
   onChange: (f: number, t: number) => void
   fmtMin: (v: number) => string; fmtMax: (v: number) => string
+  isDark: boolean
 }) {
   const pct = (v: number) => ((v - min) / (max - min)) * 100
   const thumbStyle: React.CSSProperties = {
-    WebkitAppearance: 'none',
-    appearance: 'none',
+    WebkitAppearance: 'none', appearance: 'none',
     position: 'absolute', inset: 0, width: '100%',
-    background: 'transparent', pointerEvents: 'none',
-    cursor: 'grab',
+    background: 'transparent', pointerEvents: 'none', cursor: 'grab',
   }
   return (
     <>
@@ -85,7 +82,7 @@ function DualRange({
         <div style={{ position: 'relative', height: 20, display: 'flex', alignItems: 'center' }}>
           <div style={{
             position: 'absolute', inset: '0 0', height: 3, margin: 'auto 0',
-            background: 'rgba(255,255,255,0.12)', borderRadius: 999,
+            background: isDark ? 'rgba(255,255,255,0.12)' : '#e2e8f0', borderRadius: 999,
           }}>
             <div style={{
               position: 'absolute', height: '100%', background: '#2563eb', borderRadius: 999,
@@ -106,8 +103,8 @@ function DualRange({
           />
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{fmtMin(from)}</span>
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{fmtMax(to)}{to === max ? '+' : ''}</span>
+          <span style={{ fontSize: 11, color: isDark ? 'rgba(255,255,255,0.35)' : '#94a3b8' }}>{fmtMin(from)}</span>
+          <span style={{ fontSize: 11, color: isDark ? 'rgba(255,255,255,0.35)' : '#94a3b8' }}>{fmtMax(to)}{to === max ? '+' : ''}</span>
         </div>
       </div>
     </>
@@ -117,13 +114,14 @@ function DualRange({
 // ── 섹션 행 ───────────────────────────────────────────────────────────
 
 function Section({
-  label, summary, open, onToggle, children, maxH = 120,
+  label, summary, open, onToggle, children, maxH = 120, isDark,
 }: {
   label: string; summary: string; open: boolean; onToggle: () => void
-  children: React.ReactNode; maxH?: number
+  children: React.ReactNode; maxH?: number; isDark: boolean
 }) {
+  const muted = isDark ? 'rgba(255,255,255,0.35)' : '#94a3b8'
   return (
-    <div style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+    <div style={{ borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : '#f1f5f9'}` }}>
       <button
         onClick={onToggle}
         style={{
@@ -131,20 +129,18 @@ function Section({
           padding: '12px 0', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
         }}
       >
-        <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>{label}</span>
+        <span style={{ fontSize: 13, fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.8)' : '#374151' }}>{label}</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{summary}</span>
+          <span style={{ fontSize: 11, color: muted }}>{summary}</span>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-            stroke="rgba(255,255,255,0.35)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            stroke={muted} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
             style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s', flexShrink: 0 }}>
             <path d="M6 9l6 6 6-6"/>
           </svg>
         </div>
       </button>
       <div style={{ overflow: 'hidden', maxHeight: open ? maxH : 0, transition: 'max-height .25s ease' }}>
-        <div style={{ paddingBottom: 12 }}>
-          {children}
-        </div>
+        <div style={{ paddingBottom: 12 }}>{children}</div>
       </div>
     </div>
   )
@@ -152,7 +148,8 @@ function Section({
 
 // ── 메인 컴포넌트 ──────────────────────────────────────────────────────
 
-export default function RoomFilterCard() {
+export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'light' | 'dark' }) {
+  const isDark = theme === 'dark'
   const { filters: filter, setFilters } = useFilters()
   const [section,      setSection]      = useState<string | null>(null)
   const [notifOn,      setNotifOn]      = useState(false)
@@ -200,10 +197,27 @@ export default function RoomFilterCard() {
   const ageSummary     = `${fmtAge(filter.ageRange[0])} ~ ${fmtAge(filter.ageRange[1])}${filter.ageRange[1] === DEFAULT_FILTERS.ageRange[1] ? '+' : ''}`
   const gateSummary    = filter.gate && filter.gateMinutes ? `${filter.gate} · ${filter.gateMinutes}분 이내` : '설정 안 함'
 
+  // 테마 변수
+  const cardBg     = isDark ? '#111111'                    : '#fff'
+  const cardBorder = isDark ? 'rgba(255,255,255,0.08)'     : '#f1f5f9'
+  const sectionDiv = isDark ? 'rgba(255,255,255,0.07)'     : '#f8fafc'
+  const labelColor = isDark ? 'rgba(255,255,255,0.35)'     : '#94a3b8'
+  const titleColor = isDark ? '#ffffff'                    : '#0f172a'
+  const subColor   = isDark ? 'rgba(255,255,255,0.35)'     : '#94a3b8'
+  const notifBg    = isDark ? 'rgba(255,255,255,0.04)'     : '#f8fafc'
+  const notifBd    = isDark ? 'rgba(255,255,255,0.08)'     : '#f1f5f9'
+  const toggleOff  = isDark ? 'rgba(255,255,255,0.15)'     : '#e2e8f0'
+  const loginPanelBg = isDark ? 'rgba(255,255,255,0.03)'   : '#fff'
+  const loginPanelBd = isDark ? 'rgba(255,255,255,0.07)'   : '#f1f5f9'
+  const resetBg    = isDark ? 'rgba(255,255,255,0.05)'     : '#f8fafc'
+  const resetColor = isDark ? 'rgba(255,255,255,0.5)'      : '#64748b'
+  const resetBd    = isDark ? 'rgba(255,255,255,0.12)'     : '#e2e8f0'
+
   return (
     <div style={{
-      background: '#111111', borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)',
-      boxShadow: '0 2px 12px rgba(0,0,0,0.4)', marginBottom: 16, overflow: 'hidden',
+      background: cardBg, borderRadius: 20, border: `1px solid ${cardBorder}`,
+      boxShadow: isDark ? '0 2px 12px rgba(0,0,0,0.4)' : '0 2px 12px rgba(0,0,0,0.04)',
+      marginBottom: 16, overflow: 'hidden',
     }}>
 
       {/* ── 헤더 ─────────────────────────────────────────────── */}
@@ -217,16 +231,17 @@ export default function RoomFilterCard() {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{
-            width: 32, height: 32, borderRadius: 10, background: 'rgba(37,99,235,0.15)',
+            width: 32, height: 32, borderRadius: 10,
+            background: isDark ? 'rgba(37,99,235,0.15)' : '#eff6ff',
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0,
           }}>
             🔍
           </span>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', lineHeight: 1.3 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: titleColor, lineHeight: 1.3 }}>
               원하는 방 조건 설정
             </div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 1 }}>
+            <div style={{ fontSize: 11, color: subColor, marginTop: 1 }}>
               {isDefault(filter) ? '건물 종류·가격대·옵션·출입문 거리 선택' : '조건이 설정되어 있어요'}
             </div>
           </div>
@@ -234,12 +249,14 @@ export default function RoomFilterCard() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {notifOn && loggedIn && (
             <span style={{
-              fontSize: 10, fontWeight: 700, color: '#60a5fa',
-              background: 'rgba(37,99,235,0.2)', borderRadius: 999, padding: '3px 8px',
+              fontSize: 10, fontWeight: 700,
+              color: isDark ? '#60a5fa' : '#2563eb',
+              background: isDark ? 'rgba(37,99,235,0.2)' : '#eff6ff',
+              borderRadius: 999, padding: '3px 8px',
             }}>알림 ON</span>
           )}
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke="rgba(255,255,255,0.35)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            stroke={subColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
             style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
             <polyline points="6 9 12 15 18 9"/>
           </svg>
@@ -248,16 +265,16 @@ export default function RoomFilterCard() {
 
       {/* ── 펼친 내용 ────────────────────────────────────────── */}
       {expanded && (
-        <div style={{ padding: '0 20px 20px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+        <div style={{ padding: '0 20px 20px', borderTop: `1px solid ${sectionDiv}` }}>
 
           {/* 건물 종류 */}
-          <div style={{ padding: '14px 0 12px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-            <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.35)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          <div style={{ padding: '14px 0 12px', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : '#f1f5f9'}` }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: labelColor, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               건물 종류
             </p>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {BUILDING_TYPES.map(({ key, label }) => (
-                <Chip key={String(key)} label={label}
+                <Chip key={String(key)} label={label} isDark={isDark}
                   active={filter.buildingType === key}
                   onClick={() => set('buildingType', key)}
                 />
@@ -265,53 +282,49 @@ export default function RoomFilterCard() {
             </div>
           </div>
 
-          {/* 월세 범위 */}
-          <Section label="월세 범위" summary={rentSummary} open={section === 'rent'} onToggle={() => toggleSection('rent')}>
-            <DualRange min={0} max={200} step={5}
+          <Section label="월세 범위" summary={rentSummary} open={section === 'rent'} onToggle={() => toggleSection('rent')} isDark={isDark}>
+            <DualRange min={0} max={200} step={5} isDark={isDark}
               from={filter.rentRange[0]} to={filter.rentRange[1]}
               onChange={(f, t) => set('rentRange', [f, t])}
               fmtMin={fmtWon} fmtMax={fmtWon}
             />
           </Section>
 
-          {/* 보증금 범위 */}
-          <Section label="보증금 범위" summary={depositSummary} open={section === 'deposit'} onToggle={() => toggleSection('deposit')}>
-            <DualRange min={0} max={5000} step={100}
+          <Section label="보증금 범위" summary={depositSummary} open={section === 'deposit'} onToggle={() => toggleSection('deposit')} isDark={isDark}>
+            <DualRange min={0} max={5000} step={100} isDark={isDark}
               from={filter.depositRange[0]} to={filter.depositRange[1]}
               onChange={(f, t) => set('depositRange', [f, t])}
               fmtMin={fmtWon} fmtMax={fmtWon}
             />
           </Section>
 
-          {/* 건물 연식 */}
-          <Section label="건물 연식" summary={ageSummary} open={section === 'age'} onToggle={() => toggleSection('age')}>
-            <DualRange min={0} max={60} step={1}
+          <Section label="건물 연식" summary={ageSummary} open={section === 'age'} onToggle={() => toggleSection('age')} isDark={isDark}>
+            <DualRange min={0} max={60} step={1} isDark={isDark}
               from={filter.ageRange[0]} to={filter.ageRange[1]}
               onChange={(f, t) => set('ageRange', [f, t])}
               fmtMin={fmtAge} fmtMax={fmtAge}
             />
           </Section>
 
-          {/* 출입문 거리 */}
-          <Section label="출입문 거리" summary={gateSummary} open={section === 'gate'} onToggle={() => toggleSection('gate')} maxH={200}>
+          <Section label="출입문 거리" summary={gateSummary} open={section === 'gate'} onToggle={() => toggleSection('gate')} maxH={200} isDark={isDark}>
             <div>
-              <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.35)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <p style={{ fontSize: 10, fontWeight: 600, color: labelColor, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 기준 출입문
               </p>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
                 {MAJOR_GATES.map((g) => (
-                  <Chip key={g.name} label={g.name}
+                  <Chip key={g.name} label={g.name} isDark={isDark}
                     active={filter.gate === g.name}
                     onClick={() => set('gate', filter.gate === g.name ? null : g.name)}
                   />
                 ))}
               </div>
-              <p style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.35)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <p style={{ fontSize: 10, fontWeight: 600, color: labelColor, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 최대 도보 시간
               </p>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {GATE_MINUTES.map((min) => (
-                  <Chip key={min} label={`${min}분 이내`}
+                  <Chip key={min} label={`${min}분 이내`} isDark={isDark}
                     active={filter.gateMinutes === min}
                     onClick={() => set('gateMinutes', filter.gateMinutes === min ? null : min)}
                   />
@@ -322,12 +335,12 @@ export default function RoomFilterCard() {
 
           {/* 방 옵션 */}
           <div style={{ padding: '12px 0' }}>
-            <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.35)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: labelColor, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               방 옵션
             </p>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {ROOM_OPTIONS.map((opt) => (
-                <Chip key={opt} label={opt}
+                <Chip key={opt} label={opt} isDark={isDark}
                   active={filter.options.includes(opt)}
                   onClick={() => toggleOption(opt)}
                 />
@@ -341,8 +354,8 @@ export default function RoomFilterCard() {
               onClick={() => { setFilters(DEFAULT_FILTERS); setSection(null) }}
               style={{
                 flex: 1, padding: '11px', borderRadius: 12,
-                background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)',
-                border: '1px solid rgba(255,255,255,0.12)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                background: resetBg, color: resetColor,
+                border: `1px solid ${resetBd}`, fontSize: 13, fontWeight: 600, cursor: 'pointer',
               }}
             >
               필터 초기화
@@ -350,19 +363,13 @@ export default function RoomFilterCard() {
           </div>
 
           {/* ── 알림 설정 ─────────────────────────────────────── */}
-          <div style={{
-            background: 'rgba(255,255,255,0.04)', borderRadius: 14,
-            border: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden',
-          }}>
-            <div style={{
-              padding: '14px 16px',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            }}>
+          <div style={{ background: notifBg, borderRadius: 14, border: `1px solid ${notifBd}`, overflow: 'hidden' }}>
+            <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{ fontSize: 18 }}>🔔</span>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#ffffff' }}>새 매물 알림</div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: titleColor }}>새 매물 알림</div>
+                  <div style={{ fontSize: 11, color: subColor, marginTop: 1 }}>
                     조건에 맞는 방이 등록되면 알려드려요
                   </div>
                 </div>
@@ -371,7 +378,7 @@ export default function RoomFilterCard() {
                 onClick={handleNotifToggle}
                 style={{
                   width: 44, height: 26, borderRadius: 999, border: 'none', cursor: 'pointer',
-                  background: notifOn && loggedIn ? '#2563eb' : 'rgba(255,255,255,0.15)',
+                  background: notifOn && loggedIn ? '#2563eb' : toggleOff,
                   position: 'relative', flexShrink: 0, transition: 'background .2s',
                 }}
               >
@@ -386,9 +393,9 @@ export default function RoomFilterCard() {
             </div>
 
             {showLogin && !loggedIn && (
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', padding: '14px 16px', background: 'rgba(255,255,255,0.03)' }}>
-                <p style={{ margin: '0 0 12px', fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>
-                  알림 설정은 <strong style={{ color: '#ffffff' }}>로그인</strong>이 필요해요.
+              <div style={{ borderTop: `1px solid ${loginPanelBd}`, padding: '14px 16px', background: loginPanelBg }}>
+                <p style={{ margin: '0 0 12px', fontSize: 13, color: isDark ? 'rgba(255,255,255,0.5)' : '#475569', lineHeight: 1.6 }}>
+                  알림 설정은 <strong style={{ color: titleColor }}>로그인</strong>이 필요해요.
                   조건에 맞는 새 매물이 등록되면 바로 알려드려요!
                 </p>
                 <button
@@ -397,8 +404,11 @@ export default function RoomFilterCard() {
                   style={{
                     width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
                     padding: '11px 16px', borderRadius: 12,
-                    border: '1.5px solid rgba(255,255,255,0.12)', background: loginLoading ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.08)',
-                    fontSize: 13, fontWeight: 700, color: '#ffffff',
+                    border: `1.5px solid ${isDark ? 'rgba(255,255,255,0.12)' : '#e2e8f0'}`,
+                    background: loginLoading
+                      ? (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc')
+                      : (isDark ? 'rgba(255,255,255,0.08)' : '#fff'),
+                    fontSize: 13, fontWeight: 700, color: titleColor,
                     cursor: loginLoading ? 'default' : 'pointer',
                   }}
                 >
@@ -419,7 +429,7 @@ export default function RoomFilterCard() {
                   style={{
                     width: '100%', marginTop: 8, padding: '8px',
                     background: 'none', border: 'none', cursor: 'pointer',
-                    fontSize: 12, color: 'rgba(255,255,255,0.35)',
+                    fontSize: 12, color: isDark ? 'rgba(255,255,255,0.35)' : '#94a3b8',
                   }}
                 >
                   나중에 하기
