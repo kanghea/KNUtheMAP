@@ -38,7 +38,7 @@ export async function GET(request: Request) {
       const response = NextResponse.redirect(`${origin}${next}`)
       response.cookies.set('knu_role', role, {
         path:     '/',
-        maxAge:   60 * 60 * 24 * 30, // 30일
+        maxAge:   60 * 60 * 24, // 24시간 (role 변경 반영 최대 지연 시간)
         sameSite: 'lax',
         secure:   process.env.NODE_ENV === 'production',
       })

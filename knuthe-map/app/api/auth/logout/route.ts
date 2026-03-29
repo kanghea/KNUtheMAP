@@ -25,5 +25,8 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // role 캐시 쿠키 삭제 (다른 사용자가 같은 기기 사용 시 role 누출 방지)
+  response.cookies.set('knu_role', '', { maxAge: 0, path: '/' })
+
   return response
 }
