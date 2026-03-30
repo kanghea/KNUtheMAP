@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import DepositDial from '@/components/shared/DepositDial'
+import { THEME_TOKENS } from '@/lib/theme-tokens'
 
 const ROOM_TYPES = ['원룸','투룸','복층형원룸','오피스텔','아파트','빌라','단독주택']
 
@@ -23,8 +25,8 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [contractType, setContractType] = useState<'월세'|'전세'|'매매'>('월세')
-  const [deposit,      setDeposit]      = useState('')
-  const [monthlyRent,  setMonthlyRent]  = useState('')
+  const [deposit,      setDeposit]      = useState(500)
+  const [monthlyRent,  setMonthlyRent]  = useState(40)
   const [maintenance,  setMaintenance]  = useState('')
   const [area,         setArea]         = useState('')
   const [floor,        setFloor]        = useState('')
@@ -85,8 +87,8 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
     if (unitErr) { setUnitError(unitErr); return }
 
     if (!selected)   { setError('건물을 선택해주세요'); return }
-    if (!deposit)    { setError('보증금을 입력해주세요'); return }
-    if (contractType === '월세' && !monthlyRent) { setError('월세를 입력해주세요'); return }
+    if (deposit <= 0) { setError('보증금을 입력해주세요'); return }
+    if (contractType === '월세' && monthlyRent <= 0) { setError('월세를 입력해주세요'); return }
 
     setSubmitting(true); setError(null); setProgress('방 등록 중…')
 
@@ -97,8 +99,8 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
       body: JSON.stringify({
         building_id:   selected.id,
         contract_type: contractType,
-        deposit:       Number(deposit),
-        monthly_rent:  monthlyRent  ? Number(monthlyRent)  : null,
+        deposit:       deposit,
+        monthly_rent:  contractType === '월세' ? monthlyRent : null,
         maintenance:   maintenance  ? Number(maintenance)   : null,
         area_m2:       area         ? Number(area)          : null,
         floor:         floor        ? Number(floor)         : null,
@@ -228,21 +230,21 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
             </div>
           </div>
 
-          {/* 보증금 / 월세 */}
-          <div style={{ display: 'grid', gridTemplateColumns: contractType === '월세' ? '1fr 1fr' : '1fr', gap: 10 }}>
-            <div>
-              {lbl('보증금 (만원)', true)}
-              <input style={inp} type="number" min="0" placeholder="예) 500"
-                value={deposit} onChange={(e) => setDeposit(e.target.value)} />
-            </div>
-            {contractType === '월세' && (
-              <div>
-                {lbl('월세 (만원)', true)}
-                <input style={inp} type="number" min="0" placeholder="예) 40"
-                  value={monthlyRent} onChange={(e) => setMonthlyRent(e.target.value)} />
-              </div>
-            )}
-          </div>
+          {/* 보증금 / 월세 — 다이얼 */}
+          <DepositDial
+            label="보증금 (만원)" required
+            value={deposit} onChange={setDeposit}
+            min={0} max={10000} step={50}
+            tok={THEME_TOKENS.dark}
+          />
+          {contractType === '월세' && (
+            <DepositDial
+              label="월세 (만원)" required
+              value={monthlyRent} onChange={setMonthlyRent}
+              min={0} max={200} step={5}
+              tok={THEME_TOKENS.dark}
+            />
+          )}
 
           {/* 관리비 / 면적 */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
