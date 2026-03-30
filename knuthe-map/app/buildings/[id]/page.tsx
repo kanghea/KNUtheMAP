@@ -8,6 +8,7 @@ import NaverRoadView from './_components/NaverRoadView'
 import AgeDistribution from './_components/AgeDistribution'
 import GateDistance    from './_components/GateDistance'
 import ReviewSection from '@/components/review/ReviewSection'
+import BookmarkButton from './_components/BookmarkButton'
 import { gateDistances, haversineM as gateHaversine, GATES } from '@/lib/gate-utils'
 import { cookies } from 'next/headers'
 import { parsePrefs } from '@/lib/prefs'
@@ -449,17 +450,7 @@ export default async function BuildingPage({
           </h2>
 
           {/* 관심등록 카드 */}
-          <div className="rounded-xl px-5 py-4 flex items-center justify-between mb-6"
-            style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
-            <div>
-              <p className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.8)' }}>이 건물에 관심 있으신가요?</p>
-              <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>관심등록 하면 새로운 리뷰를 알려드려요!</p>
-            </div>
-            <button className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors"
-              style={{ border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)', background: 'transparent' }}>
-              <BookmarkIcon />
-            </button>
-          </div>
+          <BookmarkButton buildingId={id} theme={prefs?.theme ?? 'dark'} />
 
           <ReviewSection
             buildingId={id}
