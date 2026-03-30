@@ -112,17 +112,17 @@ export default function StepTheme({ selected, onSelect }: Props) {
               gap:        18,
               padding:    '18px 18px',
               borderRadius: 20,
-              border:     `2px solid ${isSelected ? opt.ring : 'transparent'}`,
+              border:     'none',
               background: opt.bg,
               cursor:     'pointer',
               width:      '100%',
               textAlign:  'left',
               outline:    'none',
               boxShadow:  isSelected
-                ? `0 0 0 4px ${opt.ring}28, 0 8px 28px rgba(0,0,0,0.18)`
-                : '0 2px 14px rgba(0,0,0,0.10)',
-              transform:  isSelected ? 'scale(1.02)' : 'scale(1)',
-              transition: 'transform .22s cubic-bezier(.34,1.56,.64,1), box-shadow .22s ease, border-color .18s ease',
+                ? '0 12px 36px rgba(0,0,0,0.22)'
+                : '0 2px 10px rgba(0,0,0,0.08)',
+              transform:  isSelected ? 'scale(1.025) translateY(-2px)' : 'scale(1) translateY(0)',
+              transition: 'transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s ease',
             }}
           >
             {/* 미니 프리뷰 */}
@@ -151,24 +151,27 @@ export default function StepTheme({ selected, onSelect }: Props) {
 
             {/* 선택 표시 */}
             <div style={{
-              width:    24,
-              height:   24,
+              width:    22,
+              height:   22,
               borderRadius: '50%',
-              background:  isSelected ? opt.checkBg : 'rgba(128,128,128,0.18)',
+              background:  isSelected ? opt.checkBg : 'transparent',
+              border:      isSelected ? 'none' : `1.5px solid ${opt.textSub}`,
               display:  'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
-              transition: 'background .25s ease, transform .25s cubic-bezier(.34,1.56,.64,1)',
-              transform:  isSelected ? 'scale(1)' : 'scale(0.85)',
+              opacity:   isSelected ? 1 : 0.35,
+              transition: 'background .2s ease, opacity .2s ease, transform .25s cubic-bezier(.34,1.56,.64,1)',
+              transform:  isSelected ? 'scale(1)' : 'scale(0.9)',
             }}>
-              <svg
-                width="12" height="12" viewBox="0 0 24 24" fill="none"
-                stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"
-                style={{ opacity: isSelected ? 1 : 0, transition: 'opacity .2s' }}
-              >
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
+              {isSelected && (
+                <svg
+                  width="11" height="11" viewBox="0 0 24 24" fill="none"
+                  stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              )}
             </div>
           </button>
         )
