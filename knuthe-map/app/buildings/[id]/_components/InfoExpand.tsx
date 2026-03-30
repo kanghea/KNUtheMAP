@@ -17,6 +17,14 @@ export interface BuildingInfo {
   use_apr_day:        string | null
 }
 
+type Tok = {
+  pageBg: string; cardBg: string; cardBgAlt: string
+  border: string; borderSoft: string
+  textPrimary: string; textSecondary: string; textTertiary: string
+  accent: string; accentBg: string
+  starEmpty: string
+}
+
 function buildingAge(useAprDay: string | null): number | null {
   if (!useAprDay || useAprDay.length < 8) return null
   const y = parseInt(useAprDay.slice(0, 4))
@@ -44,10 +52,12 @@ function Row({
   label,
   value,
   dim = false,
+  tok,
 }: {
   label: string
   value: string | null
   dim?: boolean
+  tok: Tok
 }) {
   if (value == null) return null
   return (
@@ -56,18 +66,18 @@ function Row({
       gridTemplateColumns: '130px 1fr',
       alignItems: 'flex-start',
       padding: '13px 0',
-      borderBottom: '1px solid rgba(255,255,255,0.07)',
+      borderBottom: `1px solid ${tok.border}`,
     }}>
       <dt style={{
         fontSize: 13,
-        color: 'rgba(255,255,255,0.45)',
+        color: tok.textTertiary,
         lineHeight: 1.5,
       }}>
         {label}
       </dt>
       <dd style={{
         fontSize: 13,
-        color: dim ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.88)',
+        color: dim ? tok.textTertiary : tok.textPrimary,
         lineHeight: 1.5,
         wordBreak: 'break-all',
         margin: 0,
@@ -78,7 +88,7 @@ function Row({
   )
 }
 
-export default function InfoExpand({ building: b }: { building: BuildingInfo }) {
+export default function InfoExpand({ building: b, tok }: { building: BuildingInfo; tok: Tok }) {
   const [expanded, setExpanded] = useState(false)
 
   const elevatorValue =
@@ -89,20 +99,20 @@ export default function InfoExpand({ building: b }: { building: BuildingInfo }) 
   return (
     <div>
       <dl style={{ margin: 0 }}>
-        <Row label="건물명"    value={b.name?.trim() || '–'} />
-        <Row label="세대수"    value={b.hhld_cnt != null ? `${b.hhld_cnt}세대` : '–'} />
-        <Row label="도로명 주소" value={b.address || '–'} dim />
+        <Row label="건물명"    value={b.name?.trim() || '–'} tok={tok} />
+        <Row label="세대수"    value={b.hhld_cnt != null ? `${b.hhld_cnt}세대` : '–'} tok={tok} />
+        <Row label="도로명 주소" value={b.address || '–'} dim tok={tok} />
 
         {expanded && (
           <>
-            <Row label="주용도"    value={b.main_purps_nm} />
-            <Row label="지상층수"  value={b.total_floors ? `${b.total_floors}층` : null} />
-            <Row label="지하층수"  value={b.ugrnd_flr_cnt ? `지하 ${b.ugrnd_flr_cnt}층` : null} />
-            <Row label="구조"      value={b.strct_cd_nm} />
-            <Row label="연면적"    value={formatArea(b.tot_area)} />
-            <Row label="승강기"    value={elevatorValue} />
-            <Row label="사용승인일" value={formatDate(b.use_apr_day)} />
-            <Row label="건물관리번호" value={b.bd_mgt_sn} dim />
+            <Row label="주용도"    value={b.main_purps_nm} tok={tok} />
+            <Row label="지상층수"  value={b.total_floors ? `${b.total_floors}층` : null} tok={tok} />
+            <Row label="지하층수"  value={b.ugrnd_flr_cnt ? `지하 ${b.ugrnd_flr_cnt}층` : null} tok={tok} />
+            <Row label="구조"      value={b.strct_cd_nm} tok={tok} />
+            <Row label="연면적"    value={formatArea(b.tot_area)} tok={tok} />
+            <Row label="승강기"    value={elevatorValue} tok={tok} />
+            <Row label="사용승인일" value={formatDate(b.use_apr_day)} tok={tok} />
+            <Row label="건물관리번호" value={b.bd_mgt_sn} dim tok={tok} />
           </>
         )}
       </dl>
@@ -116,21 +126,21 @@ export default function InfoExpand({ building: b }: { building: BuildingInfo }) 
             gap:            6,
             padding:        '9px 24px',
             borderRadius:   999,
-            border:         '1px solid rgba(255,255,255,0.15)',
+            border:         `1px solid ${tok.borderSoft}`,
             background:     'transparent',
             cursor:         'pointer',
             fontSize:       13,
             fontWeight:     600,
-            color:          'rgba(255,255,255,0.7)',
+            color:          tok.textSecondary,
             transition:     'background .15s, border-color .15s',
           }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.06)'
-            ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.28)'
+            (e.currentTarget as HTMLButtonElement).style.background = tok.cardBgAlt
+            ;(e.currentTarget as HTMLButtonElement).style.borderColor = tok.border
           }}
           onMouseLeave={(e) => {
             (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
-            ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.15)'
+            ;(e.currentTarget as HTMLButtonElement).style.borderColor = tok.borderSoft
           }}
         >
           {expanded ? '접기' : '더보기'}

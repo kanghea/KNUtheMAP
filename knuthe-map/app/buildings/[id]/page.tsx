@@ -13,6 +13,37 @@ import { cookies } from 'next/headers'
 import { parsePrefs } from '@/lib/prefs'
 import PersonalScore, { type FactorResult } from './_components/PersonalScore'
 
+// ── 테마 토큰 ─────────────────────────────────────────────────────
+const BLDG_THEME = {
+  dark: {
+    pageBg:        '#0a0a0a',
+    cardBg:        '#111111',
+    cardBgAlt:     'rgba(255,255,255,0.04)',
+    border:        'rgba(255,255,255,0.07)',
+    borderSoft:    'rgba(255,255,255,0.12)',
+    textPrimary:   '#ffffff',
+    textSecondary: 'rgba(255,255,255,0.8)',
+    textTertiary:  'rgba(255,255,255,0.35)',
+    accent:        '#3b82f6',
+    accentBg:      'rgba(37,99,235,0.15)',
+    starEmpty:     'rgba(255,255,255,0.15)',
+  },
+  light: {
+    pageBg:        '#f8fafc',
+    cardBg:        '#ffffff',
+    cardBgAlt:     '#f1f5f9',
+    border:        '#e2e8f0',
+    borderSoft:    '#e2e8f0',
+    textPrimary:   '#0f172a',
+    textSecondary: '#1e293b',
+    textTertiary:  '#94a3b8',
+    accent:        '#2563eb',
+    accentBg:      '#eff6ff',
+    starEmpty:     '#e5e7eb',
+  },
+} as const
+type Tok = typeof BLDG_THEME[keyof typeof BLDG_THEME]
+
 // ── 유틸 ──────────────────────────────────────────────────────
 
 function shortAddress(addr: string | null): string {
@@ -281,6 +312,8 @@ export default async function BuildingPage({
   }
 
   const title = b.name?.trim() || shortAddress(b.address)
+  const theme = prefs?.theme ?? 'dark'
+  const tok: Tok = BLDG_THEME[theme]
 
   // Mapbox 위성 이미지 (로드뷰 폴백 + 지도 섹션용)
   const mapboxStaticImg = b.lat && b.lng
@@ -299,7 +332,7 @@ export default async function BuildingPage({
   const naverClientId = process.env.NAVER_MAP_CLIENT_ID ?? ''
 
   return (
-    <div className="min-h-screen" style={{ background: '#0a0a0a' }}>
+    <div className="min-h-screen" style={{ background: tok.pageBg }}>
 
       {/* ── 로드뷰 헤더 ───────────────────────────────────────── */}
       <div className="relative" style={{ height: 360 }}>
@@ -349,16 +382,15 @@ export default async function BuildingPage({
       <div className="max-w-2xl mx-auto">
 
         {/* ── 건물 타이틀 카드 ─────────────────────────────────── */}
-        <div className="px-5 pt-5 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-          {/* 이름 + 평점 */}
+        <div className="px-5 pt-5 pb-4" style={{ borderBottom: `1px solid ${tok.border}` }}>
           <div className="flex items-start justify-between gap-3">
-            <h1 className="text-[1.3rem] font-bold leading-tight" style={{ color: '#ffffff' }}>{title}</h1>
+            <h1 className="text-[1.3rem] font-bold leading-tight" style={{ color: tok.textPrimary }}>{title}</h1>
             <div className="flex items-center gap-1 shrink-0 mt-0.5">
               <StarIcon fill="#f59e0b" size={16} />
-              <span className="text-base font-bold" style={{ color: '#ffffff' }}>
+              <span className="text-base font-bold" style={{ color: tok.textPrimary }}>
                 {avgRating !== null ? avgRating.toFixed(1) : '–'}
               </span>
-              <span className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>({reviews.length}개)</span>
+              <span className="text-sm" style={{ color: tok.textTertiary }}>({reviews.length}개)</span>
             </div>
           </div>
 
@@ -367,34 +399,34 @@ export default async function BuildingPage({
             {b.address && (
               <div className="flex items-center gap-2">
                 <span className="text-xs shrink-0 leading-none px-1.5 py-0.5 rounded"
-                  style={{ color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                  style={{ color: tok.textTertiary, border: `1px solid ${tok.borderSoft}` }}>
                   도로명
                 </span>
-                <span className="text-sm" style={{ color: 'rgba(255,255,255,0.8)' }}>{b.address}</span>
+                <span className="text-sm" style={{ color: tok.textSecondary }}>{b.address}</span>
               </div>
             )}
             {b.bd_mgt_sn && (
               <div className="flex items-center gap-2">
                 <span className="text-xs shrink-0 leading-none px-1.5 py-0.5 rounded"
-                  style={{ color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                  style={{ color: tok.textTertiary, border: `1px solid ${tok.borderSoft}` }}>
                   관리번호
                 </span>
-                <span className="text-xs font-mono" style={{ color: 'rgba(255,255,255,0.5)' }}>{b.bd_mgt_sn}</span>
+                <span className="text-xs font-mono" style={{ color: tok.textTertiary }}>{b.bd_mgt_sn}</span>
               </div>
             )}
           </div>
         </div>
 
         {/* ── 월세 실거래가 ────────────────────────────────────── */}
-        <TransactionTabs transactions={transactions} summary={txSummary} />
+        <TransactionTabs transactions={transactions} summary={txSummary} tok={tok} />
 
         {/* ── 건물 소개 ─────────────────────────────────────────── */}
-        <section className="px-5 pt-7 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-          <h2 className="text-[1.15rem] font-bold mb-4" style={{ color: '#ffffff' }}>{title} 소개</h2>
+        <section className="px-5 pt-7 pb-6" style={{ borderBottom: `1px solid ${tok.border}` }}>
+          <h2 className="text-[1.15rem] font-bold mb-4" style={{ color: tok.textPrimary }}>{title} 소개</h2>
 
           {/* 지도 (스트리트맵) */}
           {mapboxStaticImg && (
-            <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.12)' }}>
+            <div className="rounded-xl overflow-hidden" style={{ border: `1px solid ${tok.borderSoft}` }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={mapboxStaticImg}
@@ -406,57 +438,59 @@ export default async function BuildingPage({
           )}
 
           {/* 건물 정보 그리드 */}
-          <div className="rounded-b-xl px-5 pt-1 pb-3" style={{ border: '1px solid rgba(255,255,255,0.12)', borderTop: 0 }}>
-            <InfoExpand building={b} />
+          <div className="rounded-b-xl px-5 pt-1 pb-3" style={{ border: `1px solid ${tok.borderSoft}`, borderTop: 0 }}>
+            <InfoExpand building={b} tok={tok} />
           </div>
         </section>
 
         {/* ── 내 기준 적합도 ────────────────────────────────────── */}
         {prefs && personalFactors.length > 0 && (
-          <section className="px-5 pt-6 pb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+          <section className="px-5 pt-6 pb-5" style={{ borderBottom: `1px solid ${tok.border}` }}>
             <PersonalScore
               grade={prefs.grade}
               dept={prefs.dept}
               priorities={prefs.priorities}
               factors={personalFactors}
+              tok={tok}
             />
           </section>
         )}
 
         {/* ── 가까운 출입문 ─────────────────────────────────────── */}
         {nearestGates.length > 0 && (
-          <section className="px-5 pt-6 pb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-            <GateDistance gates={nearestGates} />
+          <section className="px-5 pt-6 pb-5" style={{ borderBottom: `1px solid ${tok.border}` }}>
+            <GateDistance gates={nearestGates} tok={tok} />
           </section>
         )}
 
         {/* ── 연식 정규분포 ─────────────────────────────────────── */}
         {currentAge != null && zoneAges.length >= 5 && b.use_apr_day && (
-          <section className="px-5 pt-6 pb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+          <section className="px-5 pt-6 pb-5" style={{ borderBottom: `1px solid ${tok.border}` }}>
             <AgeDistribution
               ages={zoneAges}
               currentAge={currentAge}
               zone={b.zone ?? '해당 구역'}
               builtYear={parseInt(b.use_apr_day.slice(0, 4))}
+              tok={tok}
             />
           </section>
         )}
 
         {/* ── 리뷰 섹션 ─────────────────────────────────────────── */}
-        <section className="px-5 pt-7 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-          <h2 className="text-[1.15rem] font-bold mb-5" style={{ color: '#ffffff' }}>
+        <section className="px-5 pt-7 pb-6" style={{ borderBottom: `1px solid ${tok.border}` }}>
+          <h2 className="text-[1.15rem] font-bold mb-5" style={{ color: tok.textPrimary }}>
             살아본 사람들의 이야기 👋
           </h2>
 
           {/* 관심등록 카드 */}
           <div className="rounded-xl px-5 py-4 flex items-center justify-between mb-6"
-            style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+            style={{ border: `1px solid ${tok.border}` }}>
             <div>
-              <p className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.8)' }}>이 건물에 관심 있으신가요?</p>
-              <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>관심등록 하면 새로운 리뷰를 알려드려요!</p>
+              <p className="text-sm font-semibold" style={{ color: tok.textSecondary }}>이 건물에 관심 있으신가요?</p>
+              <p className="text-xs mt-0.5" style={{ color: tok.textTertiary }}>관심등록 하면 새로운 리뷰를 알려드려요!</p>
             </div>
             <button className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors"
-              style={{ border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)', background: 'transparent' }}>
+              style={{ border: `1px solid ${tok.border}`, color: tok.textTertiary, background: 'transparent' }}>
               <BookmarkIcon />
             </button>
           </div>
@@ -472,7 +506,7 @@ export default async function BuildingPage({
         {/* ── 주변 건물 ─────────────────────────────────────────── */}
         {nearby.length > 0 && (
           <section className="px-5 pt-7 pb-6">
-            <h2 className="text-[1.15rem] font-bold mb-5" style={{ color: '#ffffff' }}>
+            <h2 className="text-[1.15rem] font-bold mb-5" style={{ color: tok.textPrimary }}>
               다른 사람들은 옆 집도 함께 봤어요!
             </h2>
             <div>
@@ -485,26 +519,25 @@ export default async function BuildingPage({
                   <Link
                     key={n.id}
                     href={`/buildings/${n.id}`}
-                    className={`flex items-center gap-3.5 py-3.5 transition-colors -mx-2 px-2 rounded-xl ${i < nearby.length - 1 ? '' : ''}`}
-                    style={i < nearby.length - 1 ? { borderBottom: '1px solid rgba(255,255,255,0.07)' } : {}}
+                    className="flex items-center gap-3.5 py-3.5 -mx-2 px-2 rounded-xl"
+                    style={i < nearby.length - 1 ? { borderBottom: `1px solid ${tok.border}` } : {}}
                   >
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ background: 'rgba(37,99,235,0.15)' }}>
+                      style={{ background: tok.accentBg }}>
                       <HouseIcon />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate" style={{ color: '#ffffff' }}>{nTitle}</p>
+                      <p className="text-sm font-semibold truncate" style={{ color: tok.textPrimary }}>{nTitle}</p>
                       {nSub && (
-                        <p className="text-xs mt-0.5 truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>{nSub}</p>
+                        <p className="text-xs mt-0.5 truncate" style={{ color: tok.textTertiary }}>{nSub}</p>
                       )}
                     </div>
-                    {/* 거리 */}
                     <span className="text-xs font-medium shrink-0 px-2 py-0.5 rounded-full"
-                      style={{ color: '#2563eb', background: 'rgba(37,99,235,0.15)' }}>
+                      style={{ color: tok.accent, background: tok.accentBg }}>
                       {formatDist(n.distM)}
                     </span>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                      stroke="rgba(255,255,255,0.35)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                      stroke={tok.textTertiary} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
                       className="shrink-0">
                       <path d="M9 18l6-6-6-6" />
                     </svg>
