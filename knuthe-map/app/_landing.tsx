@@ -95,12 +95,12 @@ const THEME = {
 // ── 구역 정보 ─────────────────────────────────────────────────────
 
 const ZONES = [
-  { name: '북문', emoji: '🎓', desc: '도보 최단거리' },
-  { name: '정문', emoji: '📚', desc: '자취방 밀집' },
-  { name: '서문', emoji: '🌿', desc: '조용한 주거' },
-  { name: '쪽문', emoji: '☕', desc: '카페거리 인접' },
-  { name: '동문', emoji: '🌲', desc: '한적한 주거지' },
-  { name: '텍문', emoji: '🎯', desc: '공대·IT대 인접' },
+  { name: '북문', desc: '도보 최단거리' },
+  { name: '정문', desc: '자취방 밀집' },
+  { name: '서문', desc: '조용한 주거' },
+  { name: '쪽문', desc: '카페거리 인접' },
+  { name: '동문', desc: '한적한 주거지' },
+  { name: '텍문', desc: '공대·IT대 인접' },
 ]
 
 // ── 유틸 ─────────────────────────────────────────────────────────
@@ -285,7 +285,6 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
                     boxShadow: isMyZone ? `0 0 0 3px ${col.to}22` : tok.shadow,
                   }}
                 >
-                  <span style={{ fontSize: 20 }}>{z.emoji}</span>
                   <span style={{ fontSize: 12, fontWeight: 700, color: isMyZone ? col.to : tok.zoneText }}>
                     {z.name}
                   </span>
