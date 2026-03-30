@@ -19,7 +19,79 @@ interface Props {
   filters:  MapFilters
   onChange: (f: MapFilters) => void
   onSelect: (r: SearchResult) => void
+  theme?:   'dark' | 'light'
 }
+
+// ── 테마 토큰 ─────────────────────────────────────────────────────
+
+const TOK = {
+  dark: {
+    bg:           '#0a0a0a',
+    bgCard:       '#0a0a0a',
+    border:       'rgba(255,255,255,0.13)',
+    borderSoft:   'rgba(255,255,255,0.07)',
+    borderInner:  'rgba(255,255,255,0.06)',
+    divider:      'rgba(255,255,255,0.07)',
+    shadow:       '0 4px 24px rgba(0,0,0,.5)',
+    shadowCard:   '0 8px 32px rgba(0,0,0,.5)',
+    textPrimary:  '#ffffff',
+    textSecond:   'rgba(255,255,255,0.65)',
+    textThird:    'rgba(255,255,255,0.5)',
+    textFaint:    'rgba(255,255,255,0.35)',
+    textLabel:    'rgba(255,255,255,0.38)',
+    inputColor:   '#ffffff',
+    inputPh:      'rgba(255,255,255,0.3)',
+    iconSearch:   'rgba(255,255,255,0.3)',
+    iconSearchFocus: 'rgba(255,255,255,0.7)',
+    iconChevron:  'rgba(255,255,255,0.4)',
+    clearBtn:     'rgba(255,255,255,0.1)',
+    clearColor:   'rgba(255,255,255,0.6)',
+    filterBtn:    'rgba(255,255,255,0.1)',
+    activePill:   '#2563eb',
+    activePillTx: '#ffffff',
+    inactivePill: 'rgba(255,255,255,0.1)',
+    inactiveTx:   'rgba(255,255,255,0.75)',
+    trackBg:      'rgba(255,255,255,0.20)',
+    rangeLabel:   'rgba(255,255,255,0.5)',
+    hoverBg:      'rgba(255,255,255,0.05)',
+    notifyBorder: 'rgba(255,255,255,0.07)',
+    resetColor:   'rgba(255,255,255,0.4)',
+  },
+  light: {
+    bg:           '#ffffff',
+    bgCard:       '#ffffff',
+    border:       '#e2e8f0',
+    borderSoft:   '#e2e8f0',
+    borderInner:  '#f1f5f9',
+    divider:      '#e8eef5',
+    shadow:       '0 4px 24px rgba(0,0,0,.10)',
+    shadowCard:   '0 8px 32px rgba(0,0,0,.12)',
+    textPrimary:  '#0f172a',
+    textSecond:   '#334155',
+    textThird:    '#64748b',
+    textFaint:    '#94a3b8',
+    textLabel:    '#94a3b8',
+    inputColor:   '#0f172a',
+    inputPh:      '#94a3b8',
+    iconSearch:   '#94a3b8',
+    iconSearchFocus: '#334155',
+    iconChevron:  '#94a3b8',
+    clearBtn:     '#f1f5f9',
+    clearColor:   '#64748b',
+    filterBtn:    '#f1f5f9',
+    activePill:   '#2563eb',
+    activePillTx: '#ffffff',
+    inactivePill: '#f1f5f9',
+    inactiveTx:   '#334155',
+    trackBg:      '#e2e8f0',
+    rangeLabel:   '#64748b',
+    hoverBg:      'rgba(0,0,0,0.04)',
+    notifyBorder: '#e2e8f0',
+    resetColor:   '#94a3b8',
+  },
+} as const
+
+type Tok = typeof TOK[keyof typeof TOK]
 
 // ── 상수 ──────────────────────────────────────────────────────────
 
@@ -43,27 +115,38 @@ interface DualRangeProps {
   min: number; max: number; from: number; to: number; step?: number
   onChange: (from: number, to: number) => void
   fmtMin: (v: number) => string; fmtMax: (v: number) => string
+  tok: Tok
 }
 
-function DualRange({ min, max, from, to, step = 1, onChange, fmtMin, fmtMax }: DualRangeProps) {
+function DualRange({ min, max, from, to, step = 1, onChange, fmtMin, fmtMax, tok }: DualRangeProps) {
   const pct = (v: number) => ((v - min) / (max - min)) * 100
   return (
-    <div className="pt-1 pb-2">
-      <div className="relative h-5 flex items-center">
-        <div className="absolute inset-x-0 h-[3px] bg-white/20 rounded-full pointer-events-none">
-          <div className="absolute h-full bg-blue-500 rounded-full"
-            style={{ left: `${pct(from)}%`, width: `${pct(to) - pct(from)}%` }} />
+    <div style={{ paddingTop: 4, paddingBottom: 8 }}>
+      <div style={{ position: 'relative', height: 20, display: 'flex', alignItems: 'center' }}>
+        <div style={{
+          position: 'absolute', inset: '0', height: 3, margin: 'auto',
+          background: tok.trackBg, borderRadius: 999, pointerEvents: 'none',
+        }}>
+          <div style={{
+            position: 'absolute', height: '100%', background: '#2563eb', borderRadius: 999,
+            left: `${pct(from)}%`, width: `${pct(to) - pct(from)}%`,
+          }} />
         </div>
         <input type="range" min={min} max={max} value={from} step={step}
           onChange={(e) => { const v = +e.target.value; if (v <= to - step) onChange(v, to) }}
-          className="di-thumb absolute inset-0 w-full pointer-events-none appearance-none bg-transparent"
-          style={{ zIndex: from > max - (max - min) * 0.08 ? 5 : 3 }} />
+          className="di-thumb" style={{
+            position: 'absolute', inset: 0, width: '100%', pointerEvents: 'none',
+            appearance: 'none', background: 'transparent',
+            zIndex: from > max - (max - min) * 0.08 ? 5 : 3,
+          }} />
         <input type="range" min={min} max={max} value={to} step={step}
           onChange={(e) => { const v = +e.target.value; if (v >= from + step) onChange(from, v) }}
-          className="di-thumb absolute inset-0 w-full pointer-events-none appearance-none bg-transparent"
-          style={{ zIndex: 4 }} />
+          className="di-thumb" style={{
+            position: 'absolute', inset: 0, width: '100%', pointerEvents: 'none',
+            appearance: 'none', background: 'transparent', zIndex: 4,
+          }} />
       </div>
-      <div className="flex justify-between mt-2 text-xs text-white/50">
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 12, color: tok.rangeLabel }}>
         <span>{fmtMin(from)}</span>
         <span>{fmtMax(to)}{to === max ? '+' : ''}</span>
       </div>
@@ -71,17 +154,20 @@ function DualRange({ min, max, from, to, step = 1, onChange, fmtMin, fmtMax }: D
   )
 }
 
-function RangeRow({ label, summary, open, onToggle, children, maxH = 120 }: {
-  label: string; summary: string; open: boolean; onToggle: () => void; children: React.ReactNode; maxH?: number
+function RangeRow({ label, summary, open, onToggle, children, maxH = 120, tok }: {
+  label: string; summary: string; open: boolean; onToggle: () => void; children: React.ReactNode; maxH?: number; tok: Tok
 }) {
   return (
     <div>
-      <button onClick={onToggle} className="w-full flex items-center justify-between py-3 text-left">
-        <span className="text-sm font-semibold text-white">{label}</span>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-white/50">{summary}</span>
+      <button onClick={onToggle} style={{
+        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '12px 0', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
+      }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: tok.textPrimary }}>{label}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 12, color: tok.textThird }}>{summary}</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-            stroke="rgba(255,255,255,0.4)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            stroke={tok.iconChevron} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
             style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .2s' }}>
             <path d="M6 9l6 6 6-6" />
           </svg>
@@ -100,7 +186,7 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
       onClick={() => onChange(!on)}
       style={{
         width: 44, height: 26, borderRadius: 13, flexShrink: 0,
-        background: on ? '#2563eb' : 'rgba(255,255,255,0.15)',
+        background: on ? '#2563eb' : 'rgba(120,120,120,0.25)',
         border: 'none', cursor: 'pointer', position: 'relative',
         transition: 'background .2s',
       }}
@@ -127,7 +213,7 @@ function buildingIcon(purps: string | null) {
 
 // ── 메인 컴포넌트 ─────────────────────────────────────────────────
 
-export default function SearchAndFilter({ filters, onChange, onSelect }: Props) {
+export default function SearchAndFilter({ filters, onChange, onSelect, theme = 'dark' }: Props) {
   const [query,      setQuery]      = useState('')
   const [results,    setResults]    = useState<SearchResult[]>([])
   const [focused,    setFocused]    = useState(false)
@@ -139,6 +225,8 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
   const wrapperRef  = useRef<HTMLDivElement>(null)
   const inputRef    = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  const tok: Tok = TOK[theme]
 
   // ── 검색 디바운스 ─────────────────────────────────────────────
   useEffect(() => {
@@ -200,7 +288,7 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
 
   const rentSummary    = `${fmtWon(filters.rentRange[0])} ~ ${fmtWon(filters.rentRange[1])}${filters.rentRange[1] === DEFAULT_FILTERS.rentRange[1] ? '+' : ''}`
   const depositSummary = `${fmtWon(filters.depositRange[0])} ~ ${fmtWon(filters.depositRange[1])}${filters.depositRange[1] === DEFAULT_FILTERS.depositRange[1] ? '+' : ''}`
-  const ageSummary     = `${fmtAge(filters.ageRange[0])} ~ ${fmtAge(filters.ageRange[1])}${filters.ageRange[1] === DEFAULT_FILTERS.ageRange[1] ? '+' : ''}`
+  const ageSummary     = `${fmtWon(filters.ageRange[0])} ~ ${fmtWon(filters.ageRange[1])}${filters.ageRange[1] === DEFAULT_FILTERS.ageRange[1] ? '+' : ''}`
 
   const handleSelect = (r: SearchResult) => {
     onSelect(r)
@@ -250,21 +338,21 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
         {/* ── 검색 바 ──────────────────────────────────────── */}
         <div
           style={{
-            background:   '#0a0a0a',
-            border:       '1px solid rgba(255,255,255,0.13)',
-            borderBottom: showCard ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(255,255,255,0.13)',
+            background:   tok.bg,
+            border:       `1px solid ${tok.border}`,
+            borderBottom: showCard ? `1px solid ${tok.borderInner}` : `1px solid ${tok.border}`,
             borderRadius: showCard ? '20px 20px 0 0' : 999,
             padding:      '10px 16px',
             display:      'flex',
             alignItems:   'center',
             gap:          10,
-            boxShadow:    showCard ? 'none' : '0 4px 24px rgba(0,0,0,.5)',
+            boxShadow:    showCard ? 'none' : tok.shadow,
             transition:   'border-radius .2s ease, border-bottom .1s ease',
           }}
         >
           {/* 검색 아이콘 */}
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke={focused || query ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.3)'}
+            stroke={focused || query ? tok.iconSearchFocus : tok.iconSearch}
             strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
             style={{ flexShrink: 0, transition: 'stroke .2s' }}>
             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
@@ -279,14 +367,14 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
             placeholder="주소나 건물명으로 검색"
             style={{
               flex: 1, background: 'none', border: 'none', outline: 'none',
-              color: '#fff', fontSize: 16, fontWeight: 500,
+              color: tok.inputColor, fontSize: 16, fontWeight: 500,
             }}
           />
 
           {/* 로딩 스피너 */}
           {loading && (
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-              stroke="rgba(255,255,255,0.4)" strokeWidth="2.5" strokeLinecap="round"
+              stroke={tok.textThird} strokeWidth="2.5" strokeLinecap="round"
               style={{ flexShrink: 0, animation: 'spin 0.8s linear infinite' }}>
               <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
               <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/>
@@ -298,9 +386,9 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
             <button
               onClick={() => { setQuery(''); setResults([]); inputRef.current?.focus() }}
               style={{
-                flexShrink: 0, background: 'rgba(255,255,255,0.1)', border: 'none',
+                flexShrink: 0, background: tok.clearBtn, border: 'none',
                 borderRadius: '50%', width: 20, height: 20, cursor: 'pointer',
-                color: 'rgba(255,255,255,0.6)', fontSize: 13, lineHeight: '20px',
+                color: tok.clearColor, fontSize: 13, lineHeight: '20px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
@@ -312,14 +400,15 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
           <button
             onClick={() => { setFilterOpen((v) => !v); setFocused(true) }}
             style={{
-              flexShrink: 0, background: activeCount > 0 ? '#2563eb' : 'rgba(255,255,255,0.1)',
+              flexShrink: 0, background: activeCount > 0 ? '#2563eb' : tok.filterBtn,
               border: 'none', borderRadius: 8, width: 30, height: 30, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'background .15s', position: 'relative',
             }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-              stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              stroke={activeCount > 0 ? '#fff' : tok.textSecond}
+              strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="4" y1="6" x2="20" y2="6"/>
               <line x1="8" y1="12" x2="16" y2="12"/>
               <line x1="11" y1="18" x2="13" y2="18"/>
@@ -339,16 +428,16 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
         {/* ── 카드 (검색결과 + 필터) ──────────────────────── */}
         <div
           style={{
-            background:    '#0a0a0a',
-            borderTop:     'none',
-            borderRight:   showCard ? '1px solid rgba(255,255,255,0.13)' : 'none',
-            borderBottom:  showCard ? '1px solid rgba(255,255,255,0.13)' : 'none',
-            borderLeft:    showCard ? '1px solid rgba(255,255,255,0.13)' : 'none',
+            background:   tok.bgCard,
+            borderTop:    'none',
+            borderRight:  showCard ? `1px solid ${tok.border}` : 'none',
+            borderBottom: showCard ? `1px solid ${tok.border}` : 'none',
+            borderLeft:   showCard ? `1px solid ${tok.border}` : 'none',
             borderRadius: '0 0 20px 20px',
             overflow:     'hidden',
             maxHeight:    showCard ? 'calc(100vh - 120px)' : 0,
             overflowY:    'auto',
-            boxShadow:    showCard ? '0 8px 32px rgba(0,0,0,.5)' : 'none',
+            boxShadow:    showCard ? tok.shadowCard : 'none',
             opacity:      showCard ? 1 : 0,
             transition:   'max-height .25s cubic-bezier(.4,0,.2,1), opacity .15s ease',
           }}
@@ -368,27 +457,27 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
                     padding:    '11px 16px',
                     background: 'none',
                     border:     'none',
-                    borderBottom: i < results.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                    borderBottom: i < results.length - 1 ? `1px solid ${tok.borderInner}` : 'none',
                     cursor:     'pointer',
                     textAlign:  'left',
                     transition: 'background .12s',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = tok.hoverBg)}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
                 >
                   <span style={{ fontSize: 20, flexShrink: 0 }}>{buildingIcon(r.main_purps_nm)}</span>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: tok.textPrimary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {r.name || '이름 없음'}
                     </div>
                     {r.address && (
-                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div style={{ fontSize: 11, color: tok.textFaint, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {r.address}
                       </div>
                     )}
                   </div>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                    stroke="rgba(255,255,255,0.2)" strokeWidth="2" strokeLinecap="round"
+                    stroke={tok.iconChevron} strokeWidth="2" strokeLinecap="round"
                     style={{ flexShrink: 0, marginLeft: 'auto' }}>
                     <path d="M9 18l6-6-6-6"/>
                   </svg>
@@ -399,14 +488,14 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
 
           {/* 검색 결과 없음 */}
           {!loading && query.trim() && results.length === 0 && (
-            <div style={{ padding: '14px 16px', color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>
+            <div style={{ padding: '14px 16px', color: tok.textFaint, fontSize: 13 }}>
               &apos;{query}&apos; 에 해당하는 건물이 없어요
             </div>
           )}
 
           {/* 검색 결과 + 필터 사이 구분선 */}
           {results.length > 0 && (
-            <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '0 16px' }} />
+            <div style={{ height: 1, background: tok.divider, margin: '0 16px' }} />
           )}
 
           {/* ── 필터 토글 행 ────────────────────────────── */}
@@ -421,16 +510,15 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
               background: 'none',
               border:     'none',
               cursor:     'pointer',
-              color:      '#fff',
               textAlign:  'left',
             }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-              stroke="rgba(255,255,255,0.5)" strokeWidth="2.2" strokeLinecap="round"
+              stroke={tok.iconChevron} strokeWidth="2.2" strokeLinecap="round"
               style={{ flexShrink: 0, transform: filterOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform .2s' }}>
               <path d="M6 9l6 6 6-6"/>
             </svg>
-            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', flex: 1 }}>
+            <span style={{ fontSize: 13, color: tok.textThird, flex: 1 }}>
               자세한 조건으로 찾고싶나요?
             </span>
             {activeCount > 0 && (
@@ -451,11 +539,11 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
           }}>
             <div style={{ padding: '0 16px 4px' }}>
 
-              <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', marginBottom: 8 }} />
+              <div style={{ height: 1, background: tok.divider, marginBottom: 8 }} />
 
               {/* 건물 종류 */}
               <div style={{ marginBottom: 4 }}>
-                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+                <p style={{ fontSize: 10, color: tok.textLabel, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
                   건물 종류
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
@@ -465,8 +553,8 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
                       <button key={String(key)} onClick={() => set('buildingType', key)} style={{
                         padding: '5px 12px', borderRadius: 999, fontSize: 12, fontWeight: 600,
                         cursor: 'pointer', border: 'none', transition: 'background .15s, color .15s',
-                        background: active ? '#2563eb' : 'rgba(255,255,255,0.1)',
-                        color: active ? '#fff' : 'rgba(255,255,255,0.75)',
+                        background: active ? tok.activePill   : tok.inactivePill,
+                        color:      active ? tok.activePillTx : tok.inactiveTx,
                       }}>
                         {label}
                       </button>
@@ -475,40 +563,40 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
                 </div>
               </div>
 
-              <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '4px 0' }} />
+              <div style={{ height: 1, background: tok.divider, margin: '4px 0' }} />
 
               {/* 월세 */}
-              <RangeRow label="월세 범위" summary={rentSummary} open={section === 'rent'} onToggle={() => toggleSection('rent')}>
+              <RangeRow label="월세 범위" summary={rentSummary} open={section === 'rent'} onToggle={() => toggleSection('rent')} tok={tok}>
                 <DualRange min={0} max={200} step={5}
                   from={filters.rentRange[0]} to={filters.rentRange[1]}
                   onChange={(f, t) => set('rentRange', [f, t])}
-                  fmtMin={fmtWon} fmtMax={fmtWon} />
+                  fmtMin={fmtWon} fmtMax={fmtWon} tok={tok} />
               </RangeRow>
 
               {/* 보증금 */}
-              <RangeRow label="보증금 범위" summary={depositSummary} open={section === 'deposit'} onToggle={() => toggleSection('deposit')}>
+              <RangeRow label="보증금 범위" summary={depositSummary} open={section === 'deposit'} onToggle={() => toggleSection('deposit')} tok={tok}>
                 <DualRange min={0} max={5000} step={100}
                   from={filters.depositRange[0]} to={filters.depositRange[1]}
                   onChange={(f, t) => set('depositRange', [f, t])}
-                  fmtMin={fmtWon} fmtMax={fmtWon} />
+                  fmtMin={fmtWon} fmtMax={fmtWon} tok={tok} />
               </RangeRow>
 
               {/* 건물 연식 */}
-              <RangeRow label="건물 연식" summary={ageSummary} open={section === 'age'} onToggle={() => toggleSection('age')}>
+              <RangeRow label="건물 연식" summary={ageSummary} open={section === 'age'} onToggle={() => toggleSection('age')} tok={tok}>
                 <DualRange min={0} max={60} step={1}
                   from={filters.ageRange[0]} to={filters.ageRange[1]}
                   onChange={(f, t) => set('ageRange', [f, t])}
-                  fmtMin={fmtAge} fmtMax={fmtAge} />
+                  fmtMin={fmtAge} fmtMax={fmtAge} tok={tok} />
               </RangeRow>
 
               {/* 출입문 거리 */}
               <RangeRow
                 label="출입문 거리"
                 summary={filters.gate && filters.gateMinutes ? `${filters.gate} · ${filters.gateMinutes}분 이내` : '설정 안 함'}
-                open={section === 'gate'} onToggle={() => toggleSection('gate')} maxH={200}
+                open={section === 'gate'} onToggle={() => toggleSection('gate')} maxH={200} tok={tok}
               >
                 <div style={{ paddingBottom: 12, paddingTop: 4 }}>
-                  <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>기준 출입문</p>
+                  <p style={{ fontSize: 10, color: tok.textLabel, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>기준 출입문</p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
                     {MAJOR_GATES.map((g) => {
                       const active = filters.gate === g.name
@@ -516,15 +604,15 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
                         <button key={g.name} onClick={() => set('gate', active ? null : g.name)} style={{
                           padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
                           cursor: 'pointer', border: 'none', transition: 'background .15s',
-                          background: active ? '#2563eb' : 'rgba(255,255,255,0.1)',
-                          color: active ? '#fff' : 'rgba(255,255,255,0.7)',
+                          background: active ? tok.activePill   : tok.inactivePill,
+                          color:      active ? tok.activePillTx : tok.inactiveTx,
                         }}>
                           {g.name}
                         </button>
                       )
                     })}
                   </div>
-                  <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>최대 도보 시간</p>
+                  <p style={{ fontSize: 10, color: tok.textLabel, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>최대 도보 시간</p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {[5, 10, 15, 20].map((min) => {
                       const active = filters.gateMinutes === min
@@ -532,8 +620,8 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
                         <button key={min} onClick={() => set('gateMinutes', active ? null : min)} style={{
                           padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
                           cursor: 'pointer', border: 'none', transition: 'background .15s',
-                          background: active ? '#2563eb' : 'rgba(255,255,255,0.1)',
-                          color: active ? '#fff' : 'rgba(255,255,255,0.7)',
+                          background: active ? tok.activePill   : tok.inactivePill,
+                          color:      active ? tok.activePillTx : tok.inactiveTx,
                         }}>
                           {min}분 이내
                         </button>
@@ -543,11 +631,11 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
                 </div>
               </RangeRow>
 
-              <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '4px 0 8px' }} />
+              <div style={{ height: 1, background: tok.divider, margin: '4px 0 8px' }} />
 
               {/* 방 옵션 */}
               <div style={{ marginBottom: 8 }}>
-                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.38)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+                <p style={{ fontSize: 10, color: tok.textLabel, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
                   방 옵션
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -557,8 +645,8 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
                       <button key={opt} onClick={() => toggleOption(opt)} style={{
                         padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
                         cursor: 'pointer', border: 'none', transition: 'background .15s',
-                        background: active ? '#2563eb' : 'rgba(255,255,255,0.1)',
-                        color: active ? '#fff' : 'rgba(255,255,255,0.6)',
+                        background: active ? tok.activePill   : tok.inactivePill,
+                        color:      active ? tok.activePillTx : tok.inactiveTx,
                       }}>
                         {opt}
                       </button>
@@ -568,13 +656,13 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
               </div>
 
               {/* ── 알림 토글 ────────────────────────────── */}
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', margin: '8px 0', padding: '12px 0' }}>
+              <div style={{ borderTop: `1px solid ${tok.notifyBorder}`, margin: '8px 0', padding: '12px 0' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: tok.textPrimary, display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span>🔔</span> 이 조건으로 매물 나오면 알림받기
                     </div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 3 }}>
+                    <div style={{ fontSize: 11, color: tok.textFaint, marginTop: 3 }}>
                       {notifyOn ? '조건에 맞는 새 건물이 등록되면 알려드려요' : '새 건물 알림을 설정할 수 있어요'}
                     </div>
                   </div>
@@ -583,10 +671,10 @@ export default function SearchAndFilter({ filters, onChange, onSelect }: Props) 
               </div>
 
               {/* ── 하단 버튼 ────────────────────────────── */}
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: 12, paddingBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ borderTop: `1px solid ${tok.notifyBorder}`, paddingTop: 12, paddingBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <button
                   onClick={handleReset}
-                  style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}
+                  style={{ fontSize: 12, color: tok.resetColor, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}
                 >
                   초기화
                 </button>

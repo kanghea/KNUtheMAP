@@ -312,7 +312,7 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
               마이페이지 →
             </Link>
           </div>
-          <MyContractsCard hideHeader />
+          <MyContractsCard hideHeader theme={theme} />
         </div>
 
         {/* ── 내 우선순위 ──────────────────────────────────────── */}

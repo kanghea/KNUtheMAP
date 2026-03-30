@@ -27,9 +27,14 @@ export default async function MapPage({
     }
   }
 
+  const themeJar = await cookies()
+  const themeRaw = themeJar.get('knu_prefs')?.value
+  const themePrefs = themeRaw ? parsePrefs(themeRaw) : null
+  const theme = (themePrefs?.theme ?? 'dark') as 'dark' | 'light'
+
   return (
     <Suspense>
-      <MapClient />
+      <MapClient theme={theme} />
     </Suspense>
   )
 }
