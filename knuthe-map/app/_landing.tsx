@@ -181,7 +181,22 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
           background: heroGradient,
           borderRadius: 22, padding: '24px 22px 20px', color: '#fff',
           boxShadow: `0 8px 32px ${col.shadow}`,
+          position: 'relative', overflow: 'hidden',
         }}>
+          {/* 배경 로고 */}
+          <Image
+            src="/images/경북대 로고(현).png"
+            alt=""
+            aria-hidden
+            width={160}
+            height={160}
+            style={{
+              position: 'absolute', right: -18, bottom: -18,
+              opacity: 0.08, objectFit: 'contain',
+              filter: 'brightness(0) invert(1)',
+              pointerEvents: 'none', userSelect: 'none',
+            }}
+          />
           <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.55)', marginBottom: 4, letterSpacing: '0.06em' }}>
             다시 오셨군요 👋
           </p>
