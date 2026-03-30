@@ -19,10 +19,11 @@ export default async function MapPage({
       const prefs = parsePrefs(raw)
       if (prefs) {
         const p = new URLSearchParams(sp as Record<string, string>)
-        if (prefs.priorities?.length) p.set('p',    prefs.priorities.join(','))
-        if (prefs.gate)               p.set('gate', prefs.gate)
-        if (prefs.zone && !sp.zone)   p.set('zone', prefs.zone)
-        redirect(`/map?${p.toString()}`)
+        let changed = false
+        if (prefs.priorities?.length) { p.set('p',    prefs.priorities.join(',')); changed = true }
+        if (prefs.gate)               { p.set('gate', prefs.gate);                 changed = true }
+        if (prefs.zone && !sp.zone)   { p.set('zone', prefs.zone);                 changed = true }
+        if (changed) redirect(`/map?${p.toString()}`)
       }
     }
   }
