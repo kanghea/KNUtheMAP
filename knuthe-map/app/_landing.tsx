@@ -223,7 +223,7 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
             {prefs.gate ? `${prefs.gate} 기준 · 맞춤 건물을 추천해드려요` : '경북대 주변 방을 찾아드릴게요'}
           </p>
 
-          {/* CTA 버튼 2개 */}
+          {/* CTA 버튼 3개 */}
           <div style={{ display: 'flex', gap: 8 }}>
             <Link href="/rooms" style={{
               flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -253,6 +253,19 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
               건물 지도
             </Link>
           </div>
+          <Link href="/transactions" style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            background: 'rgba(255,255,255,0.1)', color: '#fff',
+            borderRadius: 12, padding: '10px 0', marginTop: 6,
+            fontSize: 12, fontWeight: 600, textDecoration: 'none',
+            border: '1px solid rgba(255,255,255,0.18)',
+          }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+            실거래 수집
+          </Link>
         </div>
 
         {/* ── 구역 바로가기 (가로 스크롤) ─────────────────────── */}
@@ -370,9 +383,13 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
         )}
 
         {/* ── 하단 링크 ────────────────────────────────────────── */}
-        <div style={{ textAlign: 'center', padding: '4px 0', display: 'flex', justifyContent: 'center', gap: 16 }}>
+        <div style={{ textAlign: 'center', padding: '4px 0', display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
           <Link href="/me" style={{ fontSize: 11, color: tok.footerText, textDecoration: 'none', fontWeight: 500 }}>
             마이페이지
+          </Link>
+          <span style={{ color: tok.footerDot, fontSize: 11 }}>·</span>
+          <Link href="/transactions" style={{ fontSize: 11, color: tok.footerText, textDecoration: 'none', fontWeight: 500 }}>
+            실거래 수집
           </Link>
           <span style={{ color: tok.footerDot, fontSize: 11 }}>·</span>
           <Link href="/?reset=1" style={{ fontSize: 11, color: tok.footerText, textDecoration: 'none', fontWeight: 500 }}>

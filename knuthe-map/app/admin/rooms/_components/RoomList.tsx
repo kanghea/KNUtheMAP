@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import RoomAddModal from './RoomAddModal'
 import ImageManager from '../../_components/ImageManager'
+import AreaToggle from '@/components/shared/AreaToggle'
+import { THEME_TOKENS } from '@/lib/theme-tokens'
 
 interface Room {
   id: string
@@ -153,10 +155,12 @@ export default function RoomList({ rooms }: { rooms: Room[] }) {
                     )}
                   </div>
                   <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginBottom: 4,
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {b?.address ?? '주소 없음'}
-                    {r.floor ? ` · ${r.floor}층` : ''}
-                    {r.area_m2 ? ` · ${r.area_m2}㎡` : ''}
+                    display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'nowrap' }}>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {b?.address ?? '주소 없음'}
+                      {r.floor ? ` · ${r.floor}층` : ''}
+                    </span>
+                    {r.area_m2 ? <><span>·</span><AreaToggle areaM2={r.area_m2} tok={THEME_TOKENS.dark} fontSize={10} /></> : null}
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: cc.color }}>
                     {r.contract_type === '월세'
