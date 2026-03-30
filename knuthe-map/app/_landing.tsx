@@ -130,7 +130,7 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
     : null
   const col = (college ? COLLEGE_COLORS[college] : null) ?? DEFAULT_COLLEGE_COLOR
 
-  const heroGradient = `linear-gradient(135deg, ${col.from} 0%, ${col.mid} 50%, ${col.to} 100%)`
+  const heroGradient = `linear-gradient(150deg, ${col.from} 0%, ${col.mid} 55%, ${col.to} 100%)`
 
   return (
     <div style={{ minHeight: '100vh', background: tok.pageBg, fontFamily: 'inherit' }}>
@@ -180,9 +180,25 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
           margin: '16px 0 14px',
           background: heroGradient,
           borderRadius: 22, padding: '24px 22px 20px', color: '#fff',
-          boxShadow: `0 8px 32px ${col.shadow}`,
+          boxShadow: `0 2px 4px rgba(0,0,0,0.06), 0 12px 40px ${col.shadow}, inset 0 1px 0 rgba(255,255,255,0.22)`,
           position: 'relative', overflow: 'hidden',
         }}>
+          {/* 상단 유리 반사광 */}
+          <div style={{
+            position: 'absolute', top: 0, left: 0, right: 0, height: '52%',
+            background: 'linear-gradient(to bottom, rgba(255,255,255,0.14) 0%, transparent 100%)',
+            borderRadius: '22px 22px 0 0',
+            pointerEvents: 'none',
+          }} />
+          {/* 노이즈 텍스처 */}
+          <div style={{
+            position: 'absolute', inset: 0,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
+            backgroundSize: '200px 200px',
+            opacity: 0.035,
+            pointerEvents: 'none',
+            borderRadius: 22,
+          }} />
           {/* 배경 로고 */}
           <Image
             src="/images/경북대 로고(현).png"
