@@ -296,7 +296,7 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
         </div>
 
         {/* ── 방 조건 필터 ─────────────────────────────────────── */}
-        <RoomFilterCard />
+        <RoomFilterCard theme={theme} />
 
         {/* ── 내 계약 관리 ─────────────────────────────────────── */}
         <div style={{
