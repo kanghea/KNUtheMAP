@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import type { UserContract } from './MyContractsManager'
+import MoneyDrumPicker, {
+  DEPOSIT_VALUES, MONTHLY_VALUES, MAINTENANCE_VALUES,
+} from '@/components/shared/MoneyDrumPicker'
 
 interface Props {
   renewal?: UserContract   // 연장인 경우 이전 계약
@@ -32,9 +35,9 @@ export default function ContractForm({ renewal, onSaved, onCancel }: Props) {
   const [contractType, setContractType] = useState<'월세' | '전세'>(
     renewal?.contract_type ?? '월세'
   )
-  const [deposit,      setDeposit]      = useState(String(renewal?.deposit ?? ''))
-  const [monthlyRent,  setMonthlyRent]  = useState(String(renewal?.monthly_rent ?? ''))
-  const [maintenance,  setMaintenance]  = useState(String(renewal?.maintenance ?? ''))
+  const [deposit,      setDeposit]      = useState(renewal?.deposit      ?? 500)
+  const [monthlyRent,  setMonthlyRent]  = useState(renewal?.monthly_rent ?? 30)
+  const [maintenance,  setMaintenance]  = useState(renewal?.maintenance  ?? 0)
   const [unitNumber,   setUnitNumber]   = useState(renewal?.unit_number ?? '')
   const [floor,        setFloor]        = useState(String(renewal?.floor ?? ''))
   const [areaM2,       setAreaM2]       = useState(String(renewal?.area_m2 ?? ''))
@@ -81,7 +84,7 @@ export default function ContractForm({ renewal, onSaved, onCancel }: Props) {
       setError('건물을 선택하거나 주소를 직접 입력해주세요')
       return
     }
-    if (!deposit) { setError('보증금을 입력해주세요'); return }
+    if (!deposit && deposit !== 0) { setError('보증금을 선택해주세요'); return }
 
     setSaving(true); setError(null)
     const body = {
@@ -92,9 +95,9 @@ export default function ContractForm({ renewal, onSaved, onCancel }: Props) {
       area_m2:              areaM2      ? parseFloat(areaM2)    : null,
       room_type:            roomType    || null,
       contract_type:        contractType,
-      deposit:              parseInt(deposit),
-      monthly_rent:         monthlyRent  ? parseInt(monthlyRent)  : null,
-      maintenance:          maintenance  ? parseInt(maintenance)  : null,
+      deposit:              deposit,
+      monthly_rent:         monthlyRent  > 0 ? monthlyRent  : null,
+      maintenance:          maintenance  > 0 ? maintenance  : null,
       contract_start:       startDate   || null,
       contract_end:         endDate     || null,
       is_renewal:           !!renewal,
@@ -285,25 +288,26 @@ export default function ContractForm({ renewal, onSaved, onCancel }: Props) {
         </div>
       </div>
 
-      {/* ── 금액 ────────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: contractType === '월세' ? '1fr 1fr' : '1fr', gap: 8, marginBottom: 12 }}>
+      {/* ── 금액 (드럼 피커) ──────────────────────────────── */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: contractType === '월세' ? '1fr 1fr' : '1fr',
+        gap: 8, marginBottom: 12,
+      }}>
         <div>
-          {label('보증금 (만원)')}
-          <input style={inputStyle} placeholder="예) 500" type="number"
-            value={deposit} onChange={(e) => setDeposit(e.target.value)} />
+          {label(`보증금 · ${deposit === 0 ? '없음' : deposit >= 10000 && deposit % 10000 === 0 ? `${deposit / 10000}억` : deposit >= 1000 && deposit % 1000 === 0 ? `${deposit / 1000}천만` : `${deposit}만원`}`)}
+          <MoneyDrumPicker values={DEPOSIT_VALUES} value={deposit} onChange={setDeposit} />
         </div>
         {contractType === '월세' && (
           <div>
-            {label('월세 (만원)')}
-            <input style={inputStyle} placeholder="예) 40" type="number"
-              value={monthlyRent} onChange={(e) => setMonthlyRent(e.target.value)} />
+            {label(`월세 · ${monthlyRent === 0 ? '없음' : `${monthlyRent}만원`}`)}
+            <MoneyDrumPicker values={MONTHLY_VALUES} value={monthlyRent} onChange={setMonthlyRent} />
           </div>
         )}
       </div>
       <div style={{ marginBottom: 12 }}>
-        {label('관리비 (만원, 선택)')}
-        <input style={inputStyle} placeholder="예) 5" type="number"
-          value={maintenance} onChange={(e) => setMaintenance(e.target.value)} />
+        {label(`관리비 (선택) · ${maintenance === 0 ? '없음' : `${maintenance}만원`}`)}
+        <MoneyDrumPicker values={MAINTENANCE_VALUES} value={maintenance} onChange={setMaintenance} />
       </div>
 
       {/* ── 계약 기간 ────────────────────────────────────────── */}

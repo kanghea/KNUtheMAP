@@ -30,6 +30,10 @@ input, textarea, select {
   font-size: max(16px, 1em);
 }
 
+/* 드럼 피커 스크롤바 숨김 */
+.drum-picker::-webkit-scrollbar { display: none; }
+.drum-picker { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* Mapbox 팝업 커스텀 스타일 */
 .building-popup .mapboxgl-popup-content {
   border-radius: 10px;
