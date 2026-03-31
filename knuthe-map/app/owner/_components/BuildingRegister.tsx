@@ -55,7 +55,7 @@ export default function BuildingRegister({ onRegistered }: Props) {
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '12px 14px', borderRadius: 12,
-    border: '1.5px solid #e2e8f0', fontSize: 13, color: '#0f172a',
+    border: '1.5px solid #e2e8f0', fontSize: 16, color: '#0f172a',
     background: '#fff', outline: 'none', boxSizing: 'border-box',
   }
 

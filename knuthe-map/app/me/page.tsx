@@ -58,29 +58,29 @@ export default async function MePage() {
   const roleLabel = ROLE_LABELS[role] ?? role
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', paddingBottom: 100 }}>
+    <div style={{ minHeight: '100vh', background: '#0a0a0a', paddingBottom: 100 }}>
 
       {/* ── 헤더 ──────────────────────────────────────────────────── */}
       <header style={{
         position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #f1f5f9',
+        background: 'rgba(17,17,17,0.92)', backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
         display: 'flex', alignItems: 'center', gap: 12,
         padding: '14px 20px',
       }}>
         <Link href="/" style={{
-          width: 34, height: 34, borderRadius: 10, background: '#f1f5f9',
+          width: 34, height: 34, borderRadius: 10, background: 'rgba(255,255,255,0.07)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           textDecoration: 'none',
         }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6"/>
           </svg>
         </Link>
         <div>
-          <h1 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>마이페이지</h1>
-          <p style={{ fontSize: 11, color: '#94a3b8', margin: '1px 0 0' }}>{roleLabel}</p>
+          <h1 style={{ fontSize: 16, fontWeight: 800, color: '#ffffff', margin: 0 }}>마이페이지</h1>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '1px 0 0' }}>{roleLabel}</p>
         </div>
       </header>
 
@@ -88,10 +88,10 @@ export default async function MePage() {
 
         {/* ── 프로필 카드 ────────────────────────────────────────── */}
         <div style={{
-          background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '20px', marginBottom: 16,
+          background: '#111111', borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.4)', padding: '20px', marginBottom: 16,
         }}>
-          <h2 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: '0 0 18px' }}>
+          <h2 style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', margin: '0 0 18px' }}>
             내 정보
           </h2>
           {profile ? (
@@ -100,15 +100,15 @@ export default async function MePage() {
               showStudentFields={role === 'tenant'}
             />
           ) : (
-            <p style={{ fontSize: 13, color: '#94a3b8' }}>프로필 정보를 불러올 수 없어요.</p>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>프로필 정보를 불러올 수 없어요.</p>
           )}
         </div>
 
         {/* ── role별 섹션 ────────────────────────────────────────── */}
         {role === 'tenant' && (
           <div style={{
-            background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '20px', marginBottom: 16,
+            background: '#111111', borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.4)', padding: '20px', marginBottom: 16,
           }}>
             <MyContractsManager />
           </div>
@@ -116,10 +116,10 @@ export default async function MePage() {
 
         {role === 'owner' && (
           <div style={{
-            background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '20px', marginBottom: 16,
+            background: '#111111', borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.4)', padding: '20px', marginBottom: 16,
           }}>
-            <h2 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', margin: '0 0 16px' }}>
               건물주 메뉴
             </h2>
             <OwnerSection myRoomsCount={myRoomsCount} />
@@ -128,10 +128,10 @@ export default async function MePage() {
 
         {role === 'agent' && (
           <div style={{
-            background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '20px', marginBottom: 16,
+            background: '#111111', borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.4)', padding: '20px', marginBottom: 16,
           }}>
-            <h2 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', margin: '0 0 16px' }}>
               중개사 메뉴
             </h2>
             <AgentSection myRoomsCount={myRoomsCount} />
@@ -140,10 +140,10 @@ export default async function MePage() {
 
         {role === 'admin' && (
           <div style={{
-            background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '20px', marginBottom: 16,
+            background: '#111111', borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.4)', padding: '20px', marginBottom: 16,
           }}>
-            <h2 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', margin: '0 0 16px' }}>
               관리자 메뉴
             </h2>
             <AdminSection

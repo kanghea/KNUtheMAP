@@ -11,7 +11,7 @@ const MapView = dynamic(() => import('@/components/map/MapView'), { ssr: false }
 
 const STORAGE_KEY = 'knu_map_filters'
 
-export default function MapClient() {
+export default function MapClient({ theme = 'dark' }: { theme?: 'dark' | 'light' }) {
   const params = useSearchParams()
   const { filters, setFilters } = useFilters()
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number } | null>(null)
@@ -40,7 +40,7 @@ export default function MapClient() {
   return (
     <div className="w-screen h-screen relative">
       <MapView filters={filters} initialZone={initialZone} flyTo={flyTo} />
-      <SearchAndFilter filters={filters} onChange={setFilters} onSelect={handleSelect} />
+      <SearchAndFilter filters={filters} onChange={setFilters} onSelect={handleSelect} theme={theme} />
     </div>
   )
 }

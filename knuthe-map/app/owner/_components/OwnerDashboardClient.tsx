@@ -83,8 +83,8 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
 
       {/* 건물 정보 카드 */}
       <div style={{
-        background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '18px 20px',
+        background: '#111111', borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.4)', padding: '18px 20px',
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
 
@@ -98,7 +98,7 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
                   onChange={(e) => setNameInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') saveName(); if (e.key === 'Escape') setEditingName(false) }}
                   style={{
-                    width: '100%', fontSize: 16, fontWeight: 800, color: '#0f172a',
+                    width: '100%', fontSize: 16, fontWeight: 800, color: '#ffffff',
                     border: 'none', borderBottom: '2px solid #2563eb',
                     outline: 'none', background: 'transparent',
                     padding: '2px 0', boxSizing: 'border-box',
@@ -113,7 +113,7 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
                     disabled={nameSaving}
                     style={{
                       padding: '5px 12px', borderRadius: 8, border: 'none',
-                      background: nameSaving ? '#93c5fd' : '#2563eb',
+                      background: nameSaving ? 'rgba(147,197,253,0.5)' : '#2563eb',
                       color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer',
                     }}
                   >
@@ -122,8 +122,8 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
                   <button
                     onClick={() => setEditingName(false)}
                     style={{
-                      padding: '5px 12px', borderRadius: 8, border: '1px solid #e2e8f0',
-                      background: '#fff', color: '#64748b', fontSize: 12, cursor: 'pointer',
+                      padding: '5px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.12)',
+                      background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)', fontSize: 12, cursor: 'pointer',
                     }}
                   >
                     취소

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createSupabaseServer } from '@/lib/supabase-server'
 import { parsePrefs } from '@/lib/prefs'
+import { sealRole, ROLE_COOKIE_NAME, ROLE_COOKIE_OPTIONS } from '@/lib/role-cookie'
+import type { Role } from '@/lib/useRole'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -13,11 +15,11 @@ export async function GET(request: Request) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error && data.user) {
-      // 온보딩 prefs(학번·학과)를 users 테이블에 동기화
-      const jar    = await cookies()
-      const raw    = jar.get('knu_prefs')?.value
-      const prefs  = raw ? parsePrefs(raw) : null
+      const jar   = await cookies()
+      const raw   = jar.get('knu_prefs')?.value
+      const prefs = raw ? parsePrefs(raw) : null
 
+      // 온보딩 prefs(학번·학과)를 users 테이블에 동기화
       if (prefs?.grade || prefs?.dept) {
         await supabase
           .from('users')
@@ -28,10 +30,20 @@ export async function GET(request: Request) {
           .eq('id', data.user.id)
       }
 
-      return NextResponse.redirect(`${origin}${next}`)
+      // DB에서 role 조회 → AES-256-GCM 암호화 후 HttpOnly 쿠키에 저장
+      // HttpOnly: JS에서 document.cookie로 읽기/쓰기 불가 → XSS로부터 보호
+      const { data: profile } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', data.user.id)
+        .single()
+      const role = (profile?.role ?? 'tenant') as Role
+
+      const response = NextResponse.redirect(`${origin}${next}`)
+      response.cookies.set(ROLE_COOKIE_NAME, sealRole(role), ROLE_COOKIE_OPTIONS)
+      return response
     }
 
-    // exchangeCodeForSession 실패 시 에러 내용을 에러 페이지로 전달
     const msg = error?.message ?? 'unknown_error'
     return NextResponse.redirect(`${origin}/auth/error?msg=${encodeURIComponent(msg)}`)
   }

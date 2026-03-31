@@ -1,21 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServer } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
+import { requireRole } from '@/lib/auth-guard'
 
 // POST /api/admin/rooms — 매물 신규 등록 (관리자)
 export async function POST(req: NextRequest) {
   const supabase = await createSupabaseServer()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') return NextResponse.json({ error: '권한 없음' }, { status: 403 })
+  const guard = await requireRole(supabase, 'admin')
+  if (!guard.ok) return guard.response
 
   const body = await req.json()
   const {
     building_id, contract_type, deposit, monthly_rent, maintenance,
     area_m2, floor, total_floors, room_type, description,
     contact_phone, contact_name, available_from, unit_number,
-  } = body
+  } = body ?? {}
 
   if (!building_id)     return NextResponse.json({ error: '건물을 선택해주세요' }, { status: 400 })
   if (!contract_type)   return NextResponse.json({ error: '계약 유형을 선택해주세요' }, { status: 400 })
@@ -23,7 +22,6 @@ export async function POST(req: NextRequest) {
   if (contract_type === '월세' && monthly_rent == null)
     return NextResponse.json({ error: '월세를 입력해주세요' }, { status: 400 })
 
-  // 건물 존재 확인
   const service = createServiceClient()
   const { data: building } = await service
     .from('buildings').select('id').eq('id', building_id).single()
@@ -33,7 +31,7 @@ export async function POST(req: NextRequest) {
     .from('rooms')
     .insert({
       building_id,
-      listed_by:    user.id,
+      listed_by:    guard.user.id,
       contract_type,
       deposit:      Number(deposit),
       monthly_rent: monthly_rent != null ? Number(monthly_rent) : null,

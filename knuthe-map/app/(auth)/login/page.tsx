@@ -12,19 +12,44 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-sm mx-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-8 py-10 flex flex-col items-center gap-6">
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-2xl font-bold text-gray-900">KNUtheMAP</span>
-            <span className="text-sm text-gray-400">경북대 주변 건물 정보 지도</span>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0a0a' }}>
+      <div style={{ width: '100%', maxWidth: 384, margin: '0 16px' }}>
+        <div style={{
+          background: '#111111',
+          borderRadius: 16,
+          boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          padding: '40px 32px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 24,
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 24, fontWeight: 700, color: '#ffffff' }}>KNUtheMAP</span>
+            <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.35)' }}>경북대 주변 건물 정보 지도</span>
           </div>
 
-          <div className="w-full border-t border-gray-100" />
+          <div style={{ width: '100%', borderTop: '1px solid rgba(255,255,255,0.07)' }} />
 
           <button
             onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-3 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 12,
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: 12,
+              padding: '12px 16px',
+              fontSize: 14,
+              fontWeight: 600,
+              color: 'rgba(255,255,255,0.8)',
+              background: '#1a1a1a',
+              cursor: 'pointer',
+              transition: 'background 0.15s',
+            }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -35,7 +60,7 @@ export default function LoginPage() {
             Google로 로그인
           </button>
 
-          <p className="text-xs text-gray-400 text-center leading-relaxed">
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', textAlign: 'center', lineHeight: 1.6, margin: 0 }}>
             로그인하면 리뷰 작성과 거래 제보가 가능합니다
           </p>
         </div>

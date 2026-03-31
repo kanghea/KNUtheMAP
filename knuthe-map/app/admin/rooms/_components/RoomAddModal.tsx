@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import DepositDial from '@/components/shared/DepositDial'
+import { THEME_TOKENS } from '@/lib/theme-tokens'
 
 const ROOM_TYPES = ['원룸','투룸','복층형원룸','오피스텔','아파트','빌라','단독주택']
 
@@ -23,8 +25,8 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [contractType, setContractType] = useState<'월세'|'전세'|'매매'>('월세')
-  const [deposit,      setDeposit]      = useState('')
-  const [monthlyRent,  setMonthlyRent]  = useState('')
+  const [deposit,      setDeposit]      = useState(500)
+  const [monthlyRent,  setMonthlyRent]  = useState(40)
   const [maintenance,  setMaintenance]  = useState('')
   const [area,         setArea]         = useState('')
   const [floor,        setFloor]        = useState('')
@@ -85,8 +87,8 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
     if (unitErr) { setUnitError(unitErr); return }
 
     if (!selected)   { setError('건물을 선택해주세요'); return }
-    if (!deposit)    { setError('보증금을 입력해주세요'); return }
-    if (contractType === '월세' && !monthlyRent) { setError('월세를 입력해주세요'); return }
+    if (deposit <= 0) { setError('보증금을 입력해주세요'); return }
+    if (contractType === '월세' && monthlyRent <= 0) { setError('월세를 입력해주세요'); return }
 
     setSubmitting(true); setError(null); setProgress('방 등록 중…')
 
@@ -97,8 +99,8 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
       body: JSON.stringify({
         building_id:   selected.id,
         contract_type: contractType,
-        deposit:       Number(deposit),
-        monthly_rent:  monthlyRent  ? Number(monthlyRent)  : null,
+        deposit:       deposit,
+        monthly_rent:  contractType === '월세' ? monthlyRent : null,
         maintenance:   maintenance  ? Number(maintenance)   : null,
         area_m2:       area         ? Number(area)          : null,
         floor:         floor        ? Number(floor)         : null,
@@ -146,10 +148,11 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
 
   const inp: React.CSSProperties = {
     width: '100%', padding: '10px 12px', borderRadius: 10,
-    border: '1.5px solid #e2e8f0', fontSize: 13, outline: 'none', boxSizing: 'border-box',
+    border: '1.5px solid rgba(255,255,255,0.15)', fontSize: 16, outline: 'none', boxSizing: 'border-box',
+    background: '#1a1a1a', color: '#ffffff',
   }
   const lbl = (t: string, req = false) => (
-    <p style={{ fontSize: 11, fontWeight: 600, color: '#64748b', margin: '0 0 5px' }}>
+    <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.5)', margin: '0 0 5px' }}>
       {t}{req && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
     </p>
   )
@@ -160,13 +163,14 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
       display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
     }} onClick={(e) => { if (e.target === e.currentTarget) onClose() }}>
       <div style={{
-        background: '#fff', borderRadius: '20px 20px 0 0',
+        background: '#111111', borderRadius: '20px 20px 0 0',
         width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto',
         padding: '20px 20px 32px',
+        border: '1px solid rgba(255,255,255,0.08)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>방(매물) 추가</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#94a3b8' }}>✕</button>
+          <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: '#ffffff' }}>방(매물) 추가</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'rgba(255,255,255,0.35)' }}>✕</button>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -175,13 +179,13 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
           <div>
             {lbl('건물 선택', true)}
             {selected ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 10, background: '#f0fdf4', border: '1.5px solid #bbf7d0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 10, background: 'rgba(34,197,94,0.1)', border: '1.5px solid rgba(34,197,94,0.3)' }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{selected.name}</div>
-                  <div style={{ fontSize: 11, color: '#94a3b8' }}>{selected.address}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#ffffff' }}>{selected.name}</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{selected.address}</div>
                 </div>
                 <button onClick={() => { setSelected(null); setQuery(''); setBuildings([]) }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 14 }}>✕</button>
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.35)', fontSize: 14 }}>✕</button>
               </div>
             ) : (
               <>
@@ -190,19 +194,19 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                 />
-                {searching && <p style={{ fontSize: 11, color: '#94a3b8', margin: '4px 0 0' }}>검색 중…</p>}
+                {searching && <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '4px 0 0' }}>검색 중…</p>}
                 {buildings.length > 0 && (
-                  <div style={{ marginTop: 4, border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden' }}>
+                  <div style={{ marginTop: 4, border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10, overflow: 'hidden' }}>
                     {buildings.map((b) => (
                       <button key={b.id}
                         onClick={() => { setSelected(b); setQuery(b.name ?? ''); setBuildings([]) }}
                         style={{
                           display: 'block', width: '100%', textAlign: 'left',
-                          padding: '10px 12px', border: 'none', borderBottom: '1px solid #f8fafc',
-                          background: '#fff', cursor: 'pointer',
+                          padding: '10px 12px', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.07)',
+                          background: '#1a1a1a', cursor: 'pointer',
                         }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>{b.name}</div>
-                        <div style={{ fontSize: 11, color: '#94a3b8' }}>{b.address}</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#ffffff' }}>{b.name}</div>
+                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{b.address}</div>
                       </button>
                     ))}
                   </div>
@@ -218,29 +222,29 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
               {(['월세','전세','매매'] as const).map((t) => (
                 <button key={t} onClick={() => setContractType(t)} style={{
                   flex: 1, padding: '9px', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                  border: contractType === t ? '2px solid #2563eb' : '1.5px solid #e2e8f0',
-                  background: contractType === t ? '#eff6ff' : '#fff',
-                  color: contractType === t ? '#2563eb' : '#64748b',
+                  border: contractType === t ? '2px solid #2563eb' : '1.5px solid rgba(255,255,255,0.15)',
+                  background: contractType === t ? 'rgba(37,99,235,0.15)' : '#1a1a1a',
+                  color: contractType === t ? '#2563eb' : 'rgba(255,255,255,0.5)',
                 }}>{t}</button>
               ))}
             </div>
           </div>
 
-          {/* 보증금 / 월세 */}
-          <div style={{ display: 'grid', gridTemplateColumns: contractType === '월세' ? '1fr 1fr' : '1fr', gap: 10 }}>
-            <div>
-              {lbl('보증금 (만원)', true)}
-              <input style={inp} type="number" min="0" placeholder="예) 500"
-                value={deposit} onChange={(e) => setDeposit(e.target.value)} />
-            </div>
-            {contractType === '월세' && (
-              <div>
-                {lbl('월세 (만원)', true)}
-                <input style={inp} type="number" min="0" placeholder="예) 40"
-                  value={monthlyRent} onChange={(e) => setMonthlyRent(e.target.value)} />
-              </div>
-            )}
-          </div>
+          {/* 보증금 / 월세 — 다이얼 */}
+          <DepositDial
+            label="보증금 (만원)" required
+            value={deposit} onChange={setDeposit}
+            min={0} max={10000} step={50}
+            tok={THEME_TOKENS.dark}
+          />
+          {contractType === '월세' && (
+            <DepositDial
+              label="월세 (만원)" required
+              value={monthlyRent} onChange={setMonthlyRent}
+              min={0} max={200} step={5}
+              tok={THEME_TOKENS.dark}
+            />
+          )}
 
           {/* 관리비 / 면적 */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>

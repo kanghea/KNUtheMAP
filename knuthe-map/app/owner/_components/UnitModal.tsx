@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import type { Unit } from './BuildingFloorMap'
+import DepositDial from '@/components/shared/DepositDial'
+import { THEME_TOKENS } from '@/lib/theme-tokens'
 
 interface Props {
   unit: Unit | null
@@ -25,8 +27,8 @@ export default function UnitModal({ unit, defaultFloor, buildingId, onClose, onS
   const [unitNumber,  setUnitNumber]  = useState(unit?.unit_number ?? '')
   const [areaM2,      setAreaM2]      = useState(String(unit?.area_m2 ?? ''))
   const [roomType,    setRoomType]    = useState(unit?.room_type ?? '')
-  const [baseDeposit, setBaseDeposit] = useState(String(unit?.base_deposit ?? ''))
-  const [baseRent,    setBaseRent]    = useState(String(unit?.base_rent ?? ''))
+  const [baseDeposit, setBaseDeposit] = useState(unit?.base_deposit ?? 500)
+  const [baseRent,    setBaseRent]    = useState(unit?.base_rent ?? 40)
   const [saving,      setSaving]      = useState(false)
   const [progress,    setProgress]    = useState<string | null>(null)
   const [error,       setError]       = useState<string | null>(null)
@@ -85,8 +87,8 @@ export default function UnitModal({ unit, defaultFloor, buildingId, onClose, onS
       unit_number:  unitNumber.trim(),
       area_m2:      areaM2      ? parseFloat(areaM2)    : null,
       room_type:    roomType    || null,
-      base_deposit: baseDeposit ? parseInt(baseDeposit) : null,
-      base_rent:    baseRent    ? parseInt(baseRent)    : null,
+      base_deposit: baseDeposit > 0 ? baseDeposit : null,
+      base_rent:    baseRent > 0    ? baseRent    : null,
     }
 
     const res = await fetch(
@@ -148,7 +150,7 @@ export default function UnitModal({ unit, defaultFloor, buildingId, onClose, onS
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '10px 12px', borderRadius: 10,
-    border: '1.5px solid #e2e8f0', fontSize: 13, color: '#0f172a',
+    border: '1.5px solid #e2e8f0', fontSize: 16, color: '#0f172a',
     background: '#fff', outline: 'none', boxSizing: 'border-box',
   }
   const label = (txt: string, req = false) => (
@@ -214,19 +216,19 @@ export default function UnitModal({ unit, defaultFloor, buildingId, onClose, onS
             </div>
           </div>
 
-          {/* 보증금 / 월세 */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <div>
-              {label('기본 보증금 (만원)')}
-              <input style={inputStyle} type="number" placeholder="예) 500"
-                value={baseDeposit} onChange={(e) => setBaseDeposit(e.target.value)} />
-            </div>
-            <div>
-              {label('기본 월세 (만원)')}
-              <input style={inputStyle} type="number" placeholder="예) 40"
-                value={baseRent} onChange={(e) => setBaseRent(e.target.value)} />
-            </div>
-          </div>
+          {/* 보증금 / 월세 — 다이얼 */}
+          <DepositDial
+            label="기본 보증금 (만원)"
+            value={baseDeposit} onChange={setBaseDeposit}
+            min={0} max={10000} step={50}
+            tok={THEME_TOKENS.light}
+          />
+          <DepositDial
+            label="기본 월세 (만원)"
+            value={baseRent} onChange={setBaseRent}
+            min={0} max={200} step={5}
+            tok={THEME_TOKENS.light}
+          />
 
           {/* 이미지 */}
           <div>

@@ -1,19 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServer } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
+import { requireRole } from '@/lib/auth-guard'
 
-async function requireAdmin() {
-  const supabase = await createSupabaseServer()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-  const { data } = await supabase.from('users').select('role').eq('id', user.id).single()
-  return data?.role === 'admin' ? supabase : null
-}
-
-// PATCH /api/admin/buildings/[id] — 이름·주소·is_active 수정
+// PATCH /api/admin/buildings/[id]
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const admin = await requireAdmin()
-  if (!admin) return NextResponse.json({ error: '권한 없음' }, { status: 403 })
+  const supabase = await createSupabaseServer()
+  const guard = await requireRole(supabase, 'admin')
+  if (!guard.ok) return guard.response
 
   const { id } = await params
   const body = await req.json()

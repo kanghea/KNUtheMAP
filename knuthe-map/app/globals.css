@@ -25,6 +25,11 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* iOS Safari: input font-size < 16px이면 포커스 시 자동 확대됨 */
+input, textarea, select {
+  font-size: max(16px, 1em);
+}
+
 /* Mapbox 팝업 커스텀 스타일 */
 .building-popup .mapboxgl-popup-content {
   border-radius: 10px;
