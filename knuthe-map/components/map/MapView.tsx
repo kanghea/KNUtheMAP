@@ -204,7 +204,7 @@ export default function MapView({ filters, initialZone, flyTo }: MapViewProps) {
       })
 
       // ── 구역 Pill 마커 (HTML Marker) ────────────────────────────
-      const HIDE_ZONE_ZOOM = 14
+      const HIDE_ZONE_ZOOM = 15
 
       const updateZonePillVisibility = () => {
         const visible = map.getZoom() < HIDE_ZONE_ZOOM
