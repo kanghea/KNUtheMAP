@@ -137,23 +137,16 @@ export default async function BuildingPage({
 
   if (error || !b) notFound()
 
-  // ── 주변 건물 (±0.005° ≈ 500m, 거리순)
+  // ── 주변 건물 + 리뷰 + 거래를 모두 병렬 실행
   const DELTA = 0.005
-  const { data: nearbyRaw } = await supabase
-    .from('buildings')
-    .select('id, name, address, lat, lng, main_purps_nm')
-    .neq('id', id)
-    .gte('lat', b.lat - DELTA).lte('lat', b.lat + DELTA)
-    .gte('lng', b.lng - DELTA).lte('lng', b.lng + DELTA)
-    .limit(30)
-
-  const nearby = (nearbyRaw ?? [])
-    .map((n) => ({ ...n, distM: haversineM(b.lat, b.lng, n.lat, n.lng) }))
-    .sort((a, z) => a.distM - z.distM)
-    .slice(0, 6)
-
-  // ── 리뷰 & 거래 데이터
-  const [{ data: reviewsData }, { data: txData }] = await Promise.all([
+  const [{ data: nearbyRaw }, { data: reviewsData }, { data: txData }] = await Promise.all([
+    supabase
+      .from('buildings')
+      .select('id, name, address, lat, lng, main_purps_nm')
+      .neq('id', id)
+      .gte('lat', b.lat - DELTA).lte('lat', b.lat + DELTA)
+      .gte('lng', b.lng - DELTA).lte('lng', b.lng + DELTA)
+      .limit(30),
     supabase
       .from('reviews')
       .select(`
@@ -173,6 +166,11 @@ export default async function BuildingPage({
       .eq('is_active', true)
       .order('contract_date', { ascending: false }),
   ])
+
+  const nearby = (nearbyRaw ?? [])
+    .map((n) => ({ ...n, distM: haversineM(b.lat, b.lng, n.lat, n.lng) }))
+    .sort((a, z) => a.distM - z.distM)
+    .slice(0, 6)
 
   // Supabase returns user as array from join; normalize to object
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
