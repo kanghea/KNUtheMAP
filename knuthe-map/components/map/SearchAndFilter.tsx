@@ -288,7 +288,7 @@ export default function SearchAndFilter({ filters, onChange, onSelect, theme = '
 
   const rentSummary    = `${fmtWon(filters.rentRange[0])} ~ ${fmtWon(filters.rentRange[1])}${filters.rentRange[1] === DEFAULT_FILTERS.rentRange[1] ? '+' : ''}`
   const depositSummary = `${fmtWon(filters.depositRange[0])} ~ ${fmtWon(filters.depositRange[1])}${filters.depositRange[1] === DEFAULT_FILTERS.depositRange[1] ? '+' : ''}`
-  const ageSummary     = `${fmtWon(filters.ageRange[0])} ~ ${fmtWon(filters.ageRange[1])}${filters.ageRange[1] === DEFAULT_FILTERS.ageRange[1] ? '+' : ''}`
+  const ageSummary     = `${fmtAge(filters.ageRange[0])} ~ ${fmtAge(filters.ageRange[1])}${filters.ageRange[1] === DEFAULT_FILTERS.ageRange[1] ? '+' : ''}`
 
   const handleSelect = (r: SearchResult) => {
     onSelect(r)
