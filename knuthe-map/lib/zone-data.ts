@@ -42,6 +42,7 @@ export const ZONE_DATA: Record<string, ZoneData> = {
     ],
     nearbyFacilities: ['홈플러스 칠성점', '칠성시장', 'CGV 칠성점', '지하철 3호선 칠성시장역', '버스정류장'],
     imageColor: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/d/de/Kyungpook_National_University_North_Gate_bus_stop_on_February_20th,_2016.jpg',
     colleges: ['인문대학', '농업생명과학대학', '예술대학'],
   },
   '텍문': {
@@ -68,6 +69,7 @@ export const ZONE_DATA: Record<string, ZoneData> = {
     ],
     nearbyFacilities: ['편의점', '학교 구내식당', '사범대학', '약학대학', '간호대학'],
     imageColor: 'linear-gradient(135deg, #1e3a5f 0%, #0ea5e9 100%)',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/7a/Kyungpook_National_University_College_of_Nursing.JPG',
     colleges: ['사범대학', '약학대학', '간호대학'],
   },
   '서문': {
@@ -93,6 +95,7 @@ export const ZONE_DATA: Record<string, ZoneData> = {
     ],
     nearbyFacilities: ['소규모 카페', '편의점', '자연과학대학', '경북대 수영장'],
     imageColor: 'linear-gradient(135deg, #064e3b 0%, #10b981 100%)',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/24/Snowy_landscape_in_Welfare_Building,_KNU.jpg',
     colleges: ['자연과학대학'],
   },
   '쪽문': {
@@ -117,6 +120,7 @@ export const ZONE_DATA: Record<string, ZoneData> = {
     ],
     nearbyFacilities: ['쪽문 카페거리', '편의점', '공과대학', 'IT대학'],
     imageColor: 'linear-gradient(135deg, #78350f 0%, #f59e0b 100%)',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4b/Geunmanjeong_in_KNU_on_March_22nd,_2016.jpg',
     colleges: ['공과대학', 'IT대학'],
   },
   '정문': {
@@ -141,6 +145,7 @@ export const ZONE_DATA: Record<string, ZoneData> = {
     ],
     nearbyFacilities: ['대현동 공원', '편의점', '카페', '버스정류장', '수의과대학'],
     imageColor: 'linear-gradient(135deg, #831843 0%, #ec4899 100%)',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Ilcheongdam_pond_in_KNU_on_April_9th,_2016.jpg',
     colleges: ['수의과대학'],
   },
   '동문': {
@@ -166,6 +171,7 @@ export const ZONE_DATA: Record<string, ZoneData> = {
     ],
     nearbyFacilities: ['편의점', '카페', '버스정류장', '경상대학', '사회과학대학'],
     imageColor: 'linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%)',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5e/Global_Plaza_and_Main_Library_on_March_30th,_2016.jpg',
     colleges: ['경상대학', '사회과학대학', '생활과학대학', '행정학부'],
   },
   '경북대학교': {
