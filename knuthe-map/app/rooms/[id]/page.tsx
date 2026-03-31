@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { createSupabaseServer } from '@/lib/supabase-server'
+import { createServiceClient } from '@/lib/supabase'
 import {
   Room, OPTION_META, CHECKLIST_META, formatPrice, formatArea,
 } from '@/lib/types/room'
@@ -30,7 +30,7 @@ export default async function RoomDetailPage({
 
   let room: Room | null = null
   try {
-    const supabase = await createSupabaseServer()
+    const supabase = createServiceClient()
     const { data, error } = await supabase
       .from('rooms')
       .select('*, buildings(name, address, lat, lng, zone)')

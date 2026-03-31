@@ -17,7 +17,24 @@ export default async function ZonePage({
     <div style={{ minHeight: '100vh', background: '#0a0a0a', fontFamily: 'inherit' }}>
 
       {/* ── 히어로 ────────────────────────────────────────────────────── */}
-      <div style={{ height: 240, background: zone.imageColor, position: 'relative' }}>
+      <div style={{
+        height: 240,
+        background: zone.imageColor,
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        {zone.imageUrl && (
+          <img
+            src={zone.imageUrl}
+            alt={`${zone.shortName} 구역`}
+            style={{
+              position: 'absolute', inset: 0,
+              width: '100%', height: '100%',
+              objectFit: 'cover',
+              opacity: 0.75,
+            }}
+          />
+        )}
         <Link href="/map" style={{
           position: 'absolute', top: 16, left: 16,
           width: 36, height: 36, borderRadius: '50%',
@@ -120,6 +137,26 @@ export default async function ZonePage({
             </div>
           </div>
         </div>
+
+        {/* ── 가까운 단과대 ────────────────────────────────────────── */}
+        {zone.colleges.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', margin: '0 0 12px 4px' }}>
+              가까운 단과대학
+            </h2>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {zone.colleges.map((c) => (
+                <span key={c} style={{
+                  background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(37,99,235,0.3)',
+                  borderRadius: 8, padding: '6px 12px',
+                  fontSize: 12, color: '#93c5fd', fontWeight: 600,
+                }}>
+                  {c}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── 주변 시설 ─────────────────────────────────────────────── */}
         <div style={{ marginBottom: 16 }}>

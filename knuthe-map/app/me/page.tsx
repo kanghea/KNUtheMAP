@@ -30,30 +30,25 @@ export default async function MePage() {
   const role = profile?.role ?? 'tenant'
   const service = createServiceClient()
 
-  // role별 추가 데이터
-  let myRoomsCount   = 0
-  let buildingsCount = 0
-  let roomsCount     = 0
-  let usersCount     = 0
-
-  if (role === 'owner' || role === 'agent') {
-    const { count } = await service
-      .from('rooms')
-      .select('id', { count: 'exact', head: true })
-      .eq('listed_by', user.id)
-    myRoomsCount = count ?? 0
-  }
-
-  if (role === 'admin') {
-    const [b, r, u] = await Promise.all([
-      service.from('buildings').select('id', { count: 'exact', head: true }).eq('is_active', true),
-      service.from('rooms').select('id', { count: 'exact', head: true }).eq('is_active', true),
-      service.from('users').select('id', { count: 'exact', head: true }),
-    ])
-    buildingsCount = b.count ?? 0
-    roomsCount     = r.count ?? 0
-    usersCount     = u.count ?? 0
-  }
+  // role별 추가 데이터 — 모든 쿼리를 한번에 병렬 실행
+  const [roomsRes, bldgRes, rRes, uRes] = await Promise.all([
+    (role === 'owner' || role === 'agent')
+      ? service.from('rooms').select('id', { count: 'exact', head: true }).eq('listed_by', user.id)
+      : Promise.resolve({ count: 0 }),
+    role === 'admin'
+      ? service.from('buildings').select('id', { count: 'exact', head: true }).eq('is_active', true)
+      : Promise.resolve({ count: 0 }),
+    role === 'admin'
+      ? service.from('rooms').select('id', { count: 'exact', head: true }).eq('is_active', true)
+      : Promise.resolve({ count: 0 }),
+    role === 'admin'
+      ? service.from('users').select('id', { count: 'exact', head: true })
+      : Promise.resolve({ count: 0 }),
+  ])
+  const myRoomsCount   = roomsRes.count ?? 0
+  const buildingsCount = bldgRes.count ?? 0
+  const roomsCount     = rRes.count ?? 0
+  const usersCount     = uRes.count ?? 0
 
   const roleLabel = ROLE_LABELS[role] ?? role
 

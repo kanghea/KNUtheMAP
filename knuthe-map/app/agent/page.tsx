@@ -11,26 +11,24 @@ export default async function AgentPage() {
     .from('users').select('role, nickname').eq('id', user.id).single()
   if (!profile || !['agent', 'admin'].includes(profile.role)) redirect('/')
 
-  // 관리 건물 수
-  const { count: buildingCount } = await supabase
-    .from('agent_buildings')
-    .select('*', { count: 'exact', head: true })
-    .eq('agent_id', user.id)
-
-  // 활성 매물 수
-  const { count: listingCount } = await supabase
-    .from('rooms')
-    .select('*', { count: 'exact', head: true })
-    .eq('listed_by', user.id)
-    .eq('is_active', true)
-
-  // 최근 관리 건물
-  const { data: buildings } = await supabase
-    .from('agent_buildings')
-    .select('buildings ( id, name, address, zone )')
-    .eq('agent_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(5)
+  // 관리 건물 수 + 활성 매물 수 + 최근 관리 건물을 병렬 실행
+  const [{ count: buildingCount }, { count: listingCount }, { data: buildings }] = await Promise.all([
+    supabase
+      .from('agent_buildings')
+      .select('*', { count: 'exact', head: true })
+      .eq('agent_id', user.id),
+    supabase
+      .from('rooms')
+      .select('*', { count: 'exact', head: true })
+      .eq('listed_by', user.id)
+      .eq('is_active', true),
+    supabase
+      .from('agent_buildings')
+      .select('buildings ( id, name, address, zone )')
+      .eq('agent_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(5),
+  ])
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc', paddingBottom: 100 }}>

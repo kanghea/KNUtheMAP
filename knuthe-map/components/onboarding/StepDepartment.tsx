@@ -3,14 +3,15 @@
 import { useState } from 'react'
 import { DEPARTMENTS, COLLEGES } from '@/lib/department-zones'
 
-// 구역별 선배 팁
-const ZONE_TIPS: Record<string, { gate: string; emoji: string; msg: string }> = {
-  '정문':  { gate: '정문',  emoji: '🔬', msg: '자연대·수의대는 정문 쪽이 가장 가까워요. 정문 그린캠퍼스 인근 자취방이 인기 많아요.' },
-  '북문':  { gate: '북문',  emoji: '🎒', msg: '인문대·예술대·농대는 북문 진입이 압도적으로 편해요. 북문 상권도 잘 갖춰져 있어요!' },
-  '동문':  { gate: '동문',  emoji: '📚', msg: '경상대·사범대·사회과학대는 동문이 제일 가까워요. 조용하고 새 건물도 많아요.' },
-  '서문':  { gate: '서문',  emoji: '⚙️', msg: '공대·IT대·약대는 서문 진입이 훨씬 가까워요. 서문~일청담 방면 자취방을 추천드려요!' },
-  '칠곡':  { gate: '칠곡',  emoji: '🏥', msg: '의대·치대·간호대는 본교 캠퍼스와 따로 있어요. 동인동·삼덕 캠퍼스 인근 자취방을 추천드려요.' },
-  '상주':  { gate: '상주',  emoji: '🌾', msg: '상주 캠퍼스 소재 학과예요. 상주시 캠퍼스 인근 자취방을 알아보세요.' },
+// 구역별 선배 팁 (가까운 문 기준)
+const ZONE_TIPS: Record<string, { emoji: string; msg: string }> = {
+  '쪽문':  { emoji: '☕', msg: '공대·IT대는 쪽문이 가장 가까워요. 쪽문 앞 카페거리도 유명하죠!' },
+  '북문':  { emoji: '🎒', msg: '인문대·농생대·예술대는 북문이 가장 편해요. 북문 상권도 잘 발달해 있어요!' },
+  '동문':  { emoji: '🌿', msg: '경상대·사회과학대·생활과학대는 동문·나리문이 가장 가까워요. 상대적으로 조용한 동네예요.' },
+  '서문':  { emoji: '🔬', msg: '자연과학대는 수영장문·서문이 가장 가까워요. 캠퍼스 서쪽의 조용한 지역이에요.' },
+  '텍문':  { emoji: '📚', msg: '사범대·약대·간호대는 텍문·누리관문이 가장 가까워요. 침산동 일대 자취방이 인기 있어요.' },
+  '정문':  { emoji: '🐾', msg: '수의대는 수의대문·정문이 가장 가까워요. 정문 주변 자취방이 인기 많아요.' },
+  '칠곡':  { emoji: '🏥', msg: '칠곡 캠퍼스는 본교와 따로 있어요. 캠퍼스 바로 인근 자취방을 추천드려요.' },
 }
 
 type Tok = {
@@ -134,7 +135,7 @@ export default function StepDepartment({ selected, onSelect, tok = DEFAULT_TOK }
           <span style={{ fontSize: 20, flexShrink: 0, marginTop: 1 }}>{tip.emoji}</span>
           <div>
             <p style={{ fontSize: 12, fontWeight: 700, color: tok.btnPrimary, margin: '0 0 4px', transition: 'color .4s ease' }}>
-              {selected} 선배들은 주로 <strong>{tip.gate}</strong>을 사용해요!
+              {selected} 선배들은 주로 <strong>{selectedDept?.gates[0] ?? ''}</strong>을 사용해요!
             </p>
             <p style={{ fontSize: 12, color: tok.textSecondary, margin: 0, lineHeight: 1.6, transition: 'color .4s ease' }}>
               {tip.msg}

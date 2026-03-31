@@ -204,7 +204,7 @@ export default function MapView({ filters, initialZone, flyTo }: MapViewProps) {
       })
 
       // ── 구역 Pill 마커 (HTML Marker) ────────────────────────────
-      const HIDE_ZONE_ZOOM = 14
+      const HIDE_ZONE_ZOOM = 17
 
       const updateZonePillVisibility = () => {
         const visible = map.getZoom() < HIDE_ZONE_ZOOM
@@ -267,12 +267,12 @@ export default function MapView({ filters, initialZone, flyTo }: MapViewProps) {
       map.on('zoom', updateZonePillVisibility)
       updateZonePillVisibility()
 
-      // ── 개별 건물 도트 (zoom 13+, 건물 유형별 색상) ─────────────
+      // ── 개별 건물 도트 (zoom 14+, 구역 Pill 숨김 기준과 동일) ─────
       map.addLayer({
         id: 'buildings-dot',
         type: 'circle',
         source: 'buildings',
-        minzoom: 13,
+        minzoom: HIDE_ZONE_ZOOM,
         paint: {
           'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 4, 16, 6],
           'circle-color': [
