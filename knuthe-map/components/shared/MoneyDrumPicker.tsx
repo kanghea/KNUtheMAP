@@ -134,17 +134,17 @@ export default function MoneyDrumPicker({ values, value, onChange, format }: Pro
 
 // ── 금액 유형별 값 배열 ────────────────────────────────────────────
 
-/** 보증금: 0~3000만원 50만원 단위 + 고액 구간 */
+/** 보증금: 0~3000만원 10만원 단위 + 고액 구간 */
 export const DEPOSIT_VALUES: number[] = [
   0,
-  ...Array.from({ length: 60 }, (_, i) => (i + 1) * 50),  // 50~3000
+  ...Array.from({ length: 300 }, (_, i) => (i + 1) * 10),  // 10~3000
   3500, 4000, 4500, 5000, 6000, 7000, 8000, 10000,
 ]
 
-/** 월세: 0~100만원 5만원 단위 + 고액 구간 */
+/** 월세: 0~100만원 1만원 단위 + 고액 구간 */
 export const MONTHLY_VALUES: number[] = [
   0,
-  ...Array.from({ length: 20 }, (_, i) => (i + 1) * 5),   // 5~100
+  ...Array.from({ length: 100 }, (_, i) => i + 1),          // 1~100
   110, 120, 130, 140, 150, 180, 200,
 ]
 
