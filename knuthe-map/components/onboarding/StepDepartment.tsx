@@ -3,13 +3,15 @@
 import { useState } from 'react'
 import { DEPARTMENTS, COLLEGES } from '@/lib/department-zones'
 
-// 구역별 선배 팁
-const ZONE_TIPS: Record<string, { gate: string; emoji: string; msg: string }> = {
-  '북문':  { gate: '북문',  emoji: '🎒', msg: '공대·IT대는 북문이 압도적으로 가까워요. 강의실까지 걸어서 5분이면 충분해요!' },
-  '쪽문':  { gate: '쪽문',  emoji: '☕', msg: '경상대·사회과학대는 쪽문이 제일 편해요. 쪽문 앞 카페거리도 유명하죠!' },
-  '정문':  { gate: '정문',  emoji: '📚', msg: '인문대·사범대는 정문 쪽으로 많이 다녀요. 정문 주변 자취방이 인기 많아요.' },
-  '동문':  { gate: '동문',  emoji: '🌿', msg: '농대·수의대는 동문이 제일 가까워요. 상대적으로 조용한 동네예요.' },
-  '칠곡':  { gate: '칠곡',  emoji: '🏥', msg: '칠곡 캠퍼스는 본교와 따로 있어요. 캠퍼스 바로 인근 자취방을 추천드려요.' },
+// 구역별 선배 팁 (가까운 문 기준)
+const ZONE_TIPS: Record<string, { emoji: string; msg: string }> = {
+  '쪽문':  { emoji: '☕', msg: '공대·IT대는 쪽문이 가장 가까워요. 쪽문 앞 카페거리도 유명하죠!' },
+  '북문':  { emoji: '🎒', msg: '인문대·농생대·예술대는 북문이 가장 편해요. 북문 상권도 잘 발달해 있어요!' },
+  '동문':  { emoji: '🌿', msg: '경상대·사회과학대·생활과학대는 동문·나리문이 가장 가까워요. 상대적으로 조용한 동네예요.' },
+  '서문':  { emoji: '🔬', msg: '자연과학대는 수영장문·서문이 가장 가까워요. 캠퍼스 서쪽의 조용한 지역이에요.' },
+  '텍문':  { emoji: '📚', msg: '사범대·약대·간호대는 텍문·누리관문이 가장 가까워요. 침산동 일대 자취방이 인기 있어요.' },
+  '정문':  { emoji: '🐾', msg: '수의대는 수의대문·정문이 가장 가까워요. 정문 주변 자취방이 인기 많아요.' },
+  '칠곡':  { emoji: '🏥', msg: '칠곡 캠퍼스는 본교와 따로 있어요. 캠퍼스 바로 인근 자취방을 추천드려요.' },
 }
 
 type Tok = {
@@ -133,7 +135,7 @@ export default function StepDepartment({ selected, onSelect, tok = DEFAULT_TOK }
           <span style={{ fontSize: 20, flexShrink: 0, marginTop: 1 }}>{tip.emoji}</span>
           <div>
             <p style={{ fontSize: 12, fontWeight: 700, color: tok.btnPrimary, margin: '0 0 4px', transition: 'color .4s ease' }}>
-              {selected} 선배들은 주로 <strong>{tip.gate}</strong>을 사용해요!
+              {selected} 선배들은 주로 <strong>{selectedDept?.gates[0] ?? ''}</strong>을 사용해요!
             </p>
             <p style={{ fontSize: 12, color: tok.textSecondary, margin: 0, lineHeight: 1.6, transition: 'color .4s ease' }}>
               {tip.msg}
