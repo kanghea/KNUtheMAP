@@ -1,17 +1,13 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { createSupabaseServer } from '@/lib/supabase-server'
+import { getServerUser, getServerRole } from '@/lib/auth-server'
 import { createServiceClient } from '@/lib/supabase'
 import UserList from './_components/UserList'
 
 export default async function AdminUsersPage() {
-  const supabase = await createSupabaseServer()
-  const { data: { user } } = await supabase.auth.getUser()
+  const [user, role] = await Promise.all([getServerUser(), getServerRole()])
   if (!user) redirect('/login')
-
-  const { data: profile } = await supabase
-    .from('users').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') redirect('/')
+  if (role !== 'admin') redirect('/')
 
   const service = createServiceClient()
 
