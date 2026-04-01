@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import ContractForm from './ContractForm'
 import ContractCard from './ContractCard'
+import { THEME_TOKENS, type ThemeMode } from '@/lib/theme-tokens'
 
 export interface HistoryEntry {
   id: string
@@ -36,7 +37,8 @@ export interface UserContract {
   user_contract_history: HistoryEntry[]
 }
 
-export default function MyContractsManager() {
+export default function MyContractsManager({ theme = 'dark' as ThemeMode }: { theme?: ThemeMode }) {
+  const tok = THEME_TOKENS[theme]
   const [contracts, setContracts] = useState<UserContract[]>([])
   const [loading,   setLoading]   = useState(true)
   const [showForm,  setShowForm]  = useState(false)
@@ -80,10 +82,10 @@ export default function MyContractsManager() {
         marginBottom: 12,
       }}>
         <div>
-          <h2 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: 0 }}>
+          <h2 style={{ fontSize: 14, fontWeight: 700, color: tok.textPrimary, margin: 0 }}>
             내 계약 관리
           </h2>
-          <p style={{ fontSize: 11, color: '#94a3b8', margin: '3px 0 0' }}>
+          <p style={{ fontSize: 11, color: tok.textTertiary, margin: '3px 0 0' }}>
             실거래 데이터로 건물 시세에 반영됩니다
           </p>
         </div>
@@ -118,18 +120,18 @@ export default function MyContractsManager() {
 
       {/* ── 계약 목록 ────────────────────────────────────────── */}
       {loading ? (
-        <div style={{ padding: '32px 0', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
+        <div style={{ padding: '32px 0', textAlign: 'center', color: tok.textTertiary, fontSize: 13 }}>
           불러오는 중…
         </div>
       ) : contracts.length === 0 && !showForm ? (
         <div style={{
-          background: '#f8fafc', borderRadius: 16, padding: '28px 20px',
+          background: tok.inputBg, borderRadius: 16, padding: '28px 20px',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
         }}>
           <span style={{ fontSize: 28 }}>🏠</span>
-          <p style={{ margin: 0, fontSize: 13, color: '#64748b', textAlign: 'center', lineHeight: 1.6 }}>
+          <p style={{ margin: 0, fontSize: 13, color: tok.textSecondary, textAlign: 'center', lineHeight: 1.6 }}>
             등록된 계약이 없어요<br />
-            <span style={{ color: '#94a3b8', fontSize: 12 }}>
+            <span style={{ color: tok.textTertiary, fontSize: 12 }}>
               계약 추가 시 건물 실거래 시세에 반영됩니다
             </span>
           </p>

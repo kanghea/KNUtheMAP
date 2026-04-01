@@ -1,10 +1,14 @@
 import Link from 'next/link'
+import { THEME_TOKENS, type ThemeMode } from '@/lib/theme-tokens'
 
 interface Props {
   myRoomsCount: number
+  theme?:       ThemeMode
 }
 
-export default function AgentSection({ myRoomsCount }: Props) {
+export default function AgentSection({ myRoomsCount, theme = 'dark' }: Props) {
+  const tok = THEME_TOKENS[theme]
+
   const menuItems = [
     { href: '/agent',          label: '중개사 대시보드',  desc: '매물 등록 및 현황 관리',    icon: '📋' },
     { href: '/agent/listings', label: '내 매물 목록',    desc: '등록한 매물 수정·삭제',     icon: '🔑' },
@@ -38,21 +42,21 @@ export default function AgentSection({ myRoomsCount }: Props) {
             <div style={{
               display: 'flex', alignItems: 'center', gap: 14,
               padding: '14px 16px', borderRadius: 14,
-              background: '#111111', border: '1.5px solid rgba(255,255,255,0.07)',
+              background: tok.cardBg, border: `1.5px solid ${tok.cardBorder}`,
               cursor: 'pointer',
             }}>
               <div style={{
                 width: 40, height: 40, borderRadius: 12,
-                background: 'rgba(255,255,255,0.05)',
+                background: tok.accentBg,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 18, flexShrink: 0,
               }}>{item.icon}</div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#ffffff' }}>{item.label}</div>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>{item.desc}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: tok.textPrimary }}>{item.label}</div>
+                <div style={{ fontSize: 11, color: tok.textTertiary, marginTop: 2 }}>{item.desc}</div>
               </div>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="rgba(255,255,255,0.2)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                stroke={tok.textTertiary} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 18l6-6-6-6"/>
               </svg>
             </div>

@@ -1,12 +1,16 @@
 import Link from 'next/link'
+import { THEME_TOKENS, type ThemeMode } from '@/lib/theme-tokens'
 
 interface Props {
   buildingsCount: number
   roomsCount:     number
   usersCount:     number
+  theme?:         ThemeMode
 }
 
-export default function AdminSection({ buildingsCount, roomsCount, usersCount }: Props) {
+export default function AdminSection({ buildingsCount, roomsCount, usersCount, theme = 'dark' }: Props) {
+  const tok = THEME_TOKENS[theme]
+
   const stats = [
     { label: '건물',  value: buildingsCount, unit: '개' },
     { label: '매물',  value: roomsCount,     unit: '개' },
@@ -28,13 +32,13 @@ export default function AdminSection({ buildingsCount, roomsCount, usersCount }:
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
         {stats.map((s) => (
           <div key={s.label} style={{
-            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+            background: tok.accentBg,
             borderRadius: 14, padding: '14px 12px', textAlign: 'center',
           }}>
-            <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', margin: '0 0 4px', fontWeight: 600 }}>
+            <p style={{ fontSize: 10, color: tok.textSecondary, margin: '0 0 4px', fontWeight: 600 }}>
               {s.label}
             </p>
-            <p style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: 0 }}>
+            <p style={{ fontSize: 22, fontWeight: 800, color: tok.textPrimary, margin: 0 }}>
               {s.value.toLocaleString()}
               <span style={{ fontSize: 11, fontWeight: 400, marginLeft: 2 }}>{s.unit}</span>
             </p>
@@ -49,21 +53,21 @@ export default function AdminSection({ buildingsCount, roomsCount, usersCount }:
             <div style={{
               display: 'flex', alignItems: 'center', gap: 14,
               padding: '14px 16px', borderRadius: 14,
-              background: '#111111', border: '1.5px solid rgba(255,255,255,0.07)',
+              background: tok.cardBg, border: `1.5px solid ${tok.cardBorder}`,
               cursor: 'pointer',
             }}>
               <div style={{
                 width: 40, height: 40, borderRadius: 12,
-                background: 'rgba(255,255,255,0.05)',
+                background: tok.accentBg,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 18, flexShrink: 0,
               }}>{item.icon}</div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#ffffff' }}>{item.label}</div>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>{item.desc}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: tok.textPrimary }}>{item.label}</div>
+                <div style={{ fontSize: 11, color: tok.textTertiary, marginTop: 2 }}>{item.desc}</div>
               </div>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke="rgba(255,255,255,0.2)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                stroke={tok.textTertiary} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 18l6-6-6-6"/>
               </svg>
             </div>

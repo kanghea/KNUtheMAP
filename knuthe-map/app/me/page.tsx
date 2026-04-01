@@ -1,7 +1,10 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import { createSupabaseServer } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
+import { parsePrefs } from '@/lib/prefs'
+import { THEME_TOKENS, type ThemeMode } from '@/lib/theme-tokens'
 import ProfileEditor      from './_components/ProfileEditor'
 import LogoutButton       from './_components/LogoutButton'
 import MyContractsManager from './_components/MyContractsManager'
@@ -50,32 +53,38 @@ export default async function MePage() {
   const roomsCount     = rRes.count ?? 0
   const usersCount     = uRes.count ?? 0
 
+  // 테마 읽기
+  const jar      = await cookies()
+  const prefsRaw = jar.get('knu_prefs')?.value
+  const theme: ThemeMode = prefsRaw ? (parsePrefs(prefsRaw)?.theme ?? 'dark') : 'dark'
+  const tok = THEME_TOKENS[theme]
+
   const roleLabel = ROLE_LABELS[role] ?? role
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0a', paddingBottom: 100 }}>
+    <div style={{ minHeight: '100vh', background: tok.pageBg, paddingBottom: 100 }}>
 
       {/* ── 헤더 ──────────────────────────────────────────────────── */}
       <header style={{
         position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(17,17,17,0.92)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        background: tok.headerBg, backdropFilter: 'blur(12px)',
+        borderBottom: `1px solid ${tok.headerBorder}`,
         display: 'flex', alignItems: 'center', gap: 12,
         padding: '14px 20px',
       }}>
         <Link href="/" style={{
-          width: 34, height: 34, borderRadius: 10, background: 'rgba(255,255,255,0.07)',
+          width: 34, height: 34, borderRadius: 10, background: tok.inputBg,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           textDecoration: 'none',
         }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            stroke={tok.textSecondary} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6"/>
           </svg>
         </Link>
         <div>
-          <h1 style={{ fontSize: 16, fontWeight: 800, color: '#ffffff', margin: 0 }}>마이페이지</h1>
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '1px 0 0' }}>{roleLabel}</p>
+          <h1 style={{ fontSize: 16, fontWeight: 800, color: tok.textPrimary, margin: 0 }}>마이페이지</h1>
+          <p style={{ fontSize: 11, color: tok.textTertiary, margin: '1px 0 0' }}>{roleLabel}</p>
         </div>
       </header>
 
@@ -83,74 +92,76 @@ export default async function MePage() {
 
         {/* ── 프로필 카드 ────────────────────────────────────────── */}
         <div style={{
-          background: '#111111', borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.4)', padding: '20px', marginBottom: 16,
+          background: tok.cardBg, borderRadius: 20, border: `1px solid ${tok.cardBorder}`,
+          boxShadow: tok.shadow, padding: '20px', marginBottom: 16,
         }}>
-          <h2 style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', margin: '0 0 18px' }}>
+          <h2 style={{ fontSize: 14, fontWeight: 700, color: tok.textPrimary, margin: '0 0 18px' }}>
             내 정보
           </h2>
           {profile ? (
             <ProfileEditor
               profile={profile}
               showStudentFields={role === 'tenant'}
+              theme={theme}
             />
           ) : (
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>프로필 정보를 불러올 수 없어요.</p>
+            <p style={{ fontSize: 13, color: tok.textTertiary }}>프로필 정보를 불러올 수 없어요.</p>
           )}
         </div>
 
         {/* ── role별 섹션 ────────────────────────────────────────── */}
         {role === 'tenant' && (
           <div style={{
-            background: '#111111', borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.4)', padding: '20px', marginBottom: 16,
+            background: tok.cardBg, borderRadius: 20, border: `1px solid ${tok.cardBorder}`,
+            boxShadow: tok.shadow, padding: '20px', marginBottom: 16,
           }}>
-            <MyContractsManager />
+            <MyContractsManager theme={theme} />
           </div>
         )}
 
         {role === 'owner' && (
           <div style={{
-            background: '#111111', borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.4)', padding: '20px', marginBottom: 16,
+            background: tok.cardBg, borderRadius: 20, border: `1px solid ${tok.cardBorder}`,
+            boxShadow: tok.shadow, padding: '20px', marginBottom: 16,
           }}>
-            <h2 style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', margin: '0 0 16px' }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: tok.textPrimary, margin: '0 0 16px' }}>
               건물주 메뉴
             </h2>
-            <OwnerSection myRoomsCount={myRoomsCount} />
+            <OwnerSection myRoomsCount={myRoomsCount} theme={theme} />
           </div>
         )}
 
         {role === 'agent' && (
           <div style={{
-            background: '#111111', borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.4)', padding: '20px', marginBottom: 16,
+            background: tok.cardBg, borderRadius: 20, border: `1px solid ${tok.cardBorder}`,
+            boxShadow: tok.shadow, padding: '20px', marginBottom: 16,
           }}>
-            <h2 style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', margin: '0 0 16px' }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: tok.textPrimary, margin: '0 0 16px' }}>
               중개사 메뉴
             </h2>
-            <AgentSection myRoomsCount={myRoomsCount} />
+            <AgentSection myRoomsCount={myRoomsCount} theme={theme} />
           </div>
         )}
 
         {role === 'admin' && (
           <div style={{
-            background: '#111111', borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.4)', padding: '20px', marginBottom: 16,
+            background: tok.cardBg, borderRadius: 20, border: `1px solid ${tok.cardBorder}`,
+            boxShadow: tok.shadow, padding: '20px', marginBottom: 16,
           }}>
-            <h2 style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', margin: '0 0 16px' }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: tok.textPrimary, margin: '0 0 16px' }}>
               관리자 메뉴
             </h2>
             <AdminSection
               buildingsCount={buildingsCount}
               roomsCount={roomsCount}
               usersCount={usersCount}
+              theme={theme}
             />
           </div>
         )}
 
         {/* ── 로그아웃 ──────────────────────────────────────────── */}
-        <LogoutButton />
+        <LogoutButton theme={theme} />
       </div>
     </div>
   )

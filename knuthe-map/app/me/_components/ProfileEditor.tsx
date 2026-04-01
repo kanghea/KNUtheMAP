@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createBrowserSupabase } from '@/lib/supabase-browser'
 import { loadPrefs, savePrefs } from '@/lib/prefs'
 import { getZoneByDept } from '@/lib/department-zones'
+import { THEME_TOKENS, type ThemeMode } from '@/lib/theme-tokens'
 import StepGrade      from '@/components/onboarding/StepGrade'
 import StepDepartment from '@/components/onboarding/StepDepartment'
 
@@ -17,12 +18,13 @@ interface Profile {
 }
 
 function AccordionRow({
-  label, value, open, onToggle, children,
+  label, value, open, onToggle, children, theme,
 }: {
-  label: string; value: string | null; open: boolean; onToggle: () => void; children: React.ReactNode
+  label: string; value: string | null; open: boolean; onToggle: () => void; children: React.ReactNode; theme: ThemeMode
 }) {
+  const tok = THEME_TOKENS[theme]
   return (
-    <div style={{ borderRadius: 14, border: '1.5px solid rgba(255,255,255,0.15)', overflow: 'hidden' }}>
+    <div style={{ borderRadius: 14, border: `1.5px solid ${tok.inputBorder}`, overflow: 'hidden' }}>
       <button
         onClick={onToggle}
         style={{
@@ -31,15 +33,15 @@ function AccordionRow({
         }}
       >
         <div>
-          <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.35)', display: 'block', marginBottom: 2 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: tok.textTertiary, display: 'block', marginBottom: 2 }}>
             {label}
           </span>
-          <span style={{ fontSize: 14, fontWeight: 600, color: value ? '#ffffff' : 'rgba(255,255,255,0.35)' }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: value ? tok.textPrimary : tok.textTertiary }}>
             {value || '선택 안 됨'}
           </span>
         </div>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-          stroke="rgba(255,255,255,0.35)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+          stroke={tok.textTertiary} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
           style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s', flexShrink: 0 }}>
           <path d="M6 9l6 6 6-6"/>
         </svg>
@@ -50,7 +52,7 @@ function AccordionRow({
         maxHeight: open ? 600 : 0,
         transition: 'max-height .3s cubic-bezier(.4,0,.2,1)',
       }}>
-        <div style={{ padding: '4px 16px 16px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+        <div style={{ padding: '4px 16px 16px', borderTop: `1px solid ${tok.cardBorder}` }}>
           {children}
         </div>
       </div>
@@ -58,7 +60,8 @@ function AccordionRow({
   )
 }
 
-export default function ProfileEditor({ profile, showStudentFields = true }: { profile: Profile; showStudentFields?: boolean }) {
+export default function ProfileEditor({ profile, showStudentFields = true, theme = 'dark' as ThemeMode }: { profile: Profile; showStudentFields?: boolean; theme?: ThemeMode }) {
+  const tok = THEME_TOKENS[theme]
   const [nickname,    setNickname]    = useState(profile.nickname ?? '')
   const [grade,       setGrade]       = useState(profile.grade    ?? '')
   const [dept,        setDept]        = useState(profile.dept     ?? '')
@@ -105,28 +108,28 @@ export default function ProfileEditor({ profile, showStudentFields = true }: { p
           <img src={profile.avatar_url} alt="" style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover' }} />
         ) : (
           <div style={{
-            width: 52, height: 52, borderRadius: '50%', background: 'rgba(37,99,235,0.15)',
+            width: 52, height: 52, borderRadius: '50%', background: tok.accentBg,
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
           }}>
             👤
           </div>
         )}
         <div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: '#ffffff' }}>{nickname || '이름 없음'}</div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>{profile.email}</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: tok.textPrimary }}>{nickname || '이름 없음'}</div>
+          <div style={{ fontSize: 12, color: tok.textTertiary, marginTop: 2 }}>{profile.email}</div>
         </div>
       </div>
 
       {/* 닉네임 */}
       <div>
-        <label style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.35)', marginBottom: 6, display: 'block' }}>
+        <label style={{ fontSize: 11, fontWeight: 600, color: tok.textTertiary, marginBottom: 6, display: 'block' }}>
           닉네임
         </label>
         <input
           style={{
             width: '100%', padding: '11px 14px', borderRadius: 12,
-            border: '1.5px solid rgba(255,255,255,0.15)', fontSize: 14, color: '#ffffff',
-            background: '#1a1a1a', outline: 'none', boxSizing: 'border-box',
+            border: `1.5px solid ${tok.inputBorder}`, fontSize: 14, color: tok.inputColor,
+            background: tok.inputBg, outline: 'none', boxSizing: 'border-box',
           }}
           value={nickname}
           placeholder="닉네임을 입력하세요"
@@ -141,6 +144,7 @@ export default function ProfileEditor({ profile, showStudentFields = true }: { p
             label="학번" value={grade || null}
             open={openSection === 'grade'}
             onToggle={() => toggle('grade')}
+            theme={theme}
           >
             <div style={{ paddingTop: 12 }}>
               <StepGrade
@@ -154,6 +158,7 @@ export default function ProfileEditor({ profile, showStudentFields = true }: { p
             label="학과" value={dept || null}
             open={openSection === 'dept'}
             onToggle={() => toggle('dept')}
+            theme={theme}
           >
             <div style={{ paddingTop: 12 }}>
               <StepDepartment
@@ -166,7 +171,7 @@ export default function ProfileEditor({ profile, showStudentFields = true }: { p
       )}
 
       {error && (
-        <p style={{ margin: 0, fontSize: 12, color: '#ef4444' }}>{error}</p>
+        <p style={{ margin: 0, fontSize: 12, color: tok.dangerColor }}>{error}</p>
       )}
 
       <button
@@ -174,7 +179,7 @@ export default function ProfileEditor({ profile, showStudentFields = true }: { p
         disabled={saving}
         style={{
           padding: '13px', borderRadius: 14, border: 'none', cursor: saving ? 'default' : 'pointer',
-          background: saved ? '#10b981' : '#2563eb', color: '#fff',
+          background: saved ? tok.successColor : tok.accentColor, color: '#fff',
           fontSize: 14, fontWeight: 700, transition: 'background .2s',
         }}
       >
