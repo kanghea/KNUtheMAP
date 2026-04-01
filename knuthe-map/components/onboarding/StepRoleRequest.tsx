@@ -1,15 +1,32 @@
 'use client'
 
 import { useState } from 'react'
-import type { UserRole } from './StepRole'
 
 interface Props {
   role: 'owner' | 'agent'
   onSubmitted: () => void
   onBack: () => void
+  tok: {
+    bg: string
+    surface: string
+    textPrimary: string
+    textSecondary: string
+    textTertiary: string
+    border: string
+    cardBg: string
+    cardBorder: string
+    cardActiveBg: string
+    cardActiveBorder: string
+    accent: string
+    btnBack: string
+    btnBackBorder: string
+    btnBackColor: string
+    btnPrimary: string
+    btnPrimaryText: string
+  }
 }
 
-export default function StepRoleRequest({ role, onSubmitted, onBack }: Props) {
+export default function StepRoleRequest({ role, onSubmitted, onBack, tok }: Props) {
   const [businessName,   setBusinessName]   = useState('')
   const [address,        setAddress]        = useState('')
   const [licenseNumber,  setLicenseNumber]  = useState('')
@@ -59,12 +76,13 @@ export default function StepRoleRequest({ role, onSubmitted, onBack }: Props) {
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '11px 14px', borderRadius: 12,
-    border: '1.5px solid #e2e8f0', fontSize: 13, color: '#0f172a',
-    background: '#fff', outline: 'none', boxSizing: 'border-box',
+    border: `1.5px solid ${tok.cardBorder}`, fontSize: 13, color: tok.textPrimary,
+    background: tok.cardBg, outline: 'none', boxSizing: 'border-box',
+    transition: 'background .4s ease, border-color .4s ease, color .4s ease',
   }
 
   const label = (txt: string, required = false) => (
-    <p style={{ fontSize: 11, fontWeight: 600, color: '#64748b', margin: '0 0 6px' }}>
+    <p style={{ fontSize: 11, fontWeight: 600, color: tok.textSecondary, margin: '0 0 6px', transition: 'color .4s ease' }}>
       {txt}{required && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
     </p>
   )
@@ -72,17 +90,40 @@ export default function StepRoleRequest({ role, onSubmitted, onBack }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{
-        background: isOwner ? '#f0fdf4' : '#f5f3ff',
-        border: `1.5px solid ${isOwner ? '#bbf7d0' : '#ddd6fe'}`,
+        background: tok.cardActiveBg,
+        border: `1.5px solid ${tok.cardActiveBorder}`,
         borderRadius: 14, padding: '14px 16px',
         display: 'flex', alignItems: 'center', gap: 10,
+        transition: 'background .4s ease, border-color .4s ease',
       }}>
-        <span style={{ fontSize: 22 }}>{isOwner ? '🏠' : '🏢'}</span>
+        {/* 아이콘 */}
+        <div style={{
+          width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+          background: tok.accent,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          {isOwner ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
+              <line x1="9" y1="6" x2="9" y2="6.01"/>
+              <line x1="15" y1="6" x2="15" y2="6.01"/>
+              <line x1="9" y1="10" x2="9" y2="10.01"/>
+              <line x1="15" y1="10" x2="15" y2="10.01"/>
+              <line x1="9" y1="14" x2="15" y2="14"/>
+              <line x1="9" y1="18" x2="15" y2="18"/>
+            </svg>
+          )}
+        </div>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: tok.textPrimary, transition: 'color .4s ease' }}>
             {isOwner ? '건물주 신청' : '공인중개사 신청'}
           </div>
-          <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+          <div style={{ fontSize: 11, color: tok.textSecondary, marginTop: 2, transition: 'color .4s ease' }}>
             관리자 검토 후 승인 알림을 드려요 (보통 1~2일 소요)
           </div>
         </div>
@@ -146,13 +187,14 @@ export default function StepRoleRequest({ role, onSubmitted, onBack }: Props) {
           onClick={onBack}
           style={{
             width: 46, height: 46, borderRadius: 12, flexShrink: 0,
-            border: '1.5px solid #e2e8f0', background: '#fff',
+            border: `1.5px solid ${tok.btnBackBorder}`, background: tok.btnBack,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer',
+            transition: 'background .4s ease, border-color .4s ease',
           }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-            stroke="#374151" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            stroke={tok.btnBackColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6"/>
           </svg>
         </button>
@@ -161,8 +203,11 @@ export default function StepRoleRequest({ role, onSubmitted, onBack }: Props) {
           disabled={submitting}
           style={{
             flex: 1, height: 46, borderRadius: 12, border: 'none',
-            background: submitting ? '#93c5fd' : '#2563eb', color: '#fff',
-            fontSize: 14, fontWeight: 700, cursor: submitting ? 'default' : 'pointer',
+            background: submitting ? tok.textTertiary : tok.btnPrimary,
+            color: tok.btnPrimaryText,
+            fontSize: 14, fontWeight: 700,
+            cursor: submitting ? 'default' : 'pointer',
+            transition: 'background .4s ease, color .4s ease',
           }}
         >
           {submitting ? '신청 중…' : '신청하기'}

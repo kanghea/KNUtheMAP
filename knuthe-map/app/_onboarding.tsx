@@ -189,6 +189,7 @@ export default function OnboardingClient() {
           role={userRole as 'owner' | 'agent'}
           onSubmitted={() => setPhase('role-pending')}
           onBack={() => setPhase('role')}
+          tok={tok}
         />
       </OnboardingShell>
     )
