@@ -19,13 +19,22 @@ interface Tok {
   cardAccent:      string
 }
 
+const DEFAULT_TOK: Tok = {
+  textPrimary:     '#ffffff',
+  textSecondary:   'rgba(255,255,255,0.42)',
+  cardBg:          'rgba(255,255,255,0.07)',
+  cardActiveBg:    'rgba(129,140,248,0.16)',
+  cardActiveBorder:'rgba(129,140,248,0.55)',
+  cardAccent:      '#818cf8',
+}
+
 interface Props {
   selected: string | null
   onSelect: (v: string) => void
-  tok:      Tok
+  tok?:     Tok
 }
 
-export default function StepGrade({ selected, onSelect, tok }: Props) {
+export default function StepGrade({ selected, onSelect, tok = DEFAULT_TOK }: Props) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, width: '100%' }}>
       {GRADES.map(({ label, sub }) => {
