@@ -43,23 +43,48 @@ export default function StepGate({ value, onChange, dept, tok }: Props) {
   const deptGates = dept ? getGatesByDept(dept).filter((g) => majorGateNames.has(g)) : []
   const recommendedGate = deptGates[0] ?? null
 
+  // 팁 영역: 추천 안내 또는 선택 구역 안내 (위치 고정)
+  const tipContent = value.gate
+    ? (
+      <>
+        <strong style={{ color: tok.accent }}>{value.gate}</strong>
+        {GATE_TO_ZONE[value.gate] && (
+          <span style={{ color: tok.textSecondary }}> ({GATE_TO_ZONE[value.gate]})</span>
+        )}
+        <span style={{ color: tok.textSecondary }}> 근처 건물을 높은 순위로 보여드릴게요</span>
+      </>
+    )
+    : recommendedGate
+      ? (
+        <>
+          <strong style={{ color: tok.accent }}>{dept}</strong>
+          <span style={{ color: tok.textSecondary }}> 학생이라면 </span>
+          <strong style={{ color: tok.accent }}>{recommendedGate}</strong>
+          <span style={{ color: tok.textSecondary }}>이 가까워요</span>
+        </>
+      )
+      : null
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {/* 학과 기반 추천 안내 */}
-      {recommendedGate && !value.gate && (
-        <div style={{
-          background: tok.cardActiveBg,
-          border: `1px solid ${tok.cardActiveBorder}`,
-          borderRadius: 12,
-          padding: '10px 16px',
-          fontSize: 13,
-          color: tok.textSecondary,
-          textAlign: 'center',
-        }}>
-          <strong style={{ color: tok.accent }}>{dept}</strong> 학생이라면{' '}
-          <strong style={{ color: tok.accent }}>{recommendedGate}</strong>이 가까워요
-        </div>
-      )}
+      {/* 팁 영역 (고정 위치) */}
+      <div style={{
+        background: tok.cardActiveBg,
+        border: `1px solid ${tok.cardActiveBorder}`,
+        borderRadius: 12,
+        padding: '10px 16px',
+        fontSize: 13,
+        textAlign: 'center',
+        transition: 'all .2s ease',
+        opacity: tipContent ? 1 : 0,
+        visibility: tipContent ? 'visible' as const : 'hidden' as const,
+        minHeight: 40,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        {tipContent}
+      </div>
 
       {/* 문 선택 그리드 */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
@@ -76,7 +101,7 @@ export default function StepGate({ value, onChange, dept, tok }: Props) {
                 borderRadius: 12,
                 fontSize: 14,
                 fontWeight: 700,
-                border: `1.5px solid ${active ? tok.cardActiveBorder : isRecommended ? tok.cardActiveBorder : tok.cardBorder}`,
+                border: `1.5px solid ${active ? tok.cardActiveBorder : tok.cardBorder}`,
                 background: active ? tok.cardActiveBg : tok.cardBg,
                 color: active ? tok.accent : tok.textPrimary,
                 boxShadow: active ? tok.cardActiveGlow : 'none',
@@ -125,26 +150,6 @@ export default function StepGate({ value, onChange, dept, tok }: Props) {
       >
         어느 문이든 상관없어요
       </button>
-
-      {/* 선택 구역 안내 */}
-      {value.gate && (
-        <div style={{
-          background: tok.cardActiveBg,
-          border: `1px solid ${tok.cardActiveBorder}`,
-          borderRadius: 12,
-          padding: '12px 16px',
-          fontSize: 13,
-          color: tok.accent,
-          textAlign: 'center',
-          transition: 'all .2s ease',
-        }}>
-          <strong>{value.gate}</strong>
-          {GATE_TO_ZONE[value.gate] && (
-            <span style={{ color: tok.textSecondary }}> ({GATE_TO_ZONE[value.gate]})</span>
-          )}
-          <span style={{ color: tok.textSecondary }}> 근처 건물을 높은 순위로 보여드릴게요</span>
-        </div>
-      )}
     </div>
   )
 }
