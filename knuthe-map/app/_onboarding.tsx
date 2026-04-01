@@ -234,7 +234,7 @@ export default function OnboardingClient() {
       dots={{ total: TENANT_STEPS.length, current: step }}
       onSkip={handleSkip}
     >
-      {step === 0 && <StepGrade      selected={grade || null}  onSelect={setGrade} />}
+      {step === 0 && <StepGrade      selected={grade || null}  onSelect={setGrade} tok={tok} />}
       {step === 1 && <StepDepartment selected={dept  || null}  onSelect={setDept} tok={tok} />}
       {step === 2 && <StepPriority   value={priorities}        onChange={setPriorities} />}
       {step === 3 && <StepGate       value={gate}              onChange={setGate} />}
