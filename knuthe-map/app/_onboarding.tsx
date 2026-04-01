@@ -23,24 +23,29 @@ const TOKENS = {
     textTertiary:    'rgba(255,255,255,0.25)',
     border:          'rgba(255,255,255,0.09)',
     progressBg:      'rgba(255,255,255,0.07)',
-    progressFill:    '#818cf8',
-    dotActive:       '#818cf8',
-    dotDone:         'rgba(129,140,248,0.4)',
+    progressFill:    '#6C63FF',
+    dotActive:       '#6C63FF',
+    dotDone:         'rgba(108,99,255,0.4)',
     dotIdle:         'rgba(255,255,255,0.12)',
     skipColor:       'rgba(255,255,255,0.32)',
-    btnBack:         'rgba(255,255,255,0.07)',
+    btnBack:         '#111111',
     btnBackBorder:   'rgba(255,255,255,0.12)',
     btnBackColor:    'rgba(255,255,255,0.5)',
-    btnPrimary:      '#818cf8',
+    btnPrimary:      '#6C63FF',
     btnPrimaryText:  '#ffffff',
+    btnGradient:     'linear-gradient(135deg, #6C63FF, #8B5CF6)',
+    btnShadow:       '0 4px 20px rgba(108, 99, 255, 0.35)',
     btnDisabled:     'rgba(255,255,255,0.06)',
     btnDisabledText: 'rgba(255,255,255,0.18)',
-    stepLabel:       '#818cf8',
+    stepLabel:       '#6C63FF',
     logoFilter:      'brightness(0) invert(1)',
-    cardBg:          'rgba(255,255,255,0.07)',
-    cardActiveBg:    'rgba(129,140,248,0.16)',
-    cardActiveBorder:'rgba(129,140,248,0.55)',
-    cardAccent:      '#818cf8',
+    cardBg:          '#111111',
+    cardBorder:      'rgba(255,255,255,0.08)',
+    cardActiveBg:    'rgba(108,99,255,0.10)',
+    cardActiveBorder:'rgba(108,99,255,0.50)',
+    cardActiveGlow:  '0 0 20px rgba(108,99,255,0.15)',
+    cardAccent:      '#6C63FF',
+    accent:          '#6C63FF',
   },
   light: {
     bg:              '#ffffff',
@@ -60,14 +65,19 @@ const TOKENS = {
     btnBackColor:    '#64748b',
     btnPrimary:      '#2563eb',
     btnPrimaryText:  '#ffffff',
+    btnGradient:     'linear-gradient(135deg, #2563eb, #4f46e5)',
+    btnShadow:       '0 4px 20px rgba(37, 99, 235, 0.25)',
     btnDisabled:     '#f1f5f9',
     btnDisabledText: '#cbd5e1',
     stepLabel:       '#2563eb',
     logoFilter:      'none',
     cardBg:          '#f2f2f7',
+    cardBorder:      'rgba(0,0,0,0.06)',
     cardActiveBg:    'rgba(37,99,235,0.08)',
     cardActiveBorder:'rgba(37,99,235,0.40)',
+    cardActiveGlow:  '0 0 16px rgba(37,99,235,0.12)',
     cardAccent:      '#2563eb',
+    accent:          '#2563eb',
   },
 } as const
 
@@ -134,6 +144,7 @@ export default function OnboardingClient() {
     return (
       <OnboardingShell
         tok={tok}
+        theme={theme}
         title="어떤 화면이 편하세요?"
         sub="언제든 설정에서 바꿀 수 있어요"
         progress={null}
@@ -150,12 +161,13 @@ export default function OnboardingClient() {
     return (
       <OnboardingShell
         tok={tok}
+        theme={theme}
         title="KNUtheMAP에서 뭘 하실 건가요?"
         sub="용도에 맞게 맞춤 서비스를 제공해드려요"
         progress={null}
         onSkip={handleSkip}
       >
-        <StepRole selected={userRole} onSelect={setUserRole} />
+        <StepRole selected={userRole} onSelect={setUserRole} tok={tok} />
         <BottomBar tok={tok} canNext={!!userRole} onNext={handleRoleNext} label="다음" showBack
           onBack={() => setPhase('theme')} />
       </OnboardingShell>
@@ -167,6 +179,7 @@ export default function OnboardingClient() {
     return (
       <OnboardingShell
         tok={tok}
+        theme={theme}
         title={userRole === 'owner' ? '건물주 신청' : '공인중개사 신청'}
         sub="정보를 입력하면 관리자가 검토 후 승인해드려요"
         progress={null}
@@ -184,7 +197,7 @@ export default function OnboardingClient() {
   // ── 승인 대기 화면 ─────────────────────────────────────────────────────────
   if (phase === 'role-pending') {
     return (
-      <OnboardingShell tok={tok} title="" sub="" progress={null} onSkip={null}>
+      <OnboardingShell tok={tok} theme={theme} title="" sub="" progress={null} onSkip={null}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '20px 0' }}>
           <div style={{
             width: 72, height: 72, borderRadius: '50%',
@@ -235,6 +248,7 @@ export default function OnboardingClient() {
   return (
     <OnboardingShell
       tok={tok}
+      theme={theme}
       title={TENANT_STEPS[step].title}
       sub={TENANT_STEPS[step].sub}
       progress={progress}
@@ -244,8 +258,8 @@ export default function OnboardingClient() {
     >
       {step === 0 && <StepGrade      selected={grade || null}  onSelect={setGrade} tok={tok} />}
       {step === 1 && <StepDepartment selected={dept  || null}  onSelect={setDept} tok={tok} />}
-      {step === 2 && <StepPriority   value={priorities}        onChange={setPriorities} />}
-      {step === 3 && <StepGate       value={gate}              onChange={setGate} />}
+      {step === 2 && <StepPriority   value={priorities}        onChange={setPriorities} tok={tok} />}
+      {step === 3 && <StepGate       value={gate}              onChange={setGate} tok={tok} />}
       <BottomBar
         tok={tok}
         canNext={canNext}
@@ -262,9 +276,10 @@ export default function OnboardingClient() {
 type Tok = typeof TOKENS[keyof typeof TOKENS]
 
 function OnboardingShell({
-  tok, title, sub, progress, stepLabel, dots, onSkip, children,
+  tok, theme, title, sub, progress, stepLabel, dots, onSkip, children,
 }: {
   tok:       Tok
+  theme:     string
   title:     string
   sub:       string
   progress:  number | null
@@ -275,6 +290,7 @@ function OnboardingShell({
 }) {
   return (
     <div
+      data-theme={theme}
       style={{
         position:   'fixed',
         inset:      0,
@@ -436,8 +452,8 @@ function BottomBar({
             onClick={onBack}
             style={{
               flexShrink:     0,
-              width:          48,
-              height:         48,
+              width:          52,
+              height:         52,
               display:        'flex',
               alignItems:     'center',
               justifyContent: 'center',
@@ -460,15 +476,17 @@ function BottomBar({
           disabled={!canNext}
           style={{
             flex:         1,
-            height:       48,
+            height:       52,
             borderRadius: 14,
             border:       'none',
             cursor:       canNext ? 'pointer' : 'not-allowed',
             fontSize:     15,
             fontWeight:   700,
-            background:   canNext ? tok.btnPrimary : tok.btnDisabled,
+            background:   canNext ? tok.btnGradient : tok.btnDisabled,
             color:        canNext ? tok.btnPrimaryText : tok.btnDisabledText,
-            transition:   'background .45s ease, color .45s ease',
+            boxShadow:    canNext ? tok.btnShadow : 'none',
+            opacity:      canNext ? 1 : 0.35,
+            transition:   'background .45s ease, color .45s ease, box-shadow .45s ease, opacity .45s ease',
           }}
         >
           {label}

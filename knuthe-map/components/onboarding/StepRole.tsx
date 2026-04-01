@@ -1,101 +1,103 @@
 'use client'
 
+import OptionCard from './OptionCard'
+
 export type UserRole = 'tenant' | 'owner' | 'agent'
 
 interface Props {
   selected: UserRole | null
   onSelect: (role: UserRole) => void
+  tok: {
+    cardBg: string
+    cardBorder: string
+    cardActiveBg: string
+    cardActiveBorder: string
+    cardActiveGlow: string
+    textPrimary: string
+    textSecondary: string
+    accent: string
+  }
 }
 
-const ROLES = [
+// ── 인라인 SVG 아이콘 (pathLength="100" 필수) ──
+
+const SearchIcon = (
+  <svg viewBox="0 0 24 24" width={20} height={20} fill="none"
+    strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6}>
+    <circle cx="11" cy="11" r="8" pathLength="100" />
+    <path d="m21 21-4.35-4.35" pathLength="100" />
+  </svg>
+)
+
+const HomeIcon = (
+  <svg viewBox="0 0 24 24" width={20} height={20} fill="none"
+    strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6}>
+    <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" pathLength="100" />
+    <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" pathLength="100" />
+  </svg>
+)
+
+const Building2Icon = (
+  <svg viewBox="0 0 24 24" width={20} height={20} fill="none"
+    strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6}>
+    <rect x="4" y="2" width="16" height="20" rx="2" pathLength="100" />
+    <path d="M9 22v-4h6v4" pathLength="100" />
+    <path d="M8 6h.01" pathLength="100" />
+    <path d="M16 6h.01" pathLength="100" />
+    <path d="M12 6h.01" pathLength="100" />
+    <path d="M12 10h.01" pathLength="100" />
+    <path d="M12 14h.01" pathLength="100" />
+    <path d="M16 10h.01" pathLength="100" />
+    <path d="M16 14h.01" pathLength="100" />
+    <path d="M8 10h.01" pathLength="100" />
+    <path d="M8 14h.01" pathLength="100" />
+  </svg>
+)
+
+const ROLES: {
+  key: UserRole
+  icon: React.ReactNode
+  title: string
+  desc: string
+  badge?: string
+}[] = [
   {
-    key: 'tenant' as UserRole,
-    emoji: '🔍',
+    key: 'tenant',
+    icon: SearchIcon,
     title: '방 구하기 (학생)',
     desc: '경북대 주변 매물을 찾고\n건물 정보·리뷰를 확인해요',
-    color: '#2563eb',
-    bg: '#eff6ff',
   },
   {
-    key: 'owner' as UserRole,
-    emoji: '🏠',
+    key: 'owner',
+    icon: HomeIcon,
     title: '건물주',
     desc: '내 건물 호실을 직접 관리하고\n임대 계약을 등록해요',
-    color: '#16a34a',
-    bg: '#f0fdf4',
     badge: '관리자 승인 필요',
   },
   {
-    key: 'agent' as UserRole,
-    emoji: '🏢',
+    key: 'agent',
+    icon: Building2Icon,
     title: '공인중개사',
     desc: '여러 건물 매물을 등록·관리하고\n통계와 계약을 한 곳에서 확인해요',
-    color: '#7c3aed',
-    bg: '#f5f3ff',
     badge: '관리자 승인 필요',
   },
 ]
 
-export default function StepRole({ selected, onSelect }: Props) {
+export default function StepRole({ selected, onSelect, tok }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {ROLES.map((r) => {
-        const active = selected === r.key
-        return (
-          <button
-            key={r.key}
-            onClick={() => onSelect(r.key)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 14,
-              padding: '16px 18px', borderRadius: 16, textAlign: 'left',
-              border: active ? `2px solid ${r.color}` : '2px solid #e2e8f0',
-              background: active ? r.bg : '#fff',
-              cursor: 'pointer', transition: 'border .15s, background .15s',
-              width: '100%',
-            }}
-          >
-            <span style={{
-              width: 46, height: 46, borderRadius: 14, flexShrink: 0,
-              background: active ? r.bg : '#f8fafc',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 22, border: active ? `1.5px solid ${r.color}40` : '1.5px solid #f1f5f9',
-            }}>
-              {r.emoji}
-            </span>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 3 }}>
-                <span style={{ fontSize: 15, fontWeight: 700, color: active ? r.color : '#0f172a' }}>
-                  {r.title}
-                </span>
-                {r.badge && (
-                  <span style={{
-                    fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 999,
-                    background: '#fef3c7', color: '#92400e',
-                  }}>
-                    {r.badge}
-                  </span>
-                )}
-              </div>
-              <span style={{ fontSize: 12, color: '#64748b', lineHeight: 1.5, whiteSpace: 'pre-line' }}>
-                {r.desc}
-              </span>
-            </div>
-            <div style={{
-              width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
-              border: active ? `2px solid ${r.color}` : '2px solid #cbd5e1',
-              background: active ? r.color : 'transparent',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              {active && (
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-                  stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-              )}
-            </div>
-          </button>
-        )
-      })}
+      {ROLES.map((r) => (
+        <OptionCard
+          key={r.key}
+          icon={r.icon}
+          title={r.title}
+          description={r.desc}
+          badge={r.badge}
+          selected={selected === r.key}
+          onClick={() => onSelect(r.key)}
+          tok={tok}
+        />
+      ))}
     </div>
   )
 }

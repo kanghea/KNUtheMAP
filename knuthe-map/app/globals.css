@@ -34,6 +34,44 @@ input, textarea, select {
 .drum-picker::-webkit-scrollbar { display: none; }
 .drum-picker { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* ── 온보딩 카드 Path Draw 애니메이션 ── */
+.option-icon path,
+.option-icon circle,
+.option-icon rect,
+.option-icon polyline,
+.option-icon line {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 30;
+  stroke: rgba(255, 255, 255, 0.25);
+  transition: stroke-dashoffset 0.45s ease, stroke 0.3s ease;
+}
+
+[data-selected="true"] .option-icon path,
+[data-selected="true"] .option-icon circle,
+[data-selected="true"] .option-icon rect,
+[data-selected="true"] .option-icon polyline,
+[data-selected="true"] .option-icon line {
+  stroke-dashoffset: 0;
+  stroke: #a5a0ff;
+}
+
+/* 라이트 모드 아이콘 기본 색상 */
+[data-theme="light"] .option-icon path,
+[data-theme="light"] .option-icon circle,
+[data-theme="light"] .option-icon rect,
+[data-theme="light"] .option-icon polyline,
+[data-theme="light"] .option-icon line {
+  stroke: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] [data-selected="true"] .option-icon path,
+[data-theme="light"] [data-selected="true"] .option-icon circle,
+[data-theme="light"] [data-selected="true"] .option-icon rect,
+[data-theme="light"] [data-selected="true"] .option-icon polyline,
+[data-theme="light"] [data-selected="true"] .option-icon line {
+  stroke: #4f46e5;
+}
+
 /* Mapbox 팝업 커스텀 스타일 */
 .building-popup .mapboxgl-popup-content {
   border-radius: 10px;
