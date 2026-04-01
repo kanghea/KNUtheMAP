@@ -59,38 +59,10 @@ export default function StepGrade({ selected, onSelect, tok = DEFAULT_TOK }: Pro
               transition:    'background .2s ease, border-color .2s ease',
             }}
           >
-            {/* 체크 배지 */}
-            <span style={{
-              position:        'absolute',
-              top:             10,
-              right:           12,
-              width:           20,
-              height:          20,
-              borderRadius:    '50%',
-              background:      active ? tok.cardAccent : 'rgba(128,128,128,0.18)',
-              display:         'flex',
-              alignItems:      'center',
-              justifyContent:  'center',
-              transition:      'background .2s ease',
-              flexShrink:      0,
-            }}>
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                <path
-                  d="M2.5 5l2 2 3-3.5"
-                  stroke="white"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  opacity={active ? 1 : 0.35}
-                />
-              </svg>
-            </span>
-
             <span style={{
               fontSize:    14,
               fontWeight:  700,
               color:       active ? tok.cardAccent : tok.textPrimary,
-              marginRight: 24,
               transition:  'color .2s ease',
             }}>
               {label}
