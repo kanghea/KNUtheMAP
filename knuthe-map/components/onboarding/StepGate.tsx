@@ -1,6 +1,7 @@
 'use client'
 
 import { MAJOR_GATES } from '@/lib/gate-utils'
+import { getGatesByDept } from '@/lib/department-zones'
 
 const GATE_TO_ZONE: Record<string, string> = {
   '북문': '북문구역',
@@ -21,6 +22,7 @@ interface Value {
 interface Props {
   value:    Value
   onChange: (v: Value) => void
+  dept?:   string | null
   tok: {
     cardBg: string
     cardBorder: string
@@ -34,25 +36,47 @@ interface Props {
   }
 }
 
-export default function StepGate({ value, onChange, tok }: Props) {
+export default function StepGate({ value, onChange, dept, tok }: Props) {
   const select = (name: string | null) => onChange({ gate: name, minutes: null })
+
+  const majorGateNames = new Set(MAJOR_GATES.map((g) => g.name))
+  const deptGates = dept ? getGatesByDept(dept).filter((g) => majorGateNames.has(g)) : []
+  const recommendedGate = deptGates[0] ?? null
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* 학과 기반 추천 안내 */}
+      {recommendedGate && !value.gate && (
+        <div style={{
+          background: tok.cardActiveBg,
+          border: `1px solid ${tok.cardActiveBorder}`,
+          borderRadius: 12,
+          padding: '10px 16px',
+          fontSize: 13,
+          color: tok.textSecondary,
+          textAlign: 'center',
+        }}>
+          <strong style={{ color: tok.accent }}>{dept}</strong> 학생이라면{' '}
+          <strong style={{ color: tok.accent }}>{recommendedGate}</strong>이 가까워요
+        </div>
+      )}
+
       {/* 문 선택 그리드 */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
         {MAJOR_GATES.map((g) => {
           const active = value.gate === g.name
+          const isRecommended = g.name === recommendedGate
           return (
             <button
               key={g.name}
               onClick={() => select(active ? null : g.name)}
               style={{
+                position: 'relative',
                 padding: '14px 0',
                 borderRadius: 12,
                 fontSize: 14,
                 fontWeight: 700,
-                border: `1.5px solid ${active ? tok.cardActiveBorder : tok.cardBorder}`,
+                border: `1.5px solid ${active ? tok.cardActiveBorder : isRecommended ? tok.cardActiveBorder : tok.cardBorder}`,
                 background: active ? tok.cardActiveBg : tok.cardBg,
                 color: active ? tok.accent : tok.textPrimary,
                 boxShadow: active ? tok.cardActiveGlow : 'none',
@@ -61,6 +85,22 @@ export default function StepGate({ value, onChange, tok }: Props) {
               }}
             >
               {g.name}
+              {isRecommended && !active && (
+                <span style={{
+                  position: 'absolute',
+                  top: -8,
+                  right: -4,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: tok.accent,
+                  background: tok.cardActiveBg,
+                  border: `1px solid ${tok.cardActiveBorder}`,
+                  borderRadius: 8,
+                  padding: '1px 6px',
+                }}>
+                  추천
+                </span>
+              )}
             </button>
           )
         })}
