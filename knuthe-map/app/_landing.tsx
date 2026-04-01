@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { UserPrefs, FACTOR_META } from '@/lib/prefs'
+import { FACTOR_ICONS, GateIcon } from '@/lib/factor-icons'
 import { DEPARTMENTS } from '@/lib/department-zones'
 import RoomFilterCard from './_room-filter'
 import MyContractsCard from '@/components/contracts/MyContractsCard'
@@ -345,7 +346,7 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
                     }}>
                       {i + 1}
                     </span>
-                    <span style={{ fontSize: 15, flexShrink: 0 }}>{meta.icon}</span>
+                    <span style={{ fontSize: 15, flexShrink: 0, color: tok.priorityLabel }}>{FACTOR_ICONS[pid] ?? meta.icon}</span>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 12, fontWeight: 600, color: tok.priorityLabel }}>{meta.label}</div>
                       <div style={{ fontSize: 11, color: tok.prioritySub }}>{meta.sub}</div>
@@ -360,7 +361,7 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
                 background: tok.gateBg, borderRadius: 10,
                 display: 'flex', alignItems: 'center', gap: 8,
               }}>
-                <span style={{ fontSize: 14 }}>🚪</span>
+                <span style={{ fontSize: 14, color: tok.gateText }}>{GateIcon}</span>
                 <span style={{ fontSize: 12, color: tok.gateText, fontWeight: 500 }}>
                   주로 쓰는 문: <strong style={{ color: tok.gateStrong }}>{prefs.gate}</strong>
                 </span>

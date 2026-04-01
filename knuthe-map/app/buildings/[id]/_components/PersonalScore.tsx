@@ -1,6 +1,7 @@
 // PersonalScore — 내 기준 적합도 카드 (서버 컴포넌트)
 
 import { FACTOR_META } from '@/lib/prefs'
+import { FACTOR_ICONS } from '@/lib/factor-icons'
 
 export interface FactorResult {
   id:     string
@@ -109,7 +110,7 @@ export default function PersonalScore({ grade, dept, priorities, factors, tok }:
               }}>
                 {i + 1}
               </span>
-              <span style={{ fontSize: 16, flexShrink: 0 }}>{meta.icon}</span>
+              <span style={{ fontSize: 16, flexShrink: 0, color: tok.textPrimary }}>{FACTOR_ICONS[pid] ?? meta.icon}</span>
               <span style={{ fontSize: 14, fontWeight: 600, color: tok.textPrimary, flex: 1 }}>{meta.label}</span>
               <span style={{ fontSize: 12, color: tok.textTertiary, flexShrink: 0 }}>{f.detail}</span>
               <Stars n={f.stars} color={cfg.color} empty={tok.starEmpty} />
