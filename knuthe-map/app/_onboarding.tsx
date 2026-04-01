@@ -259,7 +259,7 @@ export default function OnboardingClient() {
       {step === 0 && <StepGrade      selected={grade || null}  onSelect={setGrade} tok={tok} />}
       {step === 1 && <StepDepartment selected={dept  || null}  onSelect={setDept} tok={tok} />}
       {step === 2 && <StepPriority   value={priorities}        onChange={setPriorities} tok={tok} />}
-      {step === 3 && <StepGate       value={gate}              onChange={setGate} tok={tok} />}
+      {step === 3 && <StepGate       value={gate}              onChange={setGate} dept={dept || null} tok={tok} />}
       <BottomBar
         tok={tok}
         canNext={canNext}
