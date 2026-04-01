@@ -1,6 +1,7 @@
 'use client'
 
 import { MAJOR_GATES } from '@/lib/gate-utils'
+import { getGatesByDept, DEPARTMENTS } from '@/lib/department-zones'
 
 interface Value {
   gate:    string | null
@@ -10,13 +11,26 @@ interface Value {
 interface Props {
   value:    Value
   onChange: (v: Value) => void
+  dept?:    string
 }
 
-export default function StepGate({ value, onChange }: Props) {
+export default function StepGate({ value, onChange, dept }: Props) {
   const select = (name: string | null) => onChange({ gate: name, minutes: null })
+
+  const deptGates = dept ? getGatesByDept(dept) : []
+  const deptInfo  = dept ? DEPARTMENTS.find((d) => d.name === dept) : null
+  const tipGate   = deptGates[0] ?? null
 
   return (
     <div className="space-y-4">
+      {/* 학과 기반 추천 tip */}
+      {dept && tipGate && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800 text-center">
+          💡 <strong>{deptInfo?.college ?? dept}</strong> 학생들은 주로 <strong>{tipGate}</strong>
+          {deptGates[1] ? <>이나 <strong>{deptGates[1]}</strong></> : null}을 이용해요
+        </div>
+      )}
+
       {/* 문 선택 그리드 */}
       <div className="grid grid-cols-4 gap-2">
         {MAJOR_GATES.map((g) => {
