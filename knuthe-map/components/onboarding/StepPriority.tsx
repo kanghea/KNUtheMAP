@@ -4,22 +4,19 @@
 
 // ── 인라인 SVG 아이콘 (pathLength="100" 필수) ──
 
-const PersonStandingIcon = (
+const MapPinIcon = (
   <svg viewBox="0 0 24 24" width={20} height={20} fill="none"
     strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6}>
-    <circle cx="12" cy="5" r="1" pathLength="100" />
-    <path d="m10 22 4-12" pathLength="100" />
-    <path d="m14 22-4-12" pathLength="100" />
-    <path d="M14 9a2 2 0 0 0-2-2 2 2 0 0 0-2 2" pathLength="100" />
+    <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" pathLength="100" />
+    <circle cx="12" cy="10" r="3" pathLength="100" />
   </svg>
 )
 
-const SparklesIcon = (
+const ClockIcon = (
   <svg viewBox="0 0 24 24" width={20} height={20} fill="none"
     strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6}>
-    <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" pathLength="100" />
-    <path d="M20 3v4" pathLength="100" />
-    <path d="M22 5h-4" pathLength="100" />
+    <circle cx="12" cy="12" r="10" pathLength="100" />
+    <polyline points="12 6 12 12 16 14" pathLength="100" />
   </svg>
 )
 
@@ -52,8 +49,8 @@ const StoreIcon = (
 )
 
 const FACTORS = [
-  { id: 'dist',     label: '학교랑 가까울수록',      sub: '출입문까지 도보 거리',            icon: PersonStandingIcon },
-  { id: 'age',      label: '새 건물일수록',           sub: '준공된 지 얼마 안 된 곳',        icon: SparklesIcon },
+  { id: 'dist',     label: '학교랑 가까울수록',      sub: '출입문까지 도보 거리',            icon: MapPinIcon },
+  { id: 'age',      label: '새 건물일수록',           sub: '준공된 지 얼마 안 된 곳',        icon: ClockIcon },
   { id: 'size',     label: '방이 넓을수록',           sub: '세대당 전용면적 기준',            icon: Maximize2Icon },
   { id: 'security', label: '보안이 좋을수록',         sub: '엘리베이터·인터폰·관리 여부',    icon: ShieldCheckIcon },
   { id: 'nearby',   label: '주변 편의시설 많을수록',  sub: '편의점·음식점·카페 등 300m 내',  icon: StoreIcon },
