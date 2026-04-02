@@ -96,12 +96,14 @@ const THEME = {
 // ── 구역 정보 ─────────────────────────────────────────────────────
 
 const ZONES = [
-  { name: '북문', desc: '상권·교통 최고' },
-  { name: '정문', desc: '수의대 인접' },
-  { name: '서문', desc: '자연대 인접' },
-  { name: '쪽문', desc: '공대·IT대 인접' },
-  { name: '동문', desc: '경상·사회과학대 인접' },
-  { name: '텍문', desc: '사범대·약대 인접' },
+  { name: '북문',   zone: '북문', desc: '상권·교통 최고' },
+  { name: '정문',   zone: '정문', desc: '수의대 인접' },
+  { name: '서문',   zone: '서문', desc: '자연대 인접' },
+  { name: '쪽문',   zone: '쪽문', desc: '공대·IT대 인접' },
+  { name: '동문',   zone: '동문', desc: '경상·사회과학대 인접' },
+  { name: '택문',   zone: '텍문', desc: '사범대·약대 인접' },
+  { name: '나리문', zone: '동문', desc: '경상대 인접' },
+  { name: '누리문', zone: '텍문', desc: '약대·간호대 인접' },
 ]
 
 // ── 유틸 ─────────────────────────────────────────────────────────
@@ -269,15 +271,16 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
             scrollbarWidth: 'none',
           }}>
             {[...ZONES].sort((a, b) => {
-              const aMatch = a.name === prefs.zone ? -1 : 0
-              const bMatch = b.name === prefs.zone ? -1 : 0
+              const preferred = prefs.gate ?? prefs.zone
+              const aMatch = a.name === preferred ? -1 : 0
+              const bMatch = b.name === preferred ? -1 : 0
               return aMatch - bMatch
             }).map((z) => {
-              const isMyZone = prefs.zone === z.name
+              const isMyZone = z.name === (prefs.gate ?? prefs.zone)
               return (
                 <Link
                   key={z.name}
-                  href={`/map?zone=${encodeURIComponent(z.name)}${prefs.priorities.length ? `&p=${prefs.priorities.join(',')}` : ''}${prefs.gate ? `&gate=${encodeURIComponent(prefs.gate)}` : ''}`}
+                  href={`/map?zone=${encodeURIComponent(z.zone)}${prefs.priorities.length ? `&p=${prefs.priorities.join(',')}` : ''}&gate=${encodeURIComponent(z.name)}`}
                   style={{
                     flexShrink: 0,
                     background: isMyZone ? `${col.to}22` : tok.zoneBg,
