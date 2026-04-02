@@ -268,7 +268,11 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
             display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4,
             scrollbarWidth: 'none',
           }}>
-            {ZONES.map((z) => {
+            {[...ZONES].sort((a, b) => {
+              const aMatch = a.name === prefs.zone ? -1 : 0
+              const bMatch = b.name === prefs.zone ? -1 : 0
+              return aMatch - bMatch
+            }).map((z) => {
               const isMyZone = prefs.zone === z.name
               return (
                 <Link
