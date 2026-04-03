@@ -22,6 +22,40 @@ export async function POST(req: NextRequest) {
   if (!file || !id)
     return NextResponse.json({ error: 'file, id 필수' }, { status: 400 })
 
+  // UUID 형식 검증 (path traversal 방지)
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))
+    return NextResponse.json({ error: '잘못된 ID 형식' }, { status: 400 })
+
+  // IDOR 방지: admin이 아닌 경우 unit 소유권 확인
+  if (profile.role !== 'admin') {
+    const { data: unit } = await supabase
+      .from('building_units')
+      .select('building_id')
+      .eq('id', id)
+      .single()
+    if (!unit)
+      return NextResponse.json({ error: '호실을 찾을 수 없어요' }, { status: 404 })
+
+    const { data: ownership } = await supabase
+      .from('owner_buildings')
+      .select('id')
+      .eq('building_id', unit.building_id)
+      .eq('owner_id', user.id)
+      .maybeSingle()
+
+    if (!ownership) {
+      // agent인 경우 agent_buildings 확인
+      const { data: agentLink } = await supabase
+        .from('agent_buildings')
+        .select('id')
+        .eq('building_id', unit.building_id)
+        .eq('agent_id', user.id)
+        .maybeSingle()
+      if (!agentLink)
+        return NextResponse.json({ error: '권한 없음' }, { status: 403 })
+    }
+  }
+
   const ext    = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
   const path   = `${id}/${crypto.randomUUID()}.${ext}`
   const bytes  = await file.arrayBuffer()

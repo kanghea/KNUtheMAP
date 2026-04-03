@@ -48,6 +48,16 @@ export async function POST(req: NextRequest) {
   if (!contract_type || deposit == null) {
     return NextResponse.json({ error: '계약 유형과 보증금은 필수입니다' }, { status: 400 })
   }
+  if (!['월세', '전세'].includes(contract_type))
+    return NextResponse.json({ error: '계약 유형은 월세 또는 전세여야 합니다' }, { status: 400 })
+  if (typeof deposit !== 'number' || deposit < 0 || deposit > 500000)
+    return NextResponse.json({ error: '보증금은 0~500000(만원) 범위여야 합니다' }, { status: 400 })
+  if (monthly_rent != null && (typeof monthly_rent !== 'number' || monthly_rent < 0 || monthly_rent > 10000))
+    return NextResponse.json({ error: '월세는 0~10000(만원) 범위여야 합니다' }, { status: 400 })
+  if (maintenance != null && (typeof maintenance !== 'number' || maintenance < 0 || maintenance > 1000))
+    return NextResponse.json({ error: '관리비는 0~1000(만원) 범위여야 합니다' }, { status: 400 })
+  if (floor != null && (typeof floor !== 'number' || floor < -5 || floor > 100))
+    return NextResponse.json({ error: '층수는 -5~100 범위여야 합니다' }, { status: 400 })
 
   const { data, error } = await supabase
     .from('user_contracts')

@@ -8,7 +8,9 @@ import type { Role } from '@/lib/useRole'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/'
+  // Open Redirect 방지: 상대 경로만 허용, protocol-relative URL 차단
+  let next = searchParams.get('next') ?? '/'
+  if (!next.startsWith('/') || next.startsWith('//')) next = '/'
 
   if (code) {
     const supabase = await createSupabaseServer()

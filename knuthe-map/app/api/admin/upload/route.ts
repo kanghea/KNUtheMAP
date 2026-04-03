@@ -20,6 +20,9 @@ export async function POST(req: NextRequest) {
 
   if (!file || !bucket || !id)
     return NextResponse.json({ error: '파일, bucket, id 필수' }, { status: 400 })
+  // UUID 형식 검증 (path traversal 방지)
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))
+    return NextResponse.json({ error: '잘못된 ID 형식' }, { status: 400 })
   if (!ALLOWED_BUCKETS.includes(bucket as typeof ALLOWED_BUCKETS[number]))
     return NextResponse.json({ error: '잘못된 bucket' }, { status: 400 })
   if (!ALLOWED_MIME.includes(file.type as typeof ALLOWED_MIME[number]))

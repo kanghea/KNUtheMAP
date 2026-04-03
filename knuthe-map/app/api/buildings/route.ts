@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase'
+import { createSupabaseServer } from '@/lib/supabase-server'
 
 export async function GET() {
-  const supabase = createServiceClient()
+  const supabase = await createSupabaseServer()
 
   // Supabase PostgREST max_rows=1000 이므로 페이지네이션으로 전체 조회
   const PAGE = 1000

@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase'
+import { createSupabaseServer } from '@/lib/supabase-server'
 
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params
-  const service = createServiceClient()
+  const supabase = await createSupabaseServer()
 
-  const { data, error } = await service
+  const { data, error } = await supabase
     .from('transactions')
     .select('contract_type, rent, deposit, maintenance, area_m2, floor, room_type, unit_number, contract_date, contract_start, contract_end, source')
     .eq('building_id', id)

@@ -15,6 +15,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: '잘못된 역할입니다' }, { status: 400 })
   }
 
+  // 입력 길이 제한 (DoS 및 데이터 오염 방지)
+  if (business_name && business_name.length > 200)
+    return NextResponse.json({ error: '사업체명은 200자 이하여야 합니다' }, { status: 400 })
+  if (address && address.length > 300)
+    return NextResponse.json({ error: '주소는 300자 이하여야 합니다' }, { status: 400 })
+  if (license_number && license_number.length > 50)
+    return NextResponse.json({ error: '등록번호는 50자 이하여야 합니다' }, { status: 400 })
+  if (phone && (phone.length > 20 || !/^[\d\-+() ]+$/.test(phone)))
+    return NextResponse.json({ error: '올바른 연락처를 입력해주세요' }, { status: 400 })
+  if (memo && memo.length > 1000)
+    return NextResponse.json({ error: '메모는 1000자 이하여야 합니다' }, { status: 400 })
+
   const service = createServiceClient()
 
   // 이미 pending/approved 신청이 있으면 중복 방지

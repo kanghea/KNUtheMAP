@@ -7,9 +7,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params
-  const service = createServiceClient()
+  const supabase = await createSupabaseServer()
 
-  const { data, error } = await service
+  const { data, error } = await supabase
     .from('reviews')
     .select(`
       id, rating_overall, rating_clean, rating_noise,
@@ -24,7 +24,11 @@ export async function GET(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  const reviews = data ?? []
+  // 익명 리뷰의 사용자 정보 제거 (is_anonymous=true인 경우 user null 처리)
+  const reviews = (data ?? []).map((r) => ({
+    ...r,
+    user: r.is_anonymous ? null : r.user,
+  }))
   const avgOverall = reviews.length
     ? Math.round((reviews.reduce((s, r) => s + r.rating_overall, 0) / reviews.length) * 10) / 10
     : null
@@ -55,6 +59,16 @@ export async function POST(
   if (!rating_overall || !content || content.length < 20) {
     return NextResponse.json({ error: '필수 항목을 확인해 주세요.' }, { status: 400 })
   }
+
+  // 입력 검증: rating 범위, content 길이
+  const isValidRating = (v: unknown): boolean =>
+    v == null || (typeof v === 'number' && Number.isInteger(v) && v >= 1 && v <= 5)
+  if (!Number.isInteger(rating_overall) || rating_overall < 1 || rating_overall > 5)
+    return NextResponse.json({ error: '평점은 1~5 사이 정수여야 합니다' }, { status: 400 })
+  if (![rating_clean, rating_noise, rating_security, rating_transport, rating_cost].every(isValidRating))
+    return NextResponse.json({ error: '세부 평점은 1~5 사이 정수여야 합니다' }, { status: 400 })
+  if (content.length > 5000)
+    return NextResponse.json({ error: '리뷰 내용은 5000자 이하여야 합니다' }, { status: 400 })
 
   const service = createServiceClient()
   const { data, error } = await service

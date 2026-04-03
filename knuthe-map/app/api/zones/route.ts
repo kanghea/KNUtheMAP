@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase'
+import { createSupabaseServer } from '@/lib/supabase-server'
 
 export async function GET() {
-  const supabase = createServiceClient()
+  const supabase = await createSupabaseServer()
 
   const { data, error } = await supabase
     .from('zones')
