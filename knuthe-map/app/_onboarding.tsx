@@ -12,6 +12,10 @@ import StepDepartment                   from '@/components/onboarding/StepDepart
 import StepPriority                     from '@/components/onboarding/StepPriority'
 import StepGate                         from '@/components/onboarding/StepGate'
 import StepTheme,     { type Theme }    from '@/components/onboarding/StepTheme'
+import RoommateChecklist, { isSectionComplete } from '@/components/onboarding/RoommateChecklist'
+import RoommateSwipe                    from '@/components/onboarding/RoommateSwipe'
+import { type RoommateProfile, type SwipeWeights, saveRoommateDraft } from '@/lib/roommate-constants'
+import { createBrowserSupabase }        from '@/lib/supabase-browser'
 
 // ── 테마 디자인 토큰 ───────────────────────────────────────────────────────────
 const TOKENS = {
@@ -89,7 +93,17 @@ const TENANT_STEPS = [
   { id: 'gate',     title: '학교 올 때 주로 어느 문 쓰세요?', sub: '가장 가까운 건물부터 순위를 매겨드릴게요' },
 ]
 
-type Phase = 'theme' | 'role' | 'role-request' | 'role-pending' | 'tenant-steps'
+type Phase = 'theme' | 'role' | 'role-request' | 'role-pending' | 'tenant-steps' | 'roommate-checklist' | 'roommate-swipe' | 'roommate-login'
+
+const ROOMMATE_SECTIONS = [
+  { title: '기본 정보를 알려주세요',      sub: '생년·학번·거주 유형을 선택해 주세요' },
+  { title: '수면 패턴은 어떤가요?',       sub: '잠드는 시간, 잠버릇 등을 알려주세요' },
+  { title: '위생·청결 습관이에요',        sub: '샤워·청소 습관을 알려주세요' },
+  { title: '생활 환경 선호가 궁금해요',    sub: '온도, 소리, 흡연 습관을 알려주세요' },
+  { title: '생활 습관을 알려주세요',       sub: '음주, 게임, 운동 등의 습관이에요' },
+  { title: '사회·관계 성향이에요',         sub: '물건 공유, 친구 초대 등을 알려주세요' },
+  { title: '마지막이에요!',               sub: 'MBTI, 한 줄 소개를 남겨주세요' },
+]
 
 export default function OnboardingClient() {
   const router = useRouter()
@@ -106,6 +120,12 @@ export default function OnboardingClient() {
   const [priorities, setPriorities] = useState<string[]>([])
   const [gate,       setGate]       = useState<{ gate: string | null; minutes: number | null }>({ gate: null, minutes: null })
 
+  // ── 룸메이트 스텝 상태 ────────────────────────────────────────────────────
+  const [rmSection,    setRmSection]    = useState(0)
+  const [rmProfile,    setRmProfile]    = useState<Partial<RoommateProfile>>({ sleep_habits: ['없음'], light_sleep: 2, cleanliness: 2, cold_sensitivity: 2, heat_sensitivity: 2, relationship: 2 })
+  const [rmWeights,    setRmWeights]    = useState<SwipeWeights>({})
+  const [loginLoading, setLoginLoading] = useState(false)
+
   const tok = TOKENS[theme]
 
   // ── 역할 선택 → 다음 단계 분기 ────────────────────────────────────────────
@@ -113,9 +133,40 @@ export default function OnboardingClient() {
     if (!userRole) return
     if (userRole === 'tenant') {
       setPhase('tenant-steps')
+    } else if (userRole === 'roommate') {
+      setPhase('roommate-checklist')
     } else {
       setPhase('role-request')
     }
+  }
+
+  // ── 룸메이트 체크리스트 진행 ────────────────────────────────────────────────
+  const handleRmNext = () => {
+    if (rmSection < ROOMMATE_SECTIONS.length - 1) {
+      setRmSection(rmSection + 1)
+    } else {
+      // 체크리스트 완료 → 스와이프로 이동
+      setPhase('roommate-swipe')
+    }
+  }
+
+  const handleSwipeComplete = (weights: SwipeWeights) => {
+    setRmWeights(weights)
+    // 임시 저장
+    saveRoommateDraft(rmProfile, weights)
+    setPhase('roommate-login')
+  }
+
+  const handleRoommateLogin = async () => {
+    // 로컬스토리지에 임시 저장 후 구글 로그인 진행
+    saveRoommateDraft(rmProfile, rmWeights)
+    setLoginLoading(true)
+    const supabase = createBrowserSupabase()
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback?next=/roommate` },
+    })
+    if (error) setLoginLoading(false)
   }
 
   // ── 세입자 온보딩 완료 ────────────────────────────────────────────────────
@@ -236,6 +287,121 @@ export default function OnboardingClient() {
             }}
           >
             지도 둘러보기
+          </button>
+        </div>
+      </OnboardingShell>
+    )
+  }
+
+  // ── 룸메이트 체크리스트 화면 ─────────────────────────────────────────────
+  if (phase === 'roommate-checklist') {
+    const rmCanNext = isSectionComplete(rmSection, rmProfile)
+    const rmProgress = ((rmSection + 1) / ROOMMATE_SECTIONS.length) * 100
+
+    return (
+      <OnboardingShell
+        tok={tok}
+        theme={theme}
+        title={ROOMMATE_SECTIONS[rmSection].title}
+        sub={ROOMMATE_SECTIONS[rmSection].sub}
+        progress={rmProgress}
+        stepLabel={`${rmSection + 1} / ${ROOMMATE_SECTIONS.length}`}
+        dots={{ total: ROOMMATE_SECTIONS.length, current: rmSection }}
+        onSkip={null}
+      >
+        <RoommateChecklist
+          section={rmSection}
+          profile={rmProfile}
+          onChange={(updates: Partial<RoommateProfile>) => setRmProfile((prev: Partial<RoommateProfile>) => ({ ...prev, ...updates }))}
+          tok={tok}
+        />
+        <BottomBar
+          tok={tok}
+          canNext={rmCanNext}
+          onNext={handleRmNext}
+          onBack={rmSection > 0 ? () => setRmSection(rmSection - 1) : () => setPhase('role')}
+          label={rmSection === ROOMMATE_SECTIONS.length - 1 ? '다음' : '다음'}
+          showBack
+        />
+      </OnboardingShell>
+    )
+  }
+
+  // ── 룸메이트 스와이프 화면 ─────────────────────────────────────────────────
+  if (phase === 'roommate-swipe') {
+    return (
+      <OnboardingShell
+        tok={tok}
+        theme={theme}
+        title="원하는 룸메이트 조건"
+        sub="두 가지 중 더 중요한 조건을 골라주세요"
+        progress={null}
+        onSkip={null}
+      >
+        <RoommateSwipe onComplete={handleSwipeComplete} tok={tok} />
+      </OnboardingShell>
+    )
+  }
+
+  // ── 룸메이트 로그인 화면 ──────────────────────────────────────────────────
+  if (phase === 'roommate-login') {
+    return (
+      <OnboardingShell tok={tok} theme={theme} title="" sub="" progress={null} onSkip={null}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '20px 0' }}>
+          <div style={{
+            width: 72, height: 72, borderRadius: '50%',
+            background: theme === 'dark' ? 'rgba(108,99,255,0.15)' : 'rgba(37,99,235,0.08)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg viewBox="0 0 24 24" width={32} height={32} fill="none"
+              stroke={tok.accent} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: tok.textPrimary, margin: '0 0 8px', transition: 'color .4s ease' }}>
+              프로필 등록 준비 완료!
+            </h2>
+            <p style={{ fontSize: 13, color: tok.textSecondary, lineHeight: 1.7, margin: 0, transition: 'color .4s ease' }}>
+              입력한 정보를 저장하려면<br />
+              구글 로그인이 필요해요
+            </p>
+          </div>
+          <div style={{
+            background: tok.surface, borderRadius: 14, padding: '14px 16px',
+            width: '100%', border: `1px solid ${tok.border}`,
+            transition: 'background .4s ease, border-color .4s ease',
+          }}>
+            <p style={{ fontSize: 12, color: tok.textTertiary, margin: '0 0 4px', fontWeight: 600, transition: 'color .4s ease' }}>로그인 후</p>
+            <p style={{ fontSize: 13, color: tok.textSecondary, margin: 0, lineHeight: 1.6, transition: 'color .4s ease' }}>
+              나와 생활 습관이 맞는 룸메이트를 추천해드려요
+            </p>
+          </div>
+          <button
+            onClick={handleRoommateLogin}
+            disabled={loginLoading}
+            style={{
+              width: '100%', padding: '14px', borderRadius: 14,
+              background: tok.btnGradient, color: tok.btnPrimaryText,
+              border: 'none', cursor: loginLoading ? 'wait' : 'pointer',
+              fontSize: 14, fontWeight: 700, boxShadow: tok.btnShadow,
+              opacity: loginLoading ? 0.6 : 1,
+              transition: 'background .4s ease, opacity .3s ease',
+            }}
+          >
+            {loginLoading ? '로그인 중...' : 'Google로 로그인'}
+          </button>
+          <button
+            onClick={() => setPhase('roommate-swipe')}
+            style={{
+              fontSize: 12, color: tok.skipColor, background: 'none',
+              border: 'none', cursor: 'pointer', padding: '4px 2px',
+            }}
+          >
+            이전으로
           </button>
         </div>
       </OnboardingShell>

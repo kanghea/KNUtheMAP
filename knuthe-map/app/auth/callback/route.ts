@@ -32,6 +32,20 @@ export async function GET(request: Request) {
           .eq('id', data.user.id)
       }
 
+      // 룸메이트 온보딩에서 넘어온 경우: 로컬스토리지 데이터는 클라이언트에서만 접근 가능
+      // → /roommate 페이지로 리다이렉트 후 클라이언트에서 저장 처리
+      // 룸메이트 경로인 경우 role을 roommate로 업데이트
+      if (next === '/roommate') {
+        await supabase
+          .from('users')
+          .update({ role: 'roommate' })
+          .eq('id', data.user.id)
+
+        const response = NextResponse.redirect(`${origin}/roommate?save_draft=1`)
+        response.cookies.set(ROLE_COOKIE_NAME, sealRole('roommate'), ROLE_COOKIE_OPTIONS)
+        return response
+      }
+
       // DB에서 role 조회 → AES-256-GCM 암호화 후 HttpOnly 쿠키에 저장
       // HttpOnly: JS에서 document.cookie로 읽기/쓰기 불가 → XSS로부터 보호
       const { data: profile } = await supabase
