@@ -74,8 +74,8 @@ const ROLES: {
   {
     key: 'tenant',
     icon: SearchIcon,
-    title: '방 구하기 (학생)',
-    desc: '경북대 주변 매물을 찾고\n건물 정보·리뷰를 확인해요',
+    title: '방 구하기',
+    desc: '경북대 주변 방을 둘러보고\n선배 리뷰까지 한번에 확인해요',
   },
   {
     key: 'roommate',
@@ -87,7 +87,7 @@ const ROLES: {
     key: 'owner',
     icon: HomeIcon,
     title: '방 내놓기',
-    desc: '내 건물 호실을 직접 관리하고\n임대 계약을 등록해요',
+    desc: '내 건물 빈방을 직접 올리고\n계약 현황을 관리해요',
     badge: '관리자 승인 필요',
   },
 ]

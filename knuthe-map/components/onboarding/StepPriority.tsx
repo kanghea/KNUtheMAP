@@ -51,7 +51,7 @@ const StoreIcon = (
 const FACTORS = [
   { id: 'dist',     label: '학교랑 가까울수록',      sub: '출입문까지 도보 거리',            icon: MapPinIcon },
   { id: 'age',      label: '새 건물일수록',           sub: '준공된 지 얼마 안 된 곳',        icon: ClockIcon },
-  { id: 'size',     label: '방이 넓을수록',           sub: '세대당 전용면적 기준',            icon: Maximize2Icon },
+  { id: 'size',     label: '방이 넓을수록',           sub: '방 면적 기준',                    icon: Maximize2Icon },
   { id: 'security', label: '보안이 좋을수록',         sub: '엘리베이터·인터폰·관리 여부',    icon: ShieldCheckIcon },
   { id: 'nearby',   label: '주변 편의시설 많을수록',  sub: '편의점·음식점·카페 등 300m 내',  icon: StoreIcon },
 ]
@@ -86,7 +86,7 @@ export default function StepPriority({ value, onChange, tok }: Props) {
   const guide =
     value.length === 0              ? '가장 중요한 것부터 순서대로 탭해 주세요' :
     value.length < FACTORS.length   ? `${value.length + 1}순위는 뭐예요?` :
-                                      '완료! 아래 버튼을 눌러 계속하세요'
+                                      '다 골랐어요! 이제 지도로 가볼게요 →'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
