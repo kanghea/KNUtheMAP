@@ -15,6 +15,31 @@ const DynamicFilter  = dynamic(() => import('@/components/map/DynamicFilter'), {
 const RoomsMapView   = dynamic(() => import('@/components/map/RoomsMapView'),  { ssr: false })
 const RoomFilterCard = dynamic(() => import('@/app/_room-filter'),             { ssr: false })
 
+// ── SVG 아이콘 ──────────────────────────────────────────────────────
+
+const IconHome = ({ size = 28, color = '#94a3b8' }: { size?: number; color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+  </svg>
+)
+
+const IconHeart = ({ filled = false, size = 14, color }: { filled?: boolean; size?: number; color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24"
+    fill={filled ? (color ?? '#ef4444') : 'none'}
+    stroke={filled ? (color ?? '#ef4444') : (color ?? '#94a3b8')}
+    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+  </svg>
+)
+
+const IconSearch = ({ size = 48, color = '#94a3b8' }: { size?: number; color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" />
+    <path d="m21 21-4.35-4.35" />
+  </svg>
+)
+
 // ── 매물 카드 ────────────────────────────────────────────────────────
 
 function RoomCard({ room, tok }: { room: Room; tok: typeof THEME_TOKENS.dark }) {
@@ -35,7 +60,7 @@ function RoomCard({ room, tok }: { room: Room; tok: typeof THEME_TOKENS.dark }) 
           }}>
             {thumb
               ? <img src={thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>🏠</div>
+              : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IconHome size={32} color={tok.textTertiary} /></div>
             }
             <button
               onClick={(e) => { e.preventDefault(); setLiked(v => !v) }}
@@ -43,10 +68,10 @@ function RoomCard({ room, tok }: { room: Room; tok: typeof THEME_TOKENS.dark }) 
                 position: 'absolute', top: 6, right: 6,
                 width: 28, height: 28, borderRadius: '50%',
                 background: 'rgba(255,255,255,0.9)', border: 'none', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}
             >
-              {liked ? '❤️' : '🤍'}
+              <IconHeart filled={liked} size={14} color={liked ? '#ef4444' : '#94a3b8'} />
             </button>
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -197,7 +222,7 @@ export default function RoomsPage() {
         display: 'flex', alignItems: 'center', gap: 4,
         whiteSpace: 'nowrap',
       }}>
-        🤍 찜
+        <IconHeart size={13} color="#94a3b8" /> 찜
       </Link>
     </div>
   )
@@ -290,7 +315,7 @@ export default function RoomsPage() {
             fontSize: 12, color: tok.textSecondary, fontWeight: 700, textDecoration: 'none',
             display: 'flex', alignItems: 'center', gap: 3, whiteSpace: 'nowrap',
           }}>
-            🤍 찜
+            <IconHeart size={13} color={tok.textTertiary} /> 찜
           </Link>
         </div>
 
@@ -313,7 +338,10 @@ export default function RoomsPage() {
             display: 'flex', flexDirection: 'column', alignItems: 'center',
             justifyContent: 'center', padding: '60px 24px', gap: 12,
           }}>
-            <span style={{ fontSize: 48 }}>{isFiltered ? '🔍' : '🏠'}</span>
+            {isFiltered
+              ? <IconSearch size={48} color={tok.textTertiary} />
+              : <IconHome size={48} color={tok.textTertiary} />
+            }
             <p style={{ fontSize: 16, fontWeight: 700, color: tok.textPrimary, margin: 0 }}>
               {isFiltered ? '조건에 맞는 방이 없어요' : '아직 등록된 매물이 없어요'}
             </p>
