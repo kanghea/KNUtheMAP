@@ -17,9 +17,10 @@ export default async function Page({
 
   if (user && !sp.reset) {
     const role = await getServerRole()
-    if (role === 'admin')  redirect('/admin')
-    if (role === 'owner')  redirect('/owner')
-    if (role === 'agent')  redirect('/agent')
+    if (role === 'admin')    redirect('/admin')
+    if (role === 'owner')    redirect('/owner')
+    if (role === 'agent')    redirect('/agent')
+    if (role === 'roommate') redirect('/roommate')
   }
 
   // ?reset=1 이면 온보딩 강제

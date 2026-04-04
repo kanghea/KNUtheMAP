@@ -2,7 +2,7 @@
 
 import OptionCard from './OptionCard'
 
-export type UserRole = 'tenant' | 'owner' | 'agent'
+export type UserRole = 'tenant' | 'roommate' | 'owner'
 
 interface Props {
   selected: UserRole | null
@@ -54,6 +54,16 @@ const Building2Icon = (
   </svg>
 )
 
+const UsersIcon = (
+  <svg viewBox="0 0 24 24" width={20} height={20} fill="none"
+    strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6}>
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" pathLength="100" />
+    <circle cx="9" cy="7" r="4" pathLength="100" />
+    <path d="M22 21v-2a4 4 0 0 0-3-3.87" pathLength="100" />
+    <path d="M16 3.13a4 4 0 0 1 0 7.75" pathLength="100" />
+  </svg>
+)
+
 const ROLES: {
   key: UserRole
   icon: React.ReactNode
@@ -68,17 +78,16 @@ const ROLES: {
     desc: '경북대 주변 매물을 찾고\n건물 정보·리뷰를 확인해요',
   },
   {
+    key: 'roommate',
+    icon: UsersIcon,
+    title: '룸메이트 구하기',
+    desc: '생활 습관을 비교해서\n나와 맞는 룸메이트를 찾아요',
+  },
+  {
     key: 'owner',
     icon: HomeIcon,
     title: '방 내놓기',
     desc: '내 건물 호실을 직접 관리하고\n임대 계약을 등록해요',
-    badge: '관리자 승인 필요',
-  },
-  {
-    key: 'agent',
-    icon: Building2Icon,
-    title: '공인중개사',
-    desc: '여러 건물 매물을 등록·관리하고\n통계와 계약을 한 곳에서 확인해요',
     badge: '관리자 승인 필요',
   },
 ]
