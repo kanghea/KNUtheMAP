@@ -70,7 +70,7 @@ const ROLES: {
   {
     key: 'owner',
     icon: HomeIcon,
-    title: '건물주',
+    title: '방 내놓기',
     desc: '내 건물 호실을 직접 관리하고\n임대 계약을 등록해요',
     badge: '관리자 승인 필요',
   },

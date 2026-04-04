@@ -174,13 +174,13 @@ export default function OnboardingClient() {
     )
   }
 
-  // ── 건물주/중개사 신청 ─────────────────────────────────────────────────────
+  // ── 방 내놓기/중개사 신청 ───────────────────────────────────────────────────
   if (phase === 'role-request') {
     return (
       <OnboardingShell
         tok={tok}
         theme={theme}
-        title={userRole === 'owner' ? '건물주 신청' : '공인중개사 신청'}
+        title={userRole === 'owner' ? '방 내놓기 신청' : '공인중개사 신청'}
         sub="정보를 입력하면 관리자가 검토 후 승인해드려요"
         progress={null}
         onSkip={handleSkip}

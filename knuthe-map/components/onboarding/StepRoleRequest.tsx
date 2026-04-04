@@ -121,7 +121,7 @@ export default function StepRoleRequest({ role, onSubmitted, onBack, tok }: Prop
         </div>
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: tok.textPrimary, transition: 'color .4s ease' }}>
-            {isOwner ? '건물주 신청' : '공인중개사 신청'}
+            {isOwner ? '방 내놓기 신청' : '공인중개사 신청'}
           </div>
           <div style={{ fontSize: 11, color: tok.textSecondary, marginTop: 2, transition: 'color .4s ease' }}>
             관리자 검토 후 승인 알림을 드려요 (보통 1~2일 소요)
