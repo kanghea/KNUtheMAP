@@ -60,7 +60,7 @@ export default function StepGate({ value, onChange, dept, tok }: Props) {
           <strong style={{ color: tok.accent }}>{dept}</strong>
           <span style={{ color: tok.textSecondary }}> 학생이라면 </span>
           <strong style={{ color: tok.accent }}>{recommendedGate}</strong>
-          <span style={{ color: tok.textSecondary }}>이 가까워요</span>
+          <span style={{ color: tok.textSecondary }}>{(recommendedGate.charCodeAt(recommendedGate.length - 1) - 0xAC00) % 28 > 0 ? '이' : '가'} 가장 가까워요</span>
         </>
       )
       : null

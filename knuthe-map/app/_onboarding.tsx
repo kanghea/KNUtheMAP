@@ -88,9 +88,9 @@ const TOKENS = {
 // ── 세입자 스텝 ───────────────────────────────────────────────────────────────
 const TENANT_STEPS = [
   { id: 'dept',     title: '학과가 어디예요?',                 sub: '학과 위치에 가까운 구역부터 보여드릴게요' },
-  { id: 'grade',    title: '학번이 어떻게 되세요?',           sub: '맞춤 건물 정보를 보여드릴게요' },
+  { id: 'grade',    title: '학번이 어떻게 되세요?',           sub: '비슷한 학번 선배들이 많이 사는 구역부터 보여드릴게요' },
   { id: 'priority', title: '방 구할 때 뭐가 제일 중요해요?',  sub: '중요한 순서대로 하나씩 탭해 주세요' },
-  { id: 'gate',     title: '학교 올 때 주로 어느 문 쓰세요?', sub: '가장 가까운 건물부터 순위를 매겨드릴게요' },
+  { id: 'gate',     title: '학교 올 때 주로 어느 문 쓰세요?', sub: '해당 문 가까운 매물을 먼저 보여드릴게요' },
 ]
 
 type Phase = 'theme' | 'role' | 'role-request' | 'role-pending' | 'tenant-steps' | 'roommate-checklist' | 'roommate-swipe' | 'roommate-login'
@@ -213,8 +213,8 @@ export default function OnboardingClient() {
       <OnboardingShell
         tok={tok}
         theme={theme}
-        title="KNUtheMAP에서 뭘 하실 건가요?"
-        sub="용도에 맞게 맞춤 서비스를 제공해드려요"
+        title="어떤 목적으로 오셨어요?"
+        sub="선택에 따라 딱 맞는 화면을 보여드릴게요"
         progress={null}
         onSkip={handleSkip}
       >
@@ -232,7 +232,7 @@ export default function OnboardingClient() {
         tok={tok}
         theme={theme}
         title={userRole === 'owner' ? '방 내놓기 신청' : '공인중개사 신청'}
-        sub="정보를 입력하면 관리자가 검토 후 승인해드려요"
+        sub="입력하신 정보를 확인한 뒤 빠르게 연락드릴게요"
         progress={null}
         onSkip={handleSkip}
       >
@@ -261,7 +261,7 @@ export default function OnboardingClient() {
               신청이 완료됐어요!
             </h2>
             <p style={{ fontSize: 13, color: tok.textSecondary, lineHeight: 1.7, margin: 0, transition: 'color .4s ease' }}>
-              관리자 검토 후 승인 알림을 드려요<br />
+              검토가 끝나면 바로 알림으로 알려드릴게요<br />
               승인 전에도 방 구하기는 이용할 수 있어요
             </p>
           </div>
@@ -273,8 +273,8 @@ export default function OnboardingClient() {
             <p style={{ fontSize: 12, color: tok.textTertiary, margin: '0 0 4px', fontWeight: 600, transition: 'color .4s ease' }}>승인 완료 시</p>
             <p style={{ fontSize: 13, color: tok.textSecondary, margin: 0, lineHeight: 1.6, transition: 'color .4s ease' }}>
               {userRole === 'owner'
-                ? '건물 등록 및 호실·계약 관리 기능을 이용할 수 있어요'
-                : '건물 매물 등록 및 계약 통계 기능을 이용할 수 있어요'}
+                ? '건물을 등록하고 호실과 계약을 직접 관리할 수 있어요'
+                : '매물 등록부터 계약 통계까지 한 곳에서 볼 수 있어요'}
             </p>
           </div>
           <button
