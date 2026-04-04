@@ -222,7 +222,7 @@ function Section({
 
 // ── 메인 컴포넌트 ──────────────────────────────────────────────────────
 
-export default function RoomFilterCard({ theme = 'light' }: { theme?: 'dark' | 'light' }) {
+export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'dark' | 'light' }) {
   const { filters: filter, setFilters } = useFilters()
   const [section,      setSection]      = useState<string | null>(null)
   const [notifOn,      setNotifOn]      = useState(false)
@@ -290,9 +290,13 @@ export default function RoomFilterCard({ theme = 'light' }: { theme?: 'dark' | '
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{
             width: 32, height: 32, borderRadius: 10, background: tok.iconBg,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}>
-            🔍
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke={tok.chipActiveColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
           </span>
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: tok.textPrimary, lineHeight: 1.3 }}>
@@ -435,7 +439,11 @@ export default function RoomFilterCard({ theme = 'light' }: { theme?: 'dark' | '
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 18 }}>🔔</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke={tok.textSecond} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                </svg>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: tok.textPrimary }}>새 매물 알림</div>
                   <div style={{ fontSize: 11, color: tok.textThird, marginTop: 1 }}>

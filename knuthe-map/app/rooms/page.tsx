@@ -326,7 +326,7 @@ export default function RoomsPage() {
         {/* 필터 카드 — 클러스터 선택 시 숨김 */}
         {!clusterIds && (
           <div style={{ padding: '12px 16px 0' }}>
-            <RoomFilterCard />
+            <RoomFilterCard theme={theme} />
           </div>
         )}
         {loading ? (
