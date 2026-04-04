@@ -291,18 +291,21 @@ export default function RoomsPage() {
           </span>
 
           <div style={{
-            display: 'flex', background: tok.cardBg, borderRadius: 999, padding: 3,
-            border: `1px solid ${tok.cardBorder}`,
+            background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(10px)',
+            borderRadius: 999, padding: 4,
+            boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
+            border: '1px solid rgba(255,255,255,0.6)',
+            display: 'flex', gap: 2,
           }}>
             {(['map', 'list'] as const).map(mode => (
               <button
                 key={mode}
                 onClick={() => { if (mode === 'map') setClusterIds(null); setViewMode(mode) }}
                 style={{
-                  padding: '4px 12px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                  padding: '5px 14px', borderRadius: 999, border: 'none', cursor: 'pointer',
                   fontSize: 12, fontWeight: 700,
-                  background: viewMode === mode ? tok.accentColor : 'transparent',
-                  color: viewMode === mode ? '#fff' : tok.textTertiary,
+                  background: viewMode === mode ? '#0f172a' : 'transparent',
+                  color: viewMode === mode ? '#fff' : '#64748b',
                   transition: 'all .15s', whiteSpace: 'nowrap',
                 }}
               >
@@ -312,10 +315,14 @@ export default function RoomsPage() {
           </div>
 
           <Link href="/rooms/liked" style={{
-            fontSize: 12, color: tok.textSecondary, fontWeight: 700, textDecoration: 'none',
-            display: 'flex', alignItems: 'center', gap: 3, whiteSpace: 'nowrap',
+            background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(10px)',
+            borderRadius: 999, padding: '8px 14px',
+            fontSize: 12, fontWeight: 700, color: '#374151', textDecoration: 'none',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
+            border: '1px solid rgba(255,255,255,0.6)',
+            display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap',
           }}>
-            <IconHeart size={13} color={tok.textTertiary} /> 찜
+            <IconHeart size={13} color="#94a3b8" /> 찜
           </Link>
         </div>
 
