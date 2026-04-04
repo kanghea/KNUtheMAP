@@ -83,8 +83,8 @@ const TOKENS = {
 
 // ── 세입자 스텝 ───────────────────────────────────────────────────────────────
 const TENANT_STEPS = [
+  { id: 'dept',     title: '학과가 어디예요?',                 sub: '학과 위치에 가까운 구역부터 보여드릴게요' },
   { id: 'grade',    title: '학번이 어떻게 되세요?',           sub: '맞춤 건물 정보를 보여드릴게요' },
-  { id: 'dept',     title: '학과는요?',                       sub: '학과 위치에 가까운 구역부터 보여드릴게요' },
   { id: 'priority', title: '방 구할 때 뭐가 제일 중요해요?',  sub: '중요한 순서대로 하나씩 탭해 주세요' },
   { id: 'gate',     title: '학교 올 때 주로 어느 문 쓰세요?', sub: '가장 가까운 건물부터 순위를 매겨드릴게요' },
 ]
@@ -243,7 +243,7 @@ export default function OnboardingClient() {
   }
 
   // ── 세입자 온보딩 스텝 ────────────────────────────────────────────────────
-  const canNext  = step === 1 ? !!dept : true
+  const canNext  = step === 0 ? !!dept : true
   const progress = ((step + 1) / TENANT_STEPS.length) * 100
 
   return (
@@ -257,8 +257,8 @@ export default function OnboardingClient() {
       dots={{ total: TENANT_STEPS.length, current: step }}
       onSkip={handleSkip}
     >
-      {step === 0 && <StepGrade      selected={grade || null}  onSelect={setGrade} tok={tok} />}
-      {step === 1 && <StepDepartment selected={dept  || null}  onSelect={setDept} tok={tok} />}
+      {step === 0 && <StepDepartment selected={dept  || null}  onSelect={setDept} tok={tok} />}
+      {step === 1 && <StepGrade      selected={grade || null}  onSelect={setGrade} tok={tok} />}
       {step === 2 && <StepPriority   value={priorities}        onChange={setPriorities} tok={tok} />}
       {step === 3 && <StepGate       value={gate}              onChange={setGate} dept={dept || null} tok={tok} />}
       <BottomBar
