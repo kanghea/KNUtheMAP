@@ -8,16 +8,18 @@ export interface RoommateProfile {
   dormitory: string | null
 
   // 섹션 2: 수면 패턴
-  bedtime: string
-  wakeup_time: string
+  bedtime_start: string
+  bedtime_end: string
+  wakeup_start: string
+  wakeup_end: string
   sleep_habits: string[]
   light_sleep: number
   sleep_light: string
 
   // 섹션 3: 위생·청결
   shower_duration: string
-  shower_time: string
-  hair_wash_time: string
+  shower_time: string[]
+  hair_wash_time: string[]
   cleaning_freq: string
   cleanliness: number
 
@@ -209,6 +211,15 @@ export const MBTI_LETTERS = [
   ['T', 'F'],
   ['J', 'P'],
 ] as const
+
+// 4단계 척도 카드 레이블
+export const SCALE_LABELS = {
+  light_sleep: ['깊은 잠', '보통', '약간 예민', '매우 예민'],
+  cleanliness: ['느긋', '보통', '깔끔', '완벽주의'],
+  cold_sensitivity: ['안 추워함', '약간', '추워함', '많이 탐'],
+  heat_sensitivity: ['안 더워함', '약간', '더워함', '많이 탐'],
+  relationship: ['학교 사람', '아는 사이', '친한 사이', '절친'],
+} as const
 
 // 스와이프 비교 쌍
 export const SWIPE_PAIRS = [
