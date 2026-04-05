@@ -16,7 +16,8 @@ interface MatchResult {
   living_type: string
   dormitory: string | null
   student_id: number
-  bedtime: string
+  bedtime_start: string
+  bedtime_end: string
   smoking: string
   cleanliness: number
   introduction: string | null
@@ -323,7 +324,7 @@ function MatchCard({ match, tok }: {
 
           {/* 태그 */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            <InfoTag label={`취침 ${match.bedtime}`} tok={tok} />
+            <InfoTag label={`취침 ${match.bedtime_start}${match.bedtime_start !== match.bedtime_end ? `~${match.bedtime_end}` : ''}`} tok={tok} />
             <InfoTag label={match.smoking === 'smoker' ? '흡연' : '비흡연'} tok={tok}
               highlight={match.smoking === 'smoker'} />
             <InfoTag label={`청결 ${cleanlinessLabel}`} tok={tok} />

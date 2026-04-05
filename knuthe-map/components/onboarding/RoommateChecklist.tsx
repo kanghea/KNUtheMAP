@@ -1,7 +1,7 @@
 'use client'
 
-import { type RoommateProfile, DORMITORIES, BIRTH_YEARS, STUDENT_IDS, BEDTIMES, WAKEUP_TIMES, SLEEP_HABITS_OPTIONS, SLEEP_LIGHT_OPTIONS, SHOWER_DURATIONS, TIME_OF_DAY, CLEANING_FREQ_OPTIONS, PERFUME_OPTIONS, SCENT_OPTIONS, SOUND_OPTIONS, SMOKING_OPTIONS, DRINKING_FREQ_OPTIONS, DRINKING_AMOUNT_OPTIONS, FREQUENCY_OPTIONS, INDOOR_CALL_OPTIONS, INDOOR_EATING_OPTIONS, BUG_OPTIONS, SHARING_OPTIONS, GUEST_OPTIONS, ALARM_USAGE_OPTIONS, ALARM_FREQ_OPTIONS, HOMETOWN_FREQ_OPTIONS, STUDY_PLACE_OPTIONS, WANTS_TO_LEAVE_OPTIONS, MBTI_LETTERS } from '@/lib/roommate-constants'
-import { useState } from 'react'
+import { type RoommateProfile, DORMITORIES, BIRTH_YEARS, STUDENT_IDS, BEDTIMES, WAKEUP_TIMES, SLEEP_HABITS_OPTIONS, SLEEP_LIGHT_OPTIONS, SHOWER_DURATIONS, TIME_OF_DAY, CLEANING_FREQ_OPTIONS, PERFUME_OPTIONS, SCENT_OPTIONS, SOUND_OPTIONS, SMOKING_OPTIONS, DRINKING_FREQ_OPTIONS, DRINKING_AMOUNT_OPTIONS, FREQUENCY_OPTIONS, INDOOR_CALL_OPTIONS, INDOOR_EATING_OPTIONS, BUG_OPTIONS, SHARING_OPTIONS, GUEST_OPTIONS, ALARM_USAGE_OPTIONS, ALARM_FREQ_OPTIONS, HOMETOWN_FREQ_OPTIONS, STUDY_PLACE_OPTIONS, WANTS_TO_LEAVE_OPTIONS, MBTI_LETTERS, SCALE_LABELS } from '@/lib/roommate-constants'
+import { useState, useRef, useEffect, useCallback } from 'react'
 
 interface Tok {
   bg: string; surface: string; textPrimary: string; textSecondary: string; textTertiary: string
@@ -57,28 +57,365 @@ function ChipGroup({ options, value, onChange, tok, multi = false }: {
   )
 }
 
-function SliderInput({ value, onChange, tok, min = 1, max = 4, labels }: {
-  value: number; onChange: (v: number) => void; tok: Tok
-  min?: number; max?: number; labels?: string[]
+// ── SVG 아이콘 ──
+
+function IconMoon({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+}
+function IconMoonHalf({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a9 9 0 1 0 0 18V3z"/><circle cx="12" cy="12" r="9"/></svg>
+}
+function IconEar({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6.5-6 10.5"/><path d="M15 8.5a2.5 2.5 0 0 0-5 0v1a2 2 0 0 0 4 0"/></svg>
+}
+function IconEarAlert({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6.5-6 10.5"/><path d="M15 8.5a2.5 2.5 0 0 0-5 0v1a2 2 0 0 0 4 0"/><line x1="1" y1="2" x2="1" y2="6"/><line x1="1" y1="9" x2="1" y2="9.01"/></svg>
+}
+function IconLeaf({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.8 10-10 10Z"/><path d="M2 21c0-3 1.9-5.5 4.5-6.5"/></svg>
+}
+function IconHome({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+}
+function IconSparkle({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+}
+function IconSparkles({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/><path d="M19 2v4"/><path d="M21 4h-4"/></svg>
+}
+function IconSun({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+}
+function IconCloud({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+}
+function IconSnowflake({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/></svg>
+}
+function IconThermometer({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></svg>
+}
+function IconFlame({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14 0-5.5 3-7 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.5-2.5 1.5-3.5z"/></svg>
+}
+function IconCloudSun({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.95 5.63a5 5 0 0 0-8.02 5.41"/><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+}
+function IconUser({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+}
+function IconUsers({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+}
+function IconHandshake({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3L14 8l-2-2-3.5 1L2 12.5"/><path d="m16 16 3 3a1 1 0 1 0 3-3l-5-5"/><path d="M8.5 4.5 4 2l-1.5 3.5"/><path d="M22 12.5l-5.5-5-3.5-1-2 2"/></svg>
+}
+function IconHeart({ size = 20 }: { size?: number }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+}
+
+const SCALE_ICONS: Record<string, React.ReactNode[]> = {
+  light_sleep:      [<IconMoon key={0} />, <IconMoonHalf key={1} />, <IconEar key={2} />, <IconEarAlert key={3} />],
+  cleanliness:      [<IconLeaf key={0} />, <IconHome key={1} />, <IconSparkle key={2} />, <IconSparkles key={3} />],
+  cold_sensitivity: [<IconSun key={0} />, <IconCloud key={1} />, <IconSnowflake key={2} />, <IconSnowflake key={3} />],
+  heat_sensitivity: [<IconSnowflake key={0} />, <IconCloudSun key={1} />, <IconThermometer key={2} />, <IconFlame key={3} />],
+  relationship:     [<IconUser key={0} />, <IconUsers key={1} />, <IconHandshake key={2} />, <IconHeart key={3} />],
+}
+
+// ── ScaleCardGroup (SliderInput 대체) ──
+
+function ScaleCardGroup({ scaleKey, value, onChange, tok }: {
+  scaleKey: keyof typeof SCALE_LABELS
+  value: number
+  onChange: (v: number) => void
+  tok: Tok
+}) {
+  const labels = SCALE_LABELS[scaleKey]
+  const icons = SCALE_ICONS[scaleKey]
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+      {[1, 2, 3, 4].map((v) => {
+        const selected = value === v
+        return (
+          <button key={v} onClick={() => onChange(v)} style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            gap: 6, padding: '10px 4px', minHeight: 44, borderRadius: 14,
+            border: `1.5px solid ${selected ? tok.cardActiveBorder : tok.cardBorder}`,
+            background: selected ? tok.cardActiveBg : tok.cardBg,
+            color: selected ? tok.accent : tok.textPrimary,
+            boxShadow: selected ? tok.cardActiveGlow : 'none',
+            cursor: 'pointer',
+            transition: 'all .2s ease',
+          }}>
+            <span style={{ display: 'flex', alignItems: 'center', height: 22 }}>{icons[v - 1]}</span>
+            <span style={{ fontSize: 11, fontWeight: 600, lineHeight: 1.2, textAlign: 'center' }}>{labels[v - 1]}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// ── TimeRangeSelector (수면 시간 범위) ──
+
+const BEDTIME_IDX: Record<string, number> = { '9시': 0, '10시': 1, '11시': 2, '12시': 3, '1시': 4, '2시': 5, '3시': 6, '4시': 7, '그 이후': 8 }
+const WAKEUP_IDX: Record<string, number> = { '4시': 0, '5시': 1, '6시': 2, '7시': 3, '8시': 4, '9시': 5, '10시': 6, '11시': 7, '그 이후': 8 }
+
+function TimeRangeSelector({ options, startValue, endValue, onChangeStart, onChangeEnd, tok }: {
+  options: readonly string[]
+  startValue: string | null
+  endValue: string | null
+  onChangeStart: (v: string) => void
+  onChangeEnd: (v: string) => void
+  tok: Tok
+}) {
+  const [tab, setTab] = useState<'start' | 'end'>('start')
+  const startIdx = startValue ? options.indexOf(startValue) : -1
+  const endIdx = endValue ? options.indexOf(endValue) : -1
+
+  return (
+    <div>
+      {/* 탭 */}
+      <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+        {(['start', 'end'] as const).map(t => (
+          <button key={t} onClick={() => setTab(t)} style={{
+            flex: 1, padding: '7px 0', borderRadius: 10, fontSize: 12, fontWeight: 600,
+            border: `1.5px solid ${tab === t ? tok.cardActiveBorder : tok.cardBorder}`,
+            background: tab === t ? tok.cardActiveBg : tok.cardBg,
+            color: tab === t ? tok.accent : tok.textSecondary,
+            cursor: 'pointer', transition: 'all .2s ease',
+          }}>
+            {t === 'start' ? '시작' : '끝'}
+          </button>
+        ))}
+      </div>
+
+      {/* 시간 칩 — 범위 강조 */}
+      <div style={{ display: 'flex', gap: 0, overflowX: 'auto', paddingBottom: 4 }}>
+        {options.map((opt, i) => {
+          const inRange = startIdx >= 0 && endIdx >= 0 && i >= startIdx && i <= endIdx
+          const isStart = i === startIdx && startIdx <= endIdx
+          const isEnd = i === endIdx && startIdx <= endIdx
+
+          const borderRadiusVal =
+            isStart && isEnd ? '12px' :
+            isStart ? '12px 0 0 12px' :
+            isEnd ? '0 12px 12px 0' :
+            inRange ? '0' : '12px'
+
+          return (
+            <button key={opt} onClick={() => {
+              if (tab === 'start') {
+                onChangeStart(opt)
+                if (!endValue || options.indexOf(opt) > endIdx) onChangeEnd(opt)
+                setTab('end')
+              } else {
+                if (startIdx >= 0 && i < startIdx) return
+                onChangeEnd(opt)
+              }
+            }} style={{
+              padding: '8px 12px', fontSize: 13, fontWeight: 600,
+              whiteSpace: 'nowrap', flexShrink: 0, minHeight: 44,
+              borderRadius: borderRadiusVal,
+              border: inRange ? `1.5px solid ${tok.cardActiveBorder}` : `1.5px solid ${tok.cardBorder}`,
+              borderRight: inRange && !isEnd ? 'none' : undefined,
+              borderLeft: inRange && !isStart ? 'none' : undefined,
+              background: inRange ? tok.cardActiveBg : tok.cardBg,
+              color: inRange ? tok.accent : tok.textPrimary,
+              cursor: 'pointer', transition: 'all .2s ease',
+              marginRight: inRange && !isEnd ? 0 : 0,
+            }}>
+              {opt}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* 선택 결과 텍스트 */}
+      {startValue && endValue && (
+        <p style={{ fontSize: 12, color: tok.accent, fontWeight: 600, marginTop: 8, transition: 'color .2s ease' }}>
+          {startValue === endValue ? startValue : `${startValue} ~ ${endValue}`}
+        </p>
+      )}
+    </div>
+  )
+}
+
+// ── 예상 수면 시간 계산 ──
+
+function SleepDurationDisplay({ profile, tok }: { profile: Partial<RoommateProfile>; tok: Tok }) {
+  const bs = profile.bedtime_start
+  const be = profile.bedtime_end
+  const ws = profile.wakeup_start
+  const we = profile.wakeup_end
+  if (!bs || !be || !ws || !we) return null
+
+  const bedMid = ((BEDTIME_IDX[bs] ?? 0) + (BEDTIME_IDX[be] ?? 0)) / 2
+  const wakeMid = ((WAKEUP_IDX[ws] ?? 0) + (WAKEUP_IDX[we] ?? 0)) / 2
+
+  // 취침은 21시(9시)부터, 기상은 4시부터 — 절대 시간 계산
+  const bedHour = 21 + bedMid   // 21, 22, 23, 24, 25, 26, 27, 28, 29
+  const wakeHour = 4 + wakeMid  // 4, 5, 6, 7, 8, 9, 10, 11, 12
+  let diff = wakeHour - (bedHour - 24) // 24시간 보정
+  if (diff < 0) diff += 24
+
+  const h = Math.floor(diff)
+  const m = Math.round((diff - h) * 60)
+
+  return (
+    <div style={{
+      padding: '10px 14px', borderRadius: 12, marginTop: 8,
+      background: tok.cardActiveBg, border: `1px solid ${tok.cardActiveBorder}`,
+      transition: 'all .3s ease',
+    }}>
+      <p style={{ fontSize: 12, fontWeight: 600, color: tok.accent, margin: 0 }}>
+        <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: -2, marginRight: 4 }}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        {`예상 수면 시간: 약 ${h}시간${m > 0 ? ` ${m}분` : ''}`}
+      </p>
+    </div>
+  )
+}
+
+// ── BirthYearPicker (스크롤 피커) ──
+
+const PICKER_ITEM_H = 44
+const PICKER_VISIBLE = 5
+const PICKER_PAD = Math.floor(PICKER_VISIBLE / 2) * PICKER_ITEM_H
+
+function BirthYearPicker({ value, onChange, tok }: {
+  value: number | null
+  onChange: (v: number) => void
+  tok: Tok
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const touching = useRef(false)
+  const snapTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const idx = value ? BIRTH_YEARS.indexOf(value) : Math.floor(BIRTH_YEARS.length / 2)
+
+  const scrollTo = useCallback((i: number, smooth: boolean) => {
+    scrollRef.current?.scrollTo({ top: i * PICKER_ITEM_H, behavior: smooth ? 'smooth' : 'instant' as ScrollBehavior })
+  }, [])
+
+  useEffect(() => { scrollTo(idx >= 0 ? idx : Math.floor(BIRTH_YEARS.length / 2), false) }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!touching.current && idx >= 0) scrollTo(idx, true)
+  }, [idx, scrollTo])
+
+  const handleScroll = useCallback(() => {
+    if (snapTimer.current) clearTimeout(snapTimer.current)
+    snapTimer.current = setTimeout(() => {
+      const el = scrollRef.current
+      if (!el) return
+      const i = Math.max(0, Math.min(BIRTH_YEARS.length - 1, Math.round(el.scrollTop / PICKER_ITEM_H)))
+      scrollTo(i, true)
+      onChange(BIRTH_YEARS[i])
+      touching.current = false
+    }, 80)
+  }, [scrollTo, onChange])
+
+  return (
+    <div>
+      {/* 선택값 표시 */}
+      <p style={{
+        fontSize: 28, fontWeight: 700, textAlign: 'center', margin: '0 0 12px',
+        color: tok.accent, transition: 'color .2s ease',
+      }}>
+        {value ? `${value}년생` : '-'}
+      </p>
+
+      {/* 드럼 피커 */}
+      <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', background: tok.cardBg }}>
+        {/* 선택 구역 하이라이트 */}
+        <div style={{
+          position: 'absolute', top: PICKER_PAD, left: 0, right: 0, height: PICKER_ITEM_H,
+          background: tok.cardActiveBg,
+          borderTop: `1.5px solid ${tok.cardActiveBorder}`,
+          borderBottom: `1.5px solid ${tok.cardActiveBorder}`,
+          pointerEvents: 'none', zIndex: 2,
+        }} />
+        {/* 위쪽 페이드 */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: PICKER_PAD,
+          background: `linear-gradient(to bottom, ${tok.cardBg} 40%, transparent)`,
+          pointerEvents: 'none', zIndex: 2,
+        }} />
+        {/* 아래쪽 페이드 */}
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0, height: PICKER_PAD,
+          background: `linear-gradient(to top, ${tok.cardBg} 40%, transparent)`,
+          pointerEvents: 'none', zIndex: 2,
+        }} />
+        {/* 스크롤 영역 */}
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          onTouchStart={() => { touching.current = true }}
+          style={{
+            height: PICKER_ITEM_H * PICKER_VISIBLE,
+            overflowY: 'scroll',
+            scrollSnapType: 'y mandatory',
+            WebkitOverflowScrolling: 'touch',
+          } as React.CSSProperties}
+        >
+          <div style={{ height: PICKER_PAD, flexShrink: 0 }} />
+          {BIRTH_YEARS.map((yr, i) => (
+            <div
+              key={yr}
+              onClick={() => { scrollTo(i, true); onChange(yr) }}
+              style={{
+                height: PICKER_ITEM_H,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 15,
+                fontWeight: i === idx ? 700 : 400,
+                color: i === idx ? tok.accent : tok.textTertiary,
+                scrollSnapAlign: 'center',
+                cursor: 'pointer', userSelect: 'none',
+                transition: 'color .15s, font-weight .15s',
+              }}
+            >
+              {yr}년생
+            </div>
+          ))}
+          <div style={{ height: PICKER_PAD, flexShrink: 0 }} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── MultiChipGroup (샤워/머리 복수 선택 — 최소 1개 보장) ──
+
+function MultiChipGroup({ options, value, onChange, tok }: {
+  options: readonly { value: string; label: string }[]
+  value: string[]
+  onChange: (v: string[]) => void
+  tok: Tok
 }) {
   return (
-    <div style={{ width: '100%' }}>
-      <input
-        type="range" min={min} max={max} step={1} value={value}
-        onChange={e => onChange(parseInt(e.target.value))}
-        style={{ width: '100%', accentColor: tok.accent }}
-      />
-      {labels && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-          {labels.map((l, i) => (
-            <span key={i} style={{
-              fontSize: 11, color: value === i + min ? tok.accent : tok.textTertiary,
-              fontWeight: value === i + min ? 700 : 400,
-              transition: 'color .2s ease',
-            }}>{l}</span>
-          ))}
-        </div>
-      )}
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+      {options.map((opt) => {
+        const selected = value.includes(opt.value)
+        return (
+          <button key={opt.value} onClick={() => {
+            if (selected) {
+              const next = value.filter(x => x !== opt.value)
+              if (next.length === 0) return // 최소 1개 유지
+              onChange(next)
+            } else {
+              onChange([...value, opt.value])
+            }
+          }} style={{
+            padding: '8px 16px', borderRadius: 12, fontSize: 13, fontWeight: 600, minHeight: 44,
+            border: `1.5px solid ${selected ? tok.cardActiveBorder : tok.cardBorder}`,
+            background: selected ? tok.cardActiveBg : tok.cardBg,
+            color: selected ? tok.accent : tok.textPrimary,
+            cursor: 'pointer', transition: 'all .2s ease',
+          }}>
+            {opt.label}
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -139,8 +476,8 @@ export default function RoommateChecklist({ section, profile, onChange, tok }: P
     return (
       <div>
         <FieldGroup tok={tok}>
-          <FieldLabel text="생년" tok={tok} />
-          <ScrollChips options={BIRTH_YEARS} value={profile.birth_year ?? null} onChange={v => onChange({ birth_year: parseInt(v) })} tok={tok} />
+          <FieldLabel text="몇 년생이에요?" tok={tok} />
+          <BirthYearPicker value={profile.birth_year ?? null} onChange={v => onChange({ birth_year: v })} tok={tok} />
         </FieldGroup>
 
         <FieldGroup tok={tok}>
@@ -173,13 +510,29 @@ export default function RoommateChecklist({ section, profile, onChange, tok }: P
       <div>
         <FieldGroup tok={tok}>
           <FieldLabel text="취침 시간" tok={tok} />
-          <ScrollChips options={BEDTIMES} value={profile.bedtime ?? null} onChange={v => onChange({ bedtime: v })} tok={tok} />
+          <TimeRangeSelector
+            options={BEDTIMES}
+            startValue={profile.bedtime_start ?? null}
+            endValue={profile.bedtime_end ?? null}
+            onChangeStart={v => onChange({ bedtime_start: v })}
+            onChangeEnd={v => onChange({ bedtime_end: v })}
+            tok={tok}
+          />
         </FieldGroup>
 
         <FieldGroup tok={tok}>
           <FieldLabel text="기상 시간" tok={tok} />
-          <ScrollChips options={WAKEUP_TIMES} value={profile.wakeup_time ?? null} onChange={v => onChange({ wakeup_time: v })} tok={tok} />
+          <TimeRangeSelector
+            options={WAKEUP_TIMES}
+            startValue={profile.wakeup_start ?? null}
+            endValue={profile.wakeup_end ?? null}
+            onChangeStart={v => onChange({ wakeup_start: v })}
+            onChangeEnd={v => onChange({ wakeup_end: v })}
+            tok={tok}
+          />
         </FieldGroup>
+
+        <SleepDurationDisplay profile={profile} tok={tok} />
 
         <FieldGroup tok={tok}>
           <FieldLabel text="잠버릇 (복수 선택)" tok={tok} />
@@ -189,8 +542,7 @@ export default function RoommateChecklist({ section, profile, onChange, tok }: P
 
         <FieldGroup tok={tok}>
           <FieldLabel text="잠귀" tok={tok} />
-          <SliderInput value={profile.light_sleep ?? 2} onChange={v => onChange({ light_sleep: v })} tok={tok}
-            labels={['어두움', '', '', '밝음']} />
+          <ScaleCardGroup scaleKey="light_sleep" value={profile.light_sleep ?? 2} onChange={v => onChange({ light_sleep: v })} tok={tok} />
         </FieldGroup>
 
         <FieldGroup tok={tok}>
@@ -211,13 +563,13 @@ export default function RoommateChecklist({ section, profile, onChange, tok }: P
         </FieldGroup>
 
         <FieldGroup tok={tok}>
-          <FieldLabel text="샤워 시간대" tok={tok} />
-          <ChipGroup options={[...TIME_OF_DAY]} value={profile.shower_time ?? ''} onChange={v => onChange({ shower_time: v as string })} tok={tok} />
+          <FieldLabel text="샤워 시간대 (복수 선택)" tok={tok} />
+          <MultiChipGroup options={[...TIME_OF_DAY]} value={profile.shower_time ?? []} onChange={v => onChange({ shower_time: v })} tok={tok} />
         </FieldGroup>
 
         <FieldGroup tok={tok}>
-          <FieldLabel text="머리 감는 시간대" tok={tok} />
-          <ChipGroup options={[...TIME_OF_DAY]} value={profile.hair_wash_time ?? ''} onChange={v => onChange({ hair_wash_time: v as string })} tok={tok} />
+          <FieldLabel text="머리 감는 시간대 (복수 선택)" tok={tok} />
+          <MultiChipGroup options={[...TIME_OF_DAY]} value={profile.hair_wash_time ?? []} onChange={v => onChange({ hair_wash_time: v })} tok={tok} />
         </FieldGroup>
 
         <FieldGroup tok={tok}>
@@ -227,8 +579,7 @@ export default function RoommateChecklist({ section, profile, onChange, tok }: P
 
         <FieldGroup tok={tok}>
           <FieldLabel text="청결 수준" tok={tok} />
-          <SliderInput value={profile.cleanliness ?? 2} onChange={v => onChange({ cleanliness: v })} tok={tok}
-            labels={['더러움', '', '', '깨끗함']} />
+          <ScaleCardGroup scaleKey="cleanliness" value={profile.cleanliness ?? 2} onChange={v => onChange({ cleanliness: v })} tok={tok} />
         </FieldGroup>
       </div>
     )
@@ -240,14 +591,12 @@ export default function RoommateChecklist({ section, profile, onChange, tok }: P
       <div>
         <FieldGroup tok={tok}>
           <FieldLabel text="추위를 타는 정도" tok={tok} />
-          <SliderInput value={profile.cold_sensitivity ?? 2} onChange={v => onChange({ cold_sensitivity: v })} tok={tok}
-            labels={['적게 탐', '', '', '많이 탐']} />
+          <ScaleCardGroup scaleKey="cold_sensitivity" value={profile.cold_sensitivity ?? 2} onChange={v => onChange({ cold_sensitivity: v })} tok={tok} />
         </FieldGroup>
 
         <FieldGroup tok={tok}>
           <FieldLabel text="더위를 타는 정도" tok={tok} />
-          <SliderInput value={profile.heat_sensitivity ?? 2} onChange={v => onChange({ heat_sensitivity: v })} tok={tok}
-            labels={['적게 탐', '', '', '많이 탐']} />
+          <ScaleCardGroup scaleKey="heat_sensitivity" value={profile.heat_sensitivity ?? 2} onChange={v => onChange({ heat_sensitivity: v })} tok={tok} />
         </FieldGroup>
 
         <FieldGroup tok={tok}>
@@ -331,8 +680,7 @@ export default function RoommateChecklist({ section, profile, onChange, tok }: P
 
         <FieldGroup tok={tok}>
           <FieldLabel text="룸메와의 관계" tok={tok} />
-          <SliderInput value={profile.relationship ?? 2} onChange={v => onChange({ relationship: v })} tok={tok}
-            labels={['학교 사람', '', '', '절친']} />
+          <ScaleCardGroup scaleKey="relationship" value={profile.relationship ?? 2} onChange={v => onChange({ relationship: v })} tok={tok} />
         </FieldGroup>
 
         <FieldGroup tok={tok}>
@@ -441,10 +789,11 @@ export function isSectionComplete(section: number, profile: Partial<RoommateProf
       return !!(profile.birth_year && profile.student_id && profile.living_type &&
         (profile.living_type !== 'dormitory' || profile.dormitory))
     case 1:
-      return !!(profile.bedtime && profile.wakeup_time && profile.sleep_habits?.length &&
+      return !!(profile.bedtime_start && profile.bedtime_end &&
+        profile.wakeup_start && profile.wakeup_end && profile.sleep_habits?.length &&
         profile.light_sleep && profile.sleep_light)
     case 2:
-      return !!(profile.shower_duration && profile.shower_time && profile.hair_wash_time &&
+      return !!(profile.shower_duration && profile.shower_time?.length && profile.hair_wash_time?.length &&
         profile.cleaning_freq && profile.cleanliness)
     case 3:
       return !!(profile.cold_sensitivity && profile.heat_sensitivity &&
