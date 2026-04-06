@@ -156,87 +156,140 @@ function ScaleCardGroup({ scaleKey, value, onChange, tok }: {
   )
 }
 
-// ── TimeRangeSelector (수면 시간 범위) ──
+// ── TimeRangeSelector (수면 시간 범위 — 순차 탭) ──
 
 const BEDTIME_IDX: Record<string, number> = { '9시': 0, '10시': 1, '11시': 2, '12시': 3, '1시': 4, '2시': 5, '3시': 6, '4시': 7, '그 이후': 8 }
 const WAKEUP_IDX: Record<string, number> = { '4시': 0, '5시': 1, '6시': 2, '7시': 3, '8시': 4, '9시': 5, '10시': 6, '11시': 7, '그 이후': 8 }
 
-function TimeRangeSelector({ options, startValue, endValue, onChangeStart, onChangeEnd, tok }: {
+type TimePhase = 'idle' | 'picking_end' | 'complete'
+
+function TimeRangeSelector({ options, startValue, endValue, onChangeStart, onChangeEnd, tok, tint }: {
   options: readonly string[]
   startValue: string | null
   endValue: string | null
   onChangeStart: (v: string) => void
   onChangeEnd: (v: string) => void
   tok: Tok
+  tint?: { accent: string; activeBg: string; activeBorder: string; glow: string }
 }) {
-  const [tab, setTab] = useState<'start' | 'end'>('start')
+  const accent = tint?.accent ?? tok.accent
+  const activeBg = tint?.activeBg ?? tok.cardActiveBg
+  const activeBorder = tint?.activeBorder ?? tok.cardActiveBorder
+
   const startIdx = startValue ? options.indexOf(startValue) : -1
   const endIdx = endValue ? options.indexOf(endValue) : -1
 
+  // 현재 단계 판별
+  const phase: TimePhase =
+    startIdx < 0 ? 'idle' :
+    endIdx < 0 ? 'picking_end' :
+    'complete'
+
+  const handleTap = (i: number, opt: string) => {
+    if (phase === 'idle') {
+      // 첫 탭 → 시작 설정
+      onChangeStart(opt)
+      onChangeEnd('')
+    } else if (phase === 'picking_end') {
+      if (i === startIdx) {
+        // 같은 타일 다시 탭 → 선택 해제
+        onChangeStart('')
+        onChangeEnd('')
+      } else if (i > startIdx) {
+        // 시작 이후 타일 → 끝 설정
+        onChangeEnd(opt)
+      } else {
+        // 시작 이전 타일 → 시작을 재설정
+        onChangeStart(opt)
+        onChangeEnd('')
+      }
+    } else {
+      // complete 상태
+      const inRange = i >= startIdx && i <= endIdx
+      if (inRange) {
+        // 범위 내 타일 탭 → 전체 해제
+        onChangeStart('')
+        onChangeEnd('')
+      } else {
+        // 범위 밖 → 새로운 시작으로 재설정
+        onChangeStart(opt)
+        onChangeEnd('')
+      }
+    }
+  }
+
+  // 단계 안내 텍스트
+  const phaseText =
+    phase === 'idle' ? '시작 시간을 선택하세요' :
+    phase === 'picking_end' ? '끝 시간을 선택하세요' :
+    startValue === endValue ? startValue! : `${startValue} ~ ${endValue}`
+
+  const phaseIcon =
+    phase === 'idle' ? '○' :
+    phase === 'picking_end' ? '◐' : '●'
+
   return (
     <div>
-      {/* 탭 */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
-        {(['start', 'end'] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{
-            flex: 1, padding: '7px 0', borderRadius: 10, fontSize: 12, fontWeight: 600,
-            border: `1.5px solid ${tab === t ? tok.cardActiveBorder : tok.cardBorder}`,
-            background: tab === t ? tok.cardActiveBg : tok.cardBg,
-            color: tab === t ? tok.accent : tok.textSecondary,
-            cursor: 'pointer', transition: 'all .2s ease',
-          }}>
-            {t === 'start' ? '시작' : '끝'}
-          </button>
-        ))}
+      {/* 단계 표시 */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 6,
+        marginBottom: 10, padding: '6px 10px',
+        borderRadius: 8,
+        background: phase === 'complete' ? activeBg : 'transparent',
+        transition: 'all .3s ease',
+      }}>
+        <span style={{
+          fontSize: 10, lineHeight: 1, color: phase === 'complete' ? accent : tok.textTertiary,
+          transition: 'color .3s ease',
+        }}>
+          {phaseIcon}
+        </span>
+        <span style={{
+          fontSize: 12, fontWeight: 600,
+          color: phase === 'complete' ? accent : tok.textSecondary,
+          transition: 'color .3s ease',
+        }}>
+          {phaseText}
+        </span>
       </div>
 
-      {/* 시간 칩 — 범위 강조 */}
+      {/* 시간 타일 — 가로 나열 */}
       <div style={{ display: 'flex', gap: 0, overflowX: 'auto', paddingBottom: 4 }}>
         {options.map((opt, i) => {
-          const inRange = startIdx >= 0 && endIdx >= 0 && i >= startIdx && i <= endIdx
-          const isStart = i === startIdx && startIdx <= endIdx
-          const isEnd = i === endIdx && startIdx <= endIdx
+          const hasRange = startIdx >= 0 && endIdx >= 0 && startIdx !== endIdx
+          const inRange = hasRange && i >= startIdx && i <= endIdx
+          const isStart = hasRange && i === startIdx
+          const isEnd = hasRange && i === endIdx
+          const isSolo = i === startIdx && (phase === 'picking_end' || (phase === 'complete' && startIdx === endIdx))
+
+          const highlighted = inRange || isSolo
 
           const borderRadiusVal =
-            isStart && isEnd ? '12px' :
+            isSolo ? '12px' :
             isStart ? '12px 0 0 12px' :
             isEnd ? '0 12px 12px 0' :
             inRange ? '0' : '12px'
 
           return (
-            <button key={opt} onClick={() => {
-              if (tab === 'start') {
-                onChangeStart(opt)
-                if (!endValue || options.indexOf(opt) > endIdx) onChangeEnd(opt)
-                setTab('end')
-              } else {
-                if (startIdx >= 0 && i < startIdx) return
-                onChangeEnd(opt)
-              }
-            }} style={{
-              padding: '8px 12px', fontSize: 13, fontWeight: 600,
-              whiteSpace: 'nowrap', flexShrink: 0, minHeight: 44,
+            <button key={opt} onClick={() => handleTap(i, opt)} style={{
+              padding: '10px 14px', fontSize: 13, fontWeight: 600,
+              whiteSpace: 'nowrap', flexShrink: 0, minHeight: 48,
               borderRadius: borderRadiusVal,
-              border: inRange ? `1.5px solid ${tok.cardActiveBorder}` : `1.5px solid ${tok.cardBorder}`,
+              border: highlighted ? `1.5px solid ${activeBorder}` : `1.5px solid ${tok.cardBorder}`,
               borderRight: inRange && !isEnd ? 'none' : undefined,
               borderLeft: inRange && !isStart ? 'none' : undefined,
-              background: inRange ? tok.cardActiveBg : tok.cardBg,
-              color: inRange ? tok.accent : tok.textPrimary,
-              cursor: 'pointer', transition: 'all .2s ease',
-              marginRight: inRange && !isEnd ? 0 : 0,
+              background: highlighted ? activeBg : tok.cardBg,
+              color: highlighted ? accent : tok.textPrimary,
+              boxShadow: isSolo && phase === 'picking_end' ? `0 0 0 2px ${activeBorder}` : 'none',
+              cursor: 'pointer',
+              transition: 'all .25s ease',
+              transform: isSolo && phase === 'picking_end' ? 'scale(1.04)' : 'scale(1)',
             }}>
               {opt}
             </button>
           )
         })}
       </div>
-
-      {/* 선택 결과 텍스트 */}
-      {startValue && endValue && (
-        <p style={{ fontSize: 12, color: tok.accent, fontWeight: 600, marginTop: 8, transition: 'color .2s ease' }}>
-          {startValue === endValue ? startValue : `${startValue} ~ ${endValue}`}
-        </p>
-      )}
     </div>
   )
 }
@@ -506,17 +559,31 @@ export default function RoommateChecklist({ section, profile, onChange, tok }: P
 
   // 섹션 1: 수면 패턴
   if (section === 1) {
+    const bedtimeTint = {
+      accent: '#8b5cf6',
+      activeBg: 'rgba(139,92,246,0.12)',
+      activeBorder: 'rgba(139,92,246,0.4)',
+      glow: '0 0 12px rgba(139,92,246,0.15)',
+    }
+    const wakeupTint = {
+      accent: '#f59e0b',
+      activeBg: 'rgba(245,158,11,0.12)',
+      activeBorder: 'rgba(245,158,11,0.4)',
+      glow: '0 0 12px rgba(245,158,11,0.15)',
+    }
+
     return (
       <div>
         <FieldGroup tok={tok}>
           <FieldLabel text="취침 시간" tok={tok} />
           <TimeRangeSelector
             options={BEDTIMES}
-            startValue={profile.bedtime_start ?? null}
-            endValue={profile.bedtime_end ?? null}
-            onChangeStart={v => onChange({ bedtime_start: v })}
-            onChangeEnd={v => onChange({ bedtime_end: v })}
+            startValue={profile.bedtime_start || null}
+            endValue={profile.bedtime_end || null}
+            onChangeStart={v => onChange({ bedtime_start: v || undefined })}
+            onChangeEnd={v => onChange({ bedtime_end: v || undefined })}
             tok={tok}
+            tint={bedtimeTint}
           />
         </FieldGroup>
 
@@ -524,11 +591,12 @@ export default function RoommateChecklist({ section, profile, onChange, tok }: P
           <FieldLabel text="기상 시간" tok={tok} />
           <TimeRangeSelector
             options={WAKEUP_TIMES}
-            startValue={profile.wakeup_start ?? null}
-            endValue={profile.wakeup_end ?? null}
-            onChangeStart={v => onChange({ wakeup_start: v })}
-            onChangeEnd={v => onChange({ wakeup_end: v })}
+            startValue={profile.wakeup_start || null}
+            endValue={profile.wakeup_end || null}
+            onChangeStart={v => onChange({ wakeup_start: v || undefined })}
+            onChangeEnd={v => onChange({ wakeup_end: v || undefined })}
             tok={tok}
+            tint={wakeupTint}
           />
         </FieldGroup>
 
