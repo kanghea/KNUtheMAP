@@ -1,54 +1,61 @@
-# 지도 (Map)
+<!-- 트리거: Mapbox, GeoJSON, 레이어, 폴리곤, 마커, 3D, 지도, MapView -->
+# 지도 렌더링 (Map)
 
-## 개요
-Mapbox GL JS v3 기반 3D 건물 지도. GeoJSON 소스로 건물 폴리곤·마커 표시, 실시간 필터링.
+## 기술 스택
+
+- **Mapbox GL JS** (`mapbox-gl` v3) — 3D 빌딩, 커스텀 레이어, 클러스터링 지원
+- **Three.js** — 3D 효과 보조
 
 ## 핵심 파일
 
 | 파일 | 역할 |
 |---|---|
-| `lib/mapbox.ts` | Mapbox 토큰, 커스텀 스타일 URL, KNU_CENTER 좌표 [128.6076, 35.8892], MAP_DEFAULTS (zoom 15, pitch 45°) |
-| `components/map/MapView.tsx` | 메인 Mapbox GL 컴포넌트 — 지도 초기화, 건물 GeoJSON 소스, 게이트 레이어, 건물 클릭 핸들러, 구역 마커 |
-| `components/map/DynamicFilter.tsx` | 필터 매칭 로직 (월세 범위, 건물 연식, 엘리베이터, 교문 거리 등) |
-| `components/map/FilterBar.tsx` | 필터 UI 컴포넌트 |
-| `components/map/PrefsIsland.tsx` | 하단 내비게이션 아일랜드 (역할별 메뉴 + 테마 토글) |
-| `lib/filter-context.tsx` | 필터 상태 Context |
-| `lib/gate-utils.ts` | 교문 거리 계산 유틸 |
-| `lib/gates.ts` | 교문 좌표 데이터 |
-| `lib/zone-data.ts` | 구역 데이터 |
-| `lib/department-zones.ts` | 학과별 구역 매핑 |
-| `app/map/` | 지도 메인 페이지 |
+| `lib/mapbox.ts` | Mapbox 토큰, 스타일 URL, 초기 좌표, 기본값 |
+| `components/map/MapView.tsx` | Mapbox 메인 컴포넌트 |
+| `components/map/RoomsMapView.tsx` | 호실 기반 지도 뷰 |
+| `components/map/FilterBar.tsx` | 필터 바 UI |
+| `components/map/SearchAndFilter.tsx` | 검색 + 필터 통합 |
+| `components/map/DynamicFilter.tsx` | 동적 필터 |
+| `components/map/PrefsIsland.tsx` | 사용자 설정 아일랜드 (역할 기반 네비게이션 포함) |
+| `lib/filter-context.tsx` | 필터 상태 컨텍스트 |
+| `lib/gates.ts` / `lib/gate-utils.ts` | 경북대 교문 좌표·거리 계산 |
+| `lib/zone-data.ts` | 구역(zone) 데이터 |
+| `lib/score-buildings.ts` | 건물 점수 계산 |
+| `app/api/layers/route.ts` | 지도 레이어 API |
 
-## 데이터 흐름
+## 지도 기본값 (`lib/mapbox.ts`)
 
-```
-[Supabase] buildings 테이블
-    ↓ GET /api/buildings (1000건/페이지, 5분 캐시)
-[GeoJSON FeatureCollection]
-    ↓ MapView.tsx
-[Mapbox GL Source] → setData() on filter change
-    ↓
-[건물 폴리곤 + 마커 렌더링]
-    ↓ 클릭
-[건물 상세 카드 / 호실 목록]
+```typescript
+MAPBOX_TOKEN  // process.env.NEXT_PUBLIC_MAPBOX_TOKEN
+MAPBOX_STYLE  // 'mapbox://styles/kanghae/cmn4en33v00nc01skhcdsahel'
+KNU_CENTER    // [128.6076, 35.8892] — 경북대 북문 기준
+MAP_DEFAULTS  // { center, zoom: 15, pitch: 45, bearing: 0 }
 ```
 
-## 지도 설정
-- **중심 좌표**: [128.6076, 35.8892] (경북대학교)
-- **기본 줌**: 15
-- **기본 피치**: 45° (3D 뷰)
-- **커스텀 스타일**: Mapbox Studio 커스텀 스타일 사용
+## 레이어 시스템
 
-## 레이어 구조
-1. **건물 폴리곤**: footprint 데이터 기반 3D 빌딩
-2. **건물 마커**: footprint 없는 건물용 포인트 마커
-3. **게이트 레이어**: 교문 위치 (파란 원 + 라벨)
-4. **구역 마커**: 7개 구역 라벨
+`map_layers` 테이블에 경북대 실생활 레이어를 저장한다:
+- 교문 (동문, 북문, 쪽문 등)
+- 사잇길
+- 가로등
+- 기타 로컬 콘텐츠
 
-## 필터 시스템
-- 월세 범위
-- 방 종류
-- 건물 연식
-- 엘리베이터 유무
-- 교문까지 거리
-- 필터 변경 시 `source.setData()`로 GeoJSON 업데이트
+API: `GET /api/layers` → GeoJSON 형태로 반환
+
+## 교문 거리 계산
+
+`lib/gates.ts`에 교문 좌표가 정의되어 있고, `lib/gate-utils.ts`에서 건물과 교문 간 거리를 계산한다.
+
+## 흔한 실수
+
+- ❌ Mapbox 토큰을 하드코딩 → 토큰 노출·갱신 시 깨짐
+  ✅ `lib/mapbox.ts`의 `MAPBOX_TOKEN` 상수 사용
+
+- ❌ 지도 초기화 시 좌표를 직접 입력 → KNU_CENTER와 불일치
+  ✅ `MAP_DEFAULTS` 객체를 스프레드해서 사용
+
+- ❌ GeoJSON을 클라이언트에서 직접 생성 → DB 데이터와 불일치
+  ✅ `/api/layers` 또는 `/api/buildings` API를 통해 서버에서 생성
+
+- ❌ `map.remove()` 호출 누락 → 메모리 누수
+  ✅ `useEffect` cleanup에서 반드시 `map.remove()` 호출

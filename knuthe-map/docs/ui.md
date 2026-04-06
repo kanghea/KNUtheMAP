@@ -1,51 +1,66 @@
+<!-- 트리거: Tailwind, 테마 토큰, 컴포넌트 구조, 다크/라이트, ThemeTokens -->
 # UI·스타일링
 
-## 개요
-Tailwind CSS 4 + CSS 변수 기반 테마 시스템. 외부 컴포넌트 라이브러리 없이 전부 커스텀 구현.
+## 기술 스택
 
-## 핵심 파일
-
-| 파일 | 역할 |
-|---|---|
-| `app/globals.css` | Tailwind 4 (@import/@theme inline), 다크/라이트 CSS 변수, Mapbox 팝업 스타일, 애니메이션 |
-| `lib/theme-tokens.ts` | `ThemeTokens` 인터페이스 (pageBg, cardBg, textPrimary 등) + `THEME_TOKENS` 객체 (dark/light) |
-| `lib/prefs.ts` | `UserPrefs` 쿠키 구조 (theme: 'dark'\|'light'), 온보딩 우선순위 팩터 정의 |
-| `lib/factor-icons.tsx` | 온보딩 UI용 팩터 아이콘·라벨 정의 |
-| `components/shared/` | 공통 UI 컴포넌트 |
-| `app/layout.tsx` | 루트 레이아웃 — 테마 프로바이더 설정 |
-| `app/providers.tsx` | 클라이언트 프로바이더 래퍼 |
+- **Tailwind CSS 4** — PostCSS 플러그인 (`@tailwindcss/postcss`)
+- **테마 토큰** — `lib/theme-tokens.ts`의 `THEME_TOKENS` 객체 (다크/라이트 두 세트)
+- **폰트** — Geist Sans + Geist Mono (로컬 woff2, `public/fonts/`)
 
 ## 테마 시스템
 
-### CSS 변수 (globals.css)
-```css
-:root {
-  --background: ...;
-  --foreground: ...;
-}
-.dark {
-  --background: ...;
-  --foreground: ...;
-}
+`lib/theme-tokens.ts`에 `ThemeTokens` 인터페이스와 `THEME_TOKENS` 객체가 정의되어 있다.
+
+```typescript
+import { THEME_TOKENS, type ThemeMode } from '@/lib/theme-tokens'
+
+const tokens = THEME_TOKENS[mode]  // 'dark' | 'light'
+// tokens.pageBg, tokens.cardBg, tokens.textPrimary 등
 ```
 
-### JS 테마 토큰 (theme-tokens.ts)
-```ts
-THEME_TOKENS.dark.pageBg   // 다크 모드 배경색
-THEME_TOKENS.light.cardBg  // 라이트 모드 카드 배경색
+### 주요 토큰
+
+| 토큰 | 용도 |
+|---|---|
+| `pageBg` | 페이지 배경색 |
+| `cardBg` / `cardBorder` | 카드 배경·테두리 |
+| `textPrimary` / `textSecondary` / `textTertiary` | 텍스트 계층 |
+| `headerBg` / `headerBorder` | 헤더 영역 |
+| `inputBg` / `inputBorder` / `inputColor` | 입력 필드 |
+| `accentBg` / `accentColor` | 강조 (파란색 계열) |
+| `dangerBg` / `dangerColor` | 위험/삭제 |
+| `successBg` / `successColor` | 성공 |
+
+## 컴포넌트 디렉토리 구조
+
+```
+components/
+├── map/            — 지도 관련 (MapView, FilterBar, PrefsIsland 등)
+├── shared/         — 공용 UI (MoneyDrumPicker, DepositDial, AreaToggle)
+├── auth/           — 인증 UI (LoginButton)
+├── review/         — 리뷰 (ReviewSection, ReviewForm, ReviewCard)
+├── onboarding/     — 온보딩 스텝 (StepGate, StepRent, StepDeposit 등)
+└── contracts/      — 계약 관련 (MyContractsCard)
 ```
 
-인라인 스타일이 필요한 경우(Mapbox 팝업 등) `THEME_TOKENS`를 사용.
-일반 컴포넌트는 Tailwind 유틸리티 클래스 사용.
+페이지별 컴포넌트는 `app/<route>/_components/` 디렉토리에 둔다.
 
-## 스타일링 원칙
+## 스타일링 규칙
 
-1. **다크/라이트 모드 필수**: 모든 새 컴포넌트는 양쪽 테마에서 정상 표시되어야 함
-2. **Tailwind 유틸리티 우선**: 가능하면 Tailwind 클래스 사용, 불가피한 경우만 인라인 스타일
-3. **컴포넌트 라이브러리 없음**: shadcn/ui 등 미사용, 전부 직접 구현
-4. **반응형 고려**: 모바일 퍼스트 접근
+1. 인라인 스타일에 `THEME_TOKENS[mode]` 토큰을 사용하거나, Tailwind 유틸리티 클래스를 사용
+2. 하드코딩된 색상 값 금지 — 반드시 토큰 또는 Tailwind 색상 사용
+3. `dark:` 프리픽스 대신 `THEME_TOKENS` 객체에서 모드별 값을 사용하는 패턴을 따름
 
-## 주요 커스텀 스타일 (globals.css)
-- 드럼 피커 스크롤바
-- 온보딩 애니메이션 (stroke-dasharray)
-- Mapbox 팝업 오버라이드
+## 흔한 실수
+
+- ❌ 색상을 `#ffffff`, `#000000` 등으로 하드코딩 → 다크/라이트 전환 시 깨짐
+  ✅ `THEME_TOKENS[mode].textPrimary` 등 토큰 사용
+
+- ❌ 새 컴포넌트에서 다크 모드만 테스트 → 라이트 모드에서 텍스트 안 보임
+  ✅ 양쪽 모드에서 반드시 확인
+
+- ❌ 모바일 뷰포트(375px) 미확인 → 레이아웃 깨짐, 텍스트 잘림
+  ✅ 모바일 뷰포트 기준으로 먼저 작업 후 데스크톱 확인
+
+- ❌ `px-4` 등 고정 패딩만 사용 → 큰 화면에서 콘텐츠가 너무 좁음
+  ✅ 반응형 패딩 사용 (`px-4 md:px-6 lg:px-8`)

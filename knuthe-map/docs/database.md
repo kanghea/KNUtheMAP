@@ -1,148 +1,116 @@
-# 데이터베이스 (Supabase PostgreSQL)
+<!-- 트리거: 테이블, 컬럼, RLS, 마이그레이션, 스키마, Supabase DB -->
+# 데이터베이스 스키마
 
-## Supabase 클라이언트
+## 기술 스택
 
-| 파일 | 용도 |
+- **Supabase** (PostgreSQL) — 실시간 구독, Auth, Storage 통합
+- 마이그레이션: `supabase/migrations/` 디렉토리 (001 ~ 017)
+
+## 주요 테이블
+
+### buildings (건물)
+
+지도 마커 단위. 좌표(`lat`, `lng`)를 가진다.
+
+| 주요 컬럼 | 설명 |
 |---|---|
-| `lib/supabase-server.ts` | SSR용 — 쿠키 기반 세션 유지 |
-| `lib/supabase-browser.ts` | 클라이언트용 — Lazy Proxy 싱글턴 |
-| `lib/supabase.ts` | 범용 로더 + `createServiceClient()` (service role, RLS 우회) |
+| `id` | UUID PK |
+| `name` | 건물명 |
+| `address` | 주소 |
+| `lat`, `lng` | 좌표 (Geocoding API로 자동 입력) |
+| `zone` | 구역 (동문/북문/쪽문 등) |
+| `total_floors` | 총 층수 |
+| `main_purps_nm` | 건축물 주용도 |
+| `images` | JSONB 이미지 배열 |
+| `is_active` | 지도 노출 여부 |
+| `vworld_enriched` / `bldrgst_enriched` / `juso_enriched` | 외부 API 보강 여부 플래그 |
 
-## 테이블 스키마
+### rooms (호실)
 
-### `buildings` — 3,078건
-경북대 주변 건물 원본 데이터. 핵심 테이블.
+buildings 하위 (1:N). 좌표 없음 — 건물 좌표를 사용.
 
-| 컬럼 | 타입 | 설명 |
-|---|---|---|
-| `id` | uuid PK | 고유 식별자 |
-| `osm_id` | text | OpenStreetMap 원본 ID |
-| `name` | text | 건물명 (건축물대장 또는 V-World 기준) |
-| `address` | text | 도로명주소 |
-| `lat` / `lng` | float | 중심 좌표 — **전체 3,078개 보유** |
-| `footprint` | jsonb `[[lng,lat],…]` | 건물 외곽 폴리곤 — **1,978개 보유** |
-| `height_m` | float | 건물 높이 (m) |
-| `building_type` | text | OSM 건물 분류 |
-| `amenity` / `shop` / `office` / `religion` | text | OSM 부가 태그 |
-| `zone` | text | 소속 구역명 (zones.name 참조) — **2,771개 배정** |
-| `total_floors` | int | 지상층수 |
-| `ugrnd_flr_cnt` | int | 지하층수 |
-| `main_purps_nm` | text | 주용도 (단독주택 681, 근린생활시설 258 등) |
-| `strct_cd_nm` | text | 구조 (철근콘크리트구조 등) |
-| `use_apr_day` | text `YYYYMMDD` | 사용승인일 |
-| `tot_area` | float | 연면적 (㎡) |
-| `hhld_cnt` | int | 세대수 |
-| `ride_use_elvt_cnt` | int | 승용 엘리베이터 수 |
-| `has_elevator` / `has_parking` | bool | 편의시설 여부 |
-| `bd_mgt_sn` | text | 건축물대장 관리번호 (19자리) — **2,939개 보유** |
-| `images` | jsonb `[]` | 건물 사진 URL 배열 |
-| `owner_name` / `owner_phone` | text | 건물주 정보 |
-| `is_active` | bool | 지도 노출 여부 |
-| `vworld_enriched` | bool | V-World 보강 완료 (3,078개) |
-| `bldrgst_enriched` | bool | 건축물대장 보강 완료 (2,939개) |
-| `juso_enriched` | bool | 주소정보 보강 완료 (미완료) |
+| 주요 컬럼 | 설명 |
+|---|---|
+| `building_id` | FK → buildings |
+| `unit_number` | 호수 |
+| `floor` | 층 |
+| `room_type` | 원룸/투룸/오피스텔/고시원 |
+| `deposit`, `monthly_rent`, `maintenance_fee` | 보증금, 월세, 관리비 |
+| `is_vacant` | 공실 여부 |
 
-**건물 용도 분포 (main_purps_nm)**
-단독주택 681 · 제2종근린생활시설 158 · 제1종근린생활시설 91 · 공동주택 29 · 근린생활시설 14 · 기타
+### users (사용자)
 
----
+| 주요 컬럼 | 설명 |
+|---|---|
+| `id` | UUID PK (Supabase Auth UID) |
+| `role` | `tenant` / `owner` / `agent` / `admin` / `roommate` |
+| `grade` | 학년 |
+| `department` | 학과 |
 
-### `zones` — 7건
-구역 단위 테이블. 지도 클러스터링 기준.
+### reviews (리뷰)
 
-| 컬럼 | 타입 | 설명 |
-|---|---|---|
-| `id` | uuid PK | 고유 식별자 |
-| `osm_id` | text | 구역 번호 |
-| `name` | text | 구역명 |
-| `layer_type` | text | 항상 `"zone"` |
-| `lat` / `lng` | float | 구역 중심 좌표 |
-| `footprint` | jsonb `[[lng,lat],…]` | 구역 경계 폴리곤 |
-| `is_active` | bool | 활성 여부 |
+사용자의 건물 리뷰. `user_id` + `building_id` 연결.
 
-현재 구역: **북문구역 · 텍문구역 · 경북대학교 · 서문구역 · 쪽문구역 · 정문구역 · 동문구역**
+### transactions (거래 내역)
 
----
+건물별 실거래 데이터. 공공 API에서 수집.
 
-### `map_layers` — 41건
-지도 위 POI (교문, 편의시설 등).
+### user_contracts (내 계약)
 
-| 컬럼 | 타입 | 설명 |
-|---|---|---|
-| `id` | uuid PK | |
-| `name` | text | 장소명 |
-| `layer_type` | text | 분류 (gate 등) |
-| `lat` / `lng` | float | 좌표 |
-| `description` | text | 설명 |
-| `icon` | text | 아이콘 식별자 |
-| `zone` | text | 소속 구역 |
-| `is_active` | bool | 노출 여부 |
+사용자가 직접 등록한 계약 정보.
 
----
+### map_layers (지도 레이어)
 
-### `users`
-Supabase Auth 연동 사용자 테이블.
+경북대 실생활 레이어 (교문, 사잇길, 가로등 등). GeoJSON 형태.
 
-| 컬럼 | 타입 | 설명 |
-|---|---|---|
-| `id` | uuid PK | Supabase Auth uid |
-| `email` | text | 이메일 |
-| `nickname` | text | 닉네임 |
-| `avatar_url` | text | 프로필 이미지 |
-| `role` | text | observer / tenant / owner / agent / admin |
-| `grade` | int | 학년 (온보딩) |
-| `dept` | text | 학과 (온보딩) |
-| `created_at` | timestamptz | 가입일 |
+### units (건물주 호실)
 
----
-
-### `reviews`
-건물 리뷰.
-
-| 컬럼 | 타입 | 설명 |
-|---|---|---|
-| `id` | uuid PK | |
-| `building_id` | uuid FK → buildings | 대상 건물 |
-| `user_id` | uuid FK → users | 작성자 |
-| `rating` | int (1-5) | 별점 |
-| `content` | text | 리뷰 내용 |
-| `created_at` | timestamptz | 작성일 |
-
----
-
-### `transactions`
-월세·전세 거래 내역.
-
-| 컬럼 | 타입 | 설명 |
-|---|---|---|
-| `id` | uuid PK | |
-| `building_id` | uuid FK → buildings | 대상 건물 |
-| `contract_type` | text | 월세 / 전세 |
-| `rent` | int | 월세 (만원) |
-| `deposit` | int | 보증금 (만원) |
-| `area_m2` | float | 면적 (㎡) |
-| `floor` | int | 층 |
-| `contract_date` | date | 계약일 |
-
----
+건물주가 직접 관리하는 호실 정보. `owner_id` FK.
 
 ## 테이블 관계
 
 ```
-buildings ──< rooms            (1:N)
-buildings ──< reviews          (1:N)
-buildings ──< transactions     (1:N)
-buildings >──< agents          (N:N, building_agents 중간 테이블)
-users ──< reviews              (1:N)
-zones ──< buildings            (1:N, zone 컬럼으로 연결)
-map_layers                     (독립)
+buildings ──< rooms          (1:N)
+buildings ──< reviews        (1:N, via user)
+buildings ──< transactions   (1:N)
+users ──< reviews            (1:N)
+users ──< user_contracts     (1:N)
+users ──< units              (1:N, owner)
+map_layers                   (독립)
 ```
 
-## 마이그레이션
-`supabase/migrations/` 디렉토리에 순번 SQL 파일로 관리.
-예: `007_users_grade_dept.sql` — 온보딩 컬럼 추가.
+## 마이그레이션 파일
 
-## RLS 정책
-Supabase RLS로 데이터 접근 제어.
-- anon key: 제한된 읽기 권한
-- service role: RLS 우회 (관리자 스크립트·API 쓰기용)
+마이그레이션은 `supabase/migrations/` 디렉토리에 번호순으로 정렬:
+
+- `001_initial_schema.sql` — buildings, agents, building_agents, map_layers
+- `006_users_reviews_transactions.sql` — users, reviews, transactions
+- `008_rooms.sql` — rooms 테이블
+- `009_user_contracts.sql` — 사용자 계약
+- `010_roles_units.sql` — 역할 확장 + units
+- `015_admin_rls_hardening.sql` — RLS 정책 강화
+- `016_roommate.sql` — 룸메이트 기능
+
+새 마이그레이션 추가 시 다음 번호를 사용한다 (현재 마지막: 017).
+
+## Supabase 클라이언트 사용
+
+| 용도 | 파일 | 함수 |
+|---|---|---|
+| 서버 (API Route, RSC) | `lib/supabase-server.ts` | `createSupabaseServer()` — 쿠키 기반, RLS 적용 |
+| 브라우저 | `lib/supabase-browser.ts` | `createBrowserSupabase()` — anon key, RLS 적용 |
+| 관리 스크립트/서버 전용 | `lib/supabase.ts` | `createServiceClient()` — Service Role 키, RLS 우회 |
+
+## 흔한 실수
+
+- ❌ `createServiceClient()`를 일반 사용자 요청에 사용 → RLS 전부 우회됨
+  ✅ 사용자 요청은 반드시 `createSupabaseServer()` 사용. Service Role은 관리 스크립트·시드 전용
+
+- ❌ 마이그레이션 번호를 건너뛰거나 중복 → 실행 순서 오류
+  ✅ 마지막 번호 다음 번호를 순차적으로 사용
+
+- ❌ RLS 정책 없이 테이블 생성 → 모든 사용자가 전체 데이터 접근
+  ✅ 새 테이블에는 반드시 RLS 정책 추가 (`015_admin_rls_hardening.sql` 참고)
+
+- ❌ `users.role` 변경을 클라이언트에서 직접 시도 → 권한 에스컬레이션
+  ✅ role 변경은 관리자 API(`/api/admin/approvals`)를 통해서만 수행
