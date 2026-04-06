@@ -192,9 +192,8 @@ function TimeRangeSelector({ options, startValue, endValue, onChangeStart, onCha
       onChangeEnd('')
     } else if (phase === 'picking_end') {
       if (i === startIdx) {
-        // 같은 타일 다시 탭 → 선택 해제
-        onChangeStart('')
-        onChangeEnd('')
+        // 같은 타일 다시 탭 → 단일 값으로 확정 (start = end)
+        onChangeEnd(opt)
       } else if (i > startIdx) {
         // 시작 이후 타일 → 끝 설정
         onChangeEnd(opt)
@@ -220,8 +219,8 @@ function TimeRangeSelector({ options, startValue, endValue, onChangeStart, onCha
 
   // 단계 안내 텍스트
   const phaseText =
-    phase === 'idle' ? '시작 시간을 선택하세요' :
-    phase === 'picking_end' ? '끝 시간을 선택하세요' :
+    phase === 'idle' ? '시간을 선택하세요' :
+    phase === 'picking_end' ? '끝 시간을 선택하세요 (같은 시간 탭 시 확정)' :
     startValue === endValue ? startValue! : `${startValue} ~ ${endValue}`
 
   const phaseIcon =
@@ -298,13 +297,13 @@ function TimeRangeSelector({ options, startValue, endValue, onChangeStart, onCha
 
 function SleepDurationDisplay({ profile, tok }: { profile: Partial<RoommateProfile>; tok: Tok }) {
   const bs = profile.bedtime_start
-  const be = profile.bedtime_end
+  const be = profile.bedtime_end || bs
   const ws = profile.wakeup_start
-  const we = profile.wakeup_end
-  if (!bs || !be || !ws || !we) return null
+  const we = profile.wakeup_end || ws
+  if (!bs || !ws) return null
 
-  const bedMid = ((BEDTIME_IDX[bs] ?? 0) + (BEDTIME_IDX[be] ?? 0)) / 2
-  const wakeMid = ((WAKEUP_IDX[ws] ?? 0) + (WAKEUP_IDX[we] ?? 0)) / 2
+  const bedMid = ((BEDTIME_IDX[bs] ?? 0) + (BEDTIME_IDX[be!] ?? 0)) / 2
+  const wakeMid = ((WAKEUP_IDX[ws] ?? 0) + (WAKEUP_IDX[we!] ?? 0)) / 2
 
   // 취침은 21시(9시)부터, 기상은 4시부터 — 절대 시간 계산
   const bedHour = 21 + bedMid   // 21, 22, 23, 24, 25, 26, 27, 28, 29
@@ -857,8 +856,8 @@ export function isSectionComplete(section: number, profile: Partial<RoommateProf
       return !!(profile.birth_year && profile.student_id && profile.living_type &&
         (profile.living_type !== 'dormitory' || profile.dormitory))
     case 1:
-      return !!(profile.bedtime_start && profile.bedtime_end &&
-        profile.wakeup_start && profile.wakeup_end && profile.sleep_habits?.length &&
+      return !!(profile.bedtime_start &&
+        profile.wakeup_start && profile.sleep_habits?.length &&
         profile.light_sleep && profile.sleep_light)
     case 2:
       return !!(profile.shower_duration && profile.shower_time?.length && profile.hair_wash_time?.length &&
