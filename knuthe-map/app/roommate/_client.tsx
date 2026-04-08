@@ -82,20 +82,37 @@ export default function RoommateClient({ saveDraft }: { saveDraft: boolean }) {
   useEffect(() => {
     if (!saveDraft || saved) return
     const draft = loadRoommateDraft()
-    if (!draft) return
+    if (!draft || !draft.profile || !draft.weights) {
+      // 로컬스토리지에 데이터가 없음 (OAuth 리다이렉트 중 유실 가능)
+      // 온보딩으로 돌려보내기
+      console.warn('[roommate] 임시 저장 데이터가 없습니다')
+      setError('프로필 데이터를 찾을 수 없어요. 다시 등록해 주세요.')
+      setLoading(false)
+      return
+    }
 
     fetch('/api/roommate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ profile: draft.profile, weights: draft.weights }),
-    }).then(res => {
-      if (res.ok) {
-        clearRoommateDraft()
-        setSaved(true)
-        // URL에서 save_draft 파라미터 제거
-        router.replace('/roommate')
-      }
     })
+      .then(async res => {
+        if (res.ok) {
+          clearRoommateDraft()
+          setSaved(true)
+          router.replace('/roommate')
+        } else {
+          const data = await res.json().catch(() => ({}))
+          console.error('[roommate] 프로필 저장 실패:', data)
+          setError(data.error ?? '프로필 저장에 실패했어요. 다시 시도해 주세요.')
+          setLoading(false)
+        }
+      })
+      .catch(err => {
+        console.error('[roommate] 네트워크 에러:', err)
+        setError('네트워크 오류가 발생했어요. 다시 시도해 주세요.')
+        setLoading(false)
+      })
   }, [saveDraft, saved, router])
 
   // 매칭 목록 조회

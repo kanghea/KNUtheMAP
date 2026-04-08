@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createSupabaseServer } from '@/lib/supabase-server'
+import { createServiceClient } from '@/lib/supabase'
 import { parsePrefs } from '@/lib/prefs'
 import { sealRole, ROLE_COOKIE_NAME, ROLE_COOKIE_OPTIONS } from '@/lib/role-cookie'
 import type { Role } from '@/lib/useRole'
@@ -32,14 +33,19 @@ export async function GET(request: Request) {
           .eq('id', data.user.id)
       }
 
-      // 룸메이트 온보딩에서 넘어온 경우: 로컬스토리지 데이터는 클라이언트에서만 접근 가능
-      // → /roommate 페이지로 리다이렉트 후 클라이언트에서 저장 처리
-      // 룸메이트 경로인 경우 role을 roommate로 업데이트
+      // 룸메이트 온보딩에서 넘어온 경우:
+      // - role을 service role로 업데이트 (RLS 우회)
+      // - /roommate?save_draft=1로 리다이렉트 → 클라이언트에서 localStorage → DB 저장
       if (next === '/roommate') {
-        await supabase
+        const admin = createServiceClient()
+        const { error: roleErr } = await admin
           .from('users')
           .update({ role: 'roommate' })
           .eq('id', data.user.id)
+
+        if (roleErr) {
+          console.error('[auth/callback] roommate role update failed:', roleErr)
+        }
 
         const response = NextResponse.redirect(`${origin}/roommate?save_draft=1`)
         response.cookies.set(ROLE_COOKIE_NAME, sealRole('roommate'), ROLE_COOKIE_OPTIONS)
