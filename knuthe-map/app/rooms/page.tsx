@@ -59,11 +59,21 @@ function RoomCard({ room, tok }: { room: Room; tok: typeof THEME_TOKENS.dark }) 
             background: tok.cardBorder, overflow: 'hidden', position: 'relative',
           }}>
             {thumb
-              ? <img src={thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ? <img
+                  src={thumb}
+                  alt={`${room.buildings?.name ?? ''} 매물 사진`}
+                  width={96}
+                  height={96}
+                  loading="lazy"
+                  decoding="async"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
               : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IconHome size={32} color={tok.textTertiary} /></div>
             }
             <button
               onClick={(e) => { e.preventDefault(); setLiked(v => !v) }}
+              aria-label={liked ? '찜 해제' : '찜하기'}
+              aria-pressed={liked}
               style={{
                 position: 'absolute', top: 6, right: 6,
                 width: 28, height: 28, borderRadius: '50%',

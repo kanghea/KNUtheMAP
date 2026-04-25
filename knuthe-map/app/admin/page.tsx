@@ -2,12 +2,18 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getServerUser, getServerRole } from '@/lib/auth-server'
 import { createServiceClient } from '@/lib/supabase'
+import { getServerThemeTokens } from '@/lib/theme-server'
 
 export default async function AdminPage() {
-  const [user, role] = await Promise.all([getServerUser(), getServerRole()])
+  const [user, role, themed] = await Promise.all([
+    getServerUser(),
+    getServerRole(),
+    getServerThemeTokens(),
+  ])
   if (!user) redirect('/login')
   if (role !== 'admin') redirect('/')
 
+  const { tok } = themed
   const service = createServiceClient()
 
   const [
@@ -24,7 +30,7 @@ export default async function AdminPage() {
 
   const stats = [
     { label: '승인 대기',   value: pendingCount  ?? 0, icon: '⏳', color: '#d97706', bg: 'rgba(217,119,6,0.15)', href: '/admin/approvals' },
-    { label: '전체 사용자', value: userCount      ?? 0, icon: '👥', color: '#2563eb', bg: 'rgba(37,99,235,0.15)', href: '/admin/users' },
+    { label: '전체 사용자', value: userCount      ?? 0, icon: '👥', color: tok.accentColor, bg: tok.accentBg,   href: '/admin/users' },
     { label: '활성 건물',   value: buildingCount  ?? 0, icon: '🏢', color: '#0891b2', bg: 'rgba(8,145,178,0.15)', href: '/admin/buildings' },
     { label: '활성 방',     value: roomCount      ?? 0, icon: '🚪', color: '#7c3aed', bg: 'rgba(124,58,237,0.15)', href: '/admin/rooms' },
   ]
@@ -37,14 +43,25 @@ export default async function AdminPage() {
   ]
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0a0a', paddingBottom: 100 }}>
+    <div style={{ minHeight: '100vh', background: tok.pageBg, paddingBottom: 100 }}>
       <header style={{
         position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(10,10,10,0.92)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        background: tok.headerBg, backdropFilter: 'blur(12px)',
+        borderBottom: `1px solid ${tok.headerBorder}`,
+        display: 'flex', alignItems: 'center', gap: 12,
         padding: '14px 20px',
       }}>
-        <h1 style={{ fontSize: 16, fontWeight: 800, color: '#ffffff', margin: 0 }}>관리자 대시보드</h1>
+        <Link href="/" aria-label="홈으로" style={{
+          width: 34, height: 34, borderRadius: 10, background: tok.inputBg,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          textDecoration: 'none',
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke={tok.textSecondary} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 18l-6-6 6-6"/>
+          </svg>
+        </Link>
+        <h1 style={{ fontSize: 16, fontWeight: 800, color: tok.textPrimary, margin: 0 }}>관리자 대시보드</h1>
       </header>
       <div style={{ maxWidth: 520, margin: '0 auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
@@ -63,23 +80,23 @@ export default async function AdminPage() {
         </div>
 
         <div style={{
-          background: '#111111', borderRadius: 20, border: '1px solid rgba(255,255,255,0.08)',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.4)', overflow: 'hidden',
+          background: tok.cardBg, borderRadius: 20, border: `1px solid ${tok.cardBorder}`,
+          boxShadow: tok.shadow, overflow: 'hidden',
         }}>
           {menus.map((item, i) => (
             <Link key={item.href} href={item.href} style={{
               display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px',
-              textDecoration: 'none', borderBottom: i < menus.length - 1 ? '1px solid rgba(255,255,255,0.07)' : 'none',
+              textDecoration: 'none', borderBottom: i < menus.length - 1 ? `1px solid ${tok.cardBorder}` : 'none',
             }}>
               <span style={{
-                width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.05)',
+                width: 40, height: 40, borderRadius: 12, background: tok.inputBg,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0,
               }}>{item.icon}</span>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#ffffff' }}>{item.label}</div>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 1 }}>{item.desc}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: tok.textPrimary }}>{item.label}</div>
+                <div style={{ fontSize: 11, color: tok.textTertiary, marginTop: 1 }}>{item.desc}</div>
               </div>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)"
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={tok.textTertiary}
                 strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 18l6-6-6-6"/>
               </svg>
