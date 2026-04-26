@@ -1,12 +1,14 @@
 'use client'
 
 import { useRef, useEffect, useCallback } from 'react'
+import type { ThemeTokens } from '@/lib/theme-tokens'
 
 const ITEM_H  = 44       // 아이템 높이 (px)
 const VISIBLE = 5        // 한 번에 보이는 아이템 수 (홀수)
 const PAD     = Math.floor(VISIBLE / 2) * ITEM_H  // 위아래 패딩 = 88px
 
 interface Props {
+  tok:      ThemeTokens
   values:   number[]
   value:    number
   onChange: (v: number) => void
@@ -30,7 +32,7 @@ function nearestIdx(values: number[], v: number): number {
   return best
 }
 
-export default function MoneyDrumPicker({ values, value, onChange, format }: Props) {
+export default function MoneyDrumPicker({ tok, values, value, onChange, format }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const touching  = useRef(false)
   const snapTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -67,28 +69,28 @@ export default function MoneyDrumPicker({ values, value, onChange, format }: Pro
   }, [values, scrollTo, onChange])
 
   return (
-    <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', background: '#1a1a1a' }}>
+    <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', background: tok.inputBg }}>
 
       {/* 선택 구역 하이라이트 */}
       <div style={{
         position: 'absolute', top: PAD, left: 0, right: 0, height: ITEM_H,
-        background: 'rgba(37,99,235,0.18)',
-        borderTop:    '1.5px solid rgba(37,99,235,0.45)',
-        borderBottom: '1.5px solid rgba(37,99,235,0.45)',
+        background: tok.dialActiveBg,
+        borderTop:    `1.5px solid ${tok.accentColor}`,
+        borderBottom: `1.5px solid ${tok.accentColor}`,
         pointerEvents: 'none', zIndex: 2,
       }} />
 
       {/* 위쪽 페이드 */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0, height: PAD,
-        background: 'linear-gradient(to bottom, #1a1a1a 40%, transparent)',
+        background: `linear-gradient(to bottom, ${tok.inputBg} 40%, transparent)`,
         pointerEvents: 'none', zIndex: 2,
       }} />
 
       {/* 아래쪽 페이드 */}
       <div style={{
         position: 'absolute', bottom: 0, left: 0, right: 0, height: PAD,
-        background: 'linear-gradient(to top, #1a1a1a 40%, transparent)',
+        background: `linear-gradient(to top, ${tok.inputBg} 40%, transparent)`,
         pointerEvents: 'none', zIndex: 2,
       }} />
 
@@ -116,7 +118,7 @@ export default function MoneyDrumPicker({ values, value, onChange, format }: Pro
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 15,
               fontWeight: i === idx ? 700 : 400,
-              color: i === idx ? '#ffffff' : 'rgba(255,255,255,0.28)',
+              color: i === idx ? tok.textPrimary : tok.textTertiary,
               scrollSnapAlign: 'center',
               cursor: 'pointer',
               userSelect: 'none',

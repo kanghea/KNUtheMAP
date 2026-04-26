@@ -79,9 +79,9 @@ export default function MyContractsManager({ theme = 'dark' as ThemeMode }: { th
       {/* ── 헤더 ─────────────────────────────────────────────── */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        marginBottom: 12,
+        marginBottom: 12, gap: 8,
       }}>
-        <div>
+        <div style={{ minWidth: 0 }}>
           <h2 style={{ fontSize: 14, fontWeight: 700, color: tok.textPrimary, margin: 0 }}>
             내 계약 관리
           </h2>
@@ -94,8 +94,8 @@ export default function MyContractsManager({ theme = 'dark' as ThemeMode }: { th
             onClick={() => setShowForm(true)}
             style={{
               display: 'flex', alignItems: 'center', gap: 5,
-              padding: '8px 14px', borderRadius: 10,
-              background: '#2563eb', color: '#fff',
+              padding: '9px 14px', borderRadius: 10,
+              background: tok.accentColor, color: '#fff',
               border: 'none', cursor: 'pointer',
               fontSize: 12, fontWeight: 700, flexShrink: 0,
             }}
@@ -113,6 +113,7 @@ export default function MyContractsManager({ theme = 'dark' as ThemeMode }: { th
       {(showForm || renewing) && (
         <ContractForm
           renewal={renewing ?? undefined}
+          theme={theme}
           onSaved={handleSaved}
           onCancel={() => { setShowForm(false); setRenewing(null) }}
         />
@@ -142,6 +143,7 @@ export default function MyContractsManager({ theme = 'dark' as ThemeMode }: { th
             <ContractCard
               key={c.id}
               contract={c}
+              theme={theme}
               onEdit={(patch) => handleEdit(c.id, patch)}
               onEnd={() => handleEnd(c.id)}
               onRenew={() => setRenewing(c)}
