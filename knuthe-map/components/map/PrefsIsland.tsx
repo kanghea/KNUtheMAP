@@ -85,6 +85,18 @@ function IconMe({ color }: NavIconProps) {
   )
 }
 
+function IconRoommate({ color }: NavIconProps) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+      stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  )
+}
+
 // ── nav 설정 ─────────────────────────────────────────────────────────────────
 
 type NavItem = {
@@ -120,6 +132,12 @@ function navItems(role: Role): NavItem[] {
     { href: '/admin',           label: '대시보드', icon: (c) => <IconHome color={c} />,  match: (p) => p === '/admin' },
     { href: '/admin/approvals', label: '승인관리', icon: (c) => <IconCheck color={c} />, match: (p) => p.startsWith('/admin/approvals') },
     { href: '/admin/users',     label: '사용자',   icon: (c) => <IconMe color={c} />,    match: (p) => p.startsWith('/admin/users') },
+    me,
+  ]
+
+  if (role === 'roommate') return [
+    { href: '/',          label: '홈',       icon: (c) => <IconHome color={c} />,     match: (p) => p === '/' },
+    { href: '/roommate',  label: '룸메이트', icon: (c) => <IconRoommate color={c} />, match: (p) => p.startsWith('/roommate') },
     me,
   ]
 

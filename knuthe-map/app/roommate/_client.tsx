@@ -2,9 +2,15 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
-import { THEME_TOKENS, type ThemeMode } from '@/lib/theme-tokens'
+import { useTheme } from '@/lib/hooks/useTheme'
+import type { ThemeTokens } from '@/lib/theme-tokens'
 import { loadRoommateDraft, clearRoommateDraft, DORMITORIES } from '@/lib/roommate-constants'
+import { PageWrapper } from '@/components/shared/PageWrapper'
+import { DashboardHeader } from '@/components/shared/DashboardHeader'
+import { Card } from '@/components/shared/Card'
+import { SkeletonCard } from '@/components/shared/Skeleton'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { IconUsers, IconAlert } from '@/components/shared/icons'
 
 interface MatchResult {
   user_id: string
@@ -23,60 +29,18 @@ interface MatchResult {
   introduction: string | null
 }
 
-// ── 테마 토큰 확장 ──
-const TOKENS = {
-  dark: {
-    ...THEME_TOKENS.dark,
-    accent: '#6C63FF',
-    tabActive: '#6C63FF',
-    tabInactive: 'rgba(255,255,255,0.3)',
-    tabBg: '#111111',
-    filterChipBg: '#1a1a1a',
-    filterChipBorder: 'rgba(255,255,255,0.12)',
-    filterChipActiveBg: 'rgba(108,99,255,0.15)',
-    filterChipActiveBorder: 'rgba(108,99,255,0.5)',
-    scoreGradient: 'linear-gradient(135deg, #6C63FF, #8B5CF6)',
-    emptyColor: 'rgba(255,255,255,0.25)',
-    logoFilter: 'brightness(0) invert(1)',
-  },
-  light: {
-    ...THEME_TOKENS.light,
-    accent: '#2563eb',
-    tabActive: '#2563eb',
-    tabInactive: '#94a3b8',
-    tabBg: '#ffffff',
-    filterChipBg: '#f1f5f9',
-    filterChipBorder: '#e2e8f0',
-    filterChipActiveBg: 'rgba(37,99,235,0.08)',
-    filterChipActiveBorder: 'rgba(37,99,235,0.4)',
-    scoreGradient: 'linear-gradient(135deg, #2563eb, #4f46e5)',
-    emptyColor: '#94a3b8',
-    logoFilter: 'none',
-  },
-} as const
+const ROOMMATE_ACCENT = '#6C63FF'  // 룸메이트 정체성 색 (보라)
+const SCORE_GRADIENT  = `linear-gradient(135deg, ${ROOMMATE_ACCENT}, #8B5CF6)`
 
 export default function RoommateClient({ saveDraft }: { saveDraft: boolean }) {
   const router = useRouter()
-  const [theme, setTheme] = useState<ThemeMode>('dark')
+  const { tok } = useTheme()
   const [matches, setMatches] = useState<MatchResult[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState<'dormitory' | 'offcampus'>('dormitory')
   const [dormFilter, setDormFilter] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
-
-  const tok = TOKENS[theme]
-
-  // 테마 감지
-  useEffect(() => {
-    try {
-      const raw = document.cookie.split('; ').find(r => r.startsWith('knu_prefs='))
-      if (raw) {
-        const prefs = JSON.parse(decodeURIComponent(raw.split('=')[1]))
-        if (prefs.theme === 'light') setTheme('light')
-      }
-    } catch { /* ignore */ }
-  }, [])
 
   // 온보딩 후 로컬스토리지에서 프로필 저장
   useEffect(() => {
@@ -92,7 +56,6 @@ export default function RoommateClient({ saveDraft }: { saveDraft: boolean }) {
       if (res.ok) {
         clearRoommateDraft()
         setSaved(true)
-        // URL에서 save_draft 파라미터 제거
         router.replace('/roommate')
       }
     })
@@ -108,7 +71,6 @@ export default function RoommateClient({ saveDraft }: { saveDraft: boolean }) {
 
     const res = await fetch(`/api/roommate?${params.toString()}`)
     if (res.status === 404) {
-      // 프로필 미등록 → 온보딩으로
       router.push('/?reset=1')
       return
     }
@@ -128,144 +90,133 @@ export default function RoommateClient({ saveDraft }: { saveDraft: boolean }) {
   }, [fetchMatches, saveDraft, saved])
 
   return (
-    <div style={{
-      minHeight: '100vh', background: tok.pageBg,
-      transition: 'background .4s ease',
-    }}>
-      {/* 헤더 */}
-      <header style={{
-        position: 'sticky', top: 0, zIndex: 50,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '14px 20px',
-        background: tok.headerBg, backdropFilter: 'blur(12px)',
-        borderBottom: `1px solid ${tok.headerBorder}`,
-        transition: 'background .4s ease, border-color .4s ease',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Image
-            src="/images/경북대 로고(현).png"
-            alt="경북대학교"
-            width={28}
-            height={28}
-            style={{ objectFit: 'contain', filter: tok.logoFilter, transition: 'filter .4s ease' }}
-          />
-          <span style={{ fontSize: 15, fontWeight: 800, color: tok.textPrimary, transition: 'color .4s ease' }}>
-            룸메이트
-          </span>
-        </div>
-        <button
-          onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
-          style={{
-            width: 36, height: 36, borderRadius: 10,
-            border: `1px solid ${tok.cardBorder}`, background: tok.cardBg,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', fontSize: 16,
-            transition: 'background .4s ease, border-color .4s ease',
-          }}
-        >
-          {theme === 'dark' ? '☀' : '🌙'}
-        </button>
-      </header>
+    <PageWrapper tok={tok}>
+      <DashboardHeader
+        tok={tok}
+        title="룸메이트"
+        subtitle="나와 잘 맞는 룸메이트를 찾아보세요"
+        backHref="/"
+      />
 
-      {/* 탭 */}
-      <div style={{
-        display: 'flex', gap: 0, padding: '0 20px',
-        borderBottom: `1px solid ${tok.headerBorder}`,
-        background: tok.tabBg,
-        transition: 'background .4s ease, border-color .4s ease',
-      }}>
-        {([['dormitory', '기숙사'], ['offcampus', '자취방']] as const).map(([key, label]) => (
-          <button key={key} onClick={() => { setTab(key); setDormFilter(null) }} style={{
-            flex: 1, padding: '14px 0', fontSize: 14, fontWeight: 700,
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: tab === key ? tok.tabActive : tok.tabInactive,
-            borderBottom: tab === key ? `2px solid ${tok.tabActive}` : '2px solid transparent',
-            transition: 'color .3s ease, border-color .3s ease',
-          }}>
-            {label}
-          </button>
-        ))}
+      <div style={{ maxWidth: 600, margin: '0 auto', padding: '16px 16px 0' }}>
+        {/* ── Segmented 탭 (기숙사 / 자취방) ───────────────── */}
+        <div style={{
+          display: 'flex', gap: 0, padding: 4, borderRadius: 12,
+          background: tok.inputBg, border: `1px solid ${tok.cardBorder}`,
+          marginBottom: 12,
+        }}>
+          {([['dormitory', '기숙사'], ['offcampus', '자취방']] as const).map(([key, label]) => {
+            const active = tab === key
+            return (
+              <button
+                key={key}
+                onClick={() => { setTab(key); setDormFilter(null) }}
+                style={{
+                  flex: 1, padding: '10px', borderRadius: 9,
+                  fontSize: 14, fontWeight: 700, border: 'none',
+                  background: active ? ROOMMATE_ACCENT : 'transparent',
+                  color: active ? '#fff' : tok.textSecondary,
+                  cursor: 'pointer', transition: 'all .15s',
+                }}
+              >
+                {label}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* ── 기숙사 건물 필터 (가로 스크롤) ───────────────── */}
+        {tab === 'dormitory' && (
+          <div style={{ position: 'relative', marginBottom: 12 }}>
+            <div style={{
+              display: 'flex', gap: 6, padding: '2px 4px 6px',
+              overflowX: 'auto', WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+            }}>
+              <FilterChip label="전체" active={!dormFilter}
+                onClick={() => setDormFilter(null)} tok={tok} />
+              {DORMITORIES.map(d => (
+                <FilterChip key={d} label={d} active={dormFilter === d}
+                  onClick={() => setDormFilter(dormFilter === d ? null : d)} tok={tok} />
+              ))}
+            </div>
+            {/* 우측 페이드: chip이 더 있다는 시각 신호 */}
+            <div style={{
+              position: 'absolute', top: 0, right: 0, bottom: 0, width: 28,
+              background: `linear-gradient(to left, ${tok.pageBg}, transparent)`,
+              pointerEvents: 'none',
+            }} />
+          </div>
+        )}
       </div>
 
-      {/* 기숙사 건물 필터 */}
-      {tab === 'dormitory' && (
-        <div style={{
-          display: 'flex', gap: 6, padding: '12px 20px',
-          overflowX: 'auto',
-        }}>
-          <FilterChip label="전체" active={!dormFilter} onClick={() => setDormFilter(null)} tok={tok} />
-          {DORMITORIES.map(d => (
-            <FilterChip key={d} label={d} active={dormFilter === d}
-              onClick={() => setDormFilter(dormFilter === d ? null : d)} tok={tok} />
-          ))}
-        </div>
-      )}
-
-      {/* 매칭 목록 */}
-      <main style={{ padding: '16px 20px', maxWidth: 600, margin: '0 auto' }}>
+      {/* ── 매칭 목록 ───────────────────────────────────── */}
+      <main style={{ maxWidth: 600, margin: '0 auto', padding: '0 16px 24px' }}>
         {loading && (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: tok.textTertiary }}>
-            <p style={{ fontSize: 14 }}>매칭 중...</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {[1, 2, 3].map(i => <SkeletonCard key={i} tok={tok} height={120} radius={18} />)}
           </div>
         )}
 
-        {error && (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: tok.textTertiary }}>
-            <p style={{ fontSize: 14 }}>{error}</p>
-            <button onClick={fetchMatches} style={{
-              marginTop: 12, padding: '8px 20px', borderRadius: 10,
-              background: tok.accent, color: '#fff', border: 'none',
-              cursor: 'pointer', fontSize: 13, fontWeight: 600,
-            }}>
-              다시 시도
-            </button>
-          </div>
+        {!loading && error && (
+          <Card tok={tok} padding={0}>
+            <EmptyState
+              tok={tok}
+              icon={<IconAlert size={36} color={tok.textTertiary} />}
+              title={error}
+              description="잠시 후 다시 시도해주세요"
+              action={{ label: '다시 시도', onClick: fetchMatches }}
+            />
+          </Card>
         )}
 
         {!loading && !error && matches.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '60px 0' }}>
-            <div style={{
-              width: 64, height: 64, borderRadius: '50%', margin: '0 auto 16px',
-              background: tok.accentBg,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <svg viewBox="0 0 24 24" width={28} height={28} fill="none"
-                stroke={tok.emptyColor} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <line x1="17" y1="11" x2="23" y2="11" />
-              </svg>
-            </div>
-            <p style={{ fontSize: 15, fontWeight: 700, color: tok.textPrimary, marginBottom: 6, transition: 'color .4s ease' }}>
-              아직 매칭할 룸메이트가 없어요
-            </p>
-            <p style={{ fontSize: 13, color: tok.textSecondary, transition: 'color .4s ease' }}>
-              더 많은 사용자가 등록하면 알려드릴게요
-            </p>
-          </div>
+          <Card tok={tok} padding={0}>
+            <EmptyState
+              tok={tok}
+              icon={
+                <div style={{
+                  width: 64, height: 64, borderRadius: '50%',
+                  background: `${ROOMMATE_ACCENT}1f`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  marginBottom: 4,
+                }}>
+                  <IconUsers size={28} color={ROOMMATE_ACCENT} />
+                </div>
+              }
+              title="아직 매칭할 룸메이트가 없어요"
+              description={tab === 'dormitory' && dormFilter
+                ? `${dormFilter}에 등록한 사용자가 없어요. 다른 기숙사도 둘러보세요`
+                : '더 많은 사용자가 등록하면 알려드릴게요'}
+              action={tab === 'dormitory' && dormFilter
+                ? { label: '전체 보기', onClick: () => setDormFilter(null) }
+                : undefined}
+            />
+          </Card>
         )}
 
-        {!loading && !error && matches.map(m => (
-          <MatchCard key={m.user_id} match={m} tok={tok} />
-        ))}
+        {!loading && !error && matches.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {matches.map(m => <MatchCard key={m.user_id} match={m} tok={tok} />)}
+          </div>
+        )}
       </main>
-    </div>
+    </PageWrapper>
   )
 }
 
 // ── 필터 칩 ──
 function FilterChip({ label, active, onClick, tok }: {
-  label: string; active: boolean; onClick: () => void
-  tok: typeof TOKENS[keyof typeof TOKENS]
+  label: string; active: boolean; onClick: () => void; tok: ThemeTokens
 }) {
   return (
     <button onClick={onClick} style={{
-      padding: '6px 14px', borderRadius: 999, fontSize: 12, fontWeight: 600,
+      padding: '7px 14px', borderRadius: 999, fontSize: 12, fontWeight: 700,
       whiteSpace: 'nowrap', flexShrink: 0, cursor: 'pointer',
-      border: `1.5px solid ${active ? tok.filterChipActiveBorder : tok.filterChipBorder}`,
-      background: active ? tok.filterChipActiveBg : tok.filterChipBg,
-      color: active ? tok.accent : tok.textSecondary,
-      transition: 'all .2s ease',
+      border: `1.5px solid ${active ? `${ROOMMATE_ACCENT}66` : tok.inputBorder}`,
+      background: active ? `${ROOMMATE_ACCENT}1a` : tok.inputBg,
+      color: active ? ROOMMATE_ACCENT : tok.textSecondary,
+      transition: 'all .15s ease',
     }}>
       {label}
     </button>
@@ -273,43 +224,44 @@ function FilterChip({ label, active, onClick, tok }: {
 }
 
 // ── 매칭 카드 ──
-function MatchCard({ match, tok }: {
-  match: MatchResult
-  tok: typeof TOKENS[keyof typeof TOKENS]
-}) {
+function MatchCard({ match, tok }: { match: MatchResult; tok: ThemeTokens }) {
   const cleanlinessLabel = ['', '낮음', '보통', '높음', '매우 높음'][match.cleanliness] ?? ''
 
   return (
     <div style={{
-      padding: '18px', borderRadius: 18, marginBottom: 12,
+      padding: 16, borderRadius: 18,
       background: tok.cardBg, border: `1px solid ${tok.cardBorder}`,
       boxShadow: tok.shadow,
-      transition: 'background .4s ease, border-color .4s ease, box-shadow .4s ease',
     }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
         {/* 호환도 */}
         <div style={{
-          width: 52, height: 52, borderRadius: 14, flexShrink: 0,
-          background: tok.scoreGradient,
+          width: 56, height: 56, borderRadius: 16, flexShrink: 0,
+          background: SCORE_GRADIENT,
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
         }}>
-          <span style={{ fontSize: 18, fontWeight: 800, color: '#fff', lineHeight: 1 }}>
+          <span style={{ fontSize: 19, fontWeight: 800, color: '#fff', lineHeight: 1 }}>
             {match.compatibility}
           </span>
-          <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>%</span>
+          <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.7)', fontWeight: 600, marginTop: 2 }}>
+            % 일치
+          </span>
         </div>
 
         {/* 프로필 정보 */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: tok.textPrimary, transition: 'color .4s ease' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
+            <span style={{
+              fontSize: 15, fontWeight: 700, color: tok.textPrimary,
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 140,
+            }}>
               {match.nickname ?? '익명'}
             </span>
             {match.grade && (
               <span style={{
                 fontSize: 11, fontWeight: 600, padding: '2px 7px', borderRadius: 999,
-                background: tok.accentBg, color: tok.accentColor,
+                background: `${ROOMMATE_ACCENT}1a`, color: ROOMMATE_ACCENT,
               }}>
                 {match.grade}
               </span>
@@ -317,7 +269,7 @@ function MatchCard({ match, tok }: {
           </div>
 
           {match.dept && (
-            <p style={{ fontSize: 12, color: tok.textSecondary, margin: '0 0 8px', transition: 'color .4s ease' }}>
+            <p style={{ fontSize: 12, color: tok.textSecondary, margin: '0 0 8px' }}>
               {match.dept}
             </p>
           )}
@@ -335,7 +287,7 @@ function MatchCard({ match, tok }: {
           {match.introduction && (
             <p style={{
               fontSize: 12, color: tok.textSecondary, margin: '10px 0 0',
-              lineHeight: 1.5, transition: 'color .4s ease',
+              lineHeight: 1.5,
               overflow: 'hidden', textOverflow: 'ellipsis',
               display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
             }}>
@@ -349,13 +301,13 @@ function MatchCard({ match, tok }: {
 }
 
 function InfoTag({ label, tok, highlight = false }: {
-  label: string; tok: typeof TOKENS[keyof typeof TOKENS]; highlight?: boolean
+  label: string; tok: ThemeTokens; highlight?: boolean
 }) {
   return (
     <span style={{
       fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6,
-      background: highlight ? tok.dangerBg : tok.accentBg,
-      color: highlight ? tok.dangerColor : tok.accentColor,
+      background: highlight ? tok.dangerBg : `${ROOMMATE_ACCENT}14`,
+      color: highlight ? tok.dangerColor : ROOMMATE_ACCENT,
     }}>
       {label}
     </span>
