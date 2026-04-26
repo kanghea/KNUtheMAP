@@ -79,11 +79,38 @@ input, textarea, select {
   image-rendering: -webkit-optimize-contrast;
 }
 
+/* ── 4프레임 탭 리액션 (LoadingRunner.tsx 의 'tap' 모드) ──
+   사용자 터치 시 1회 재생되는 거부 제스처 애니메이션.
+   각 프레임은 cycle 의 1/4 = 25% 동안만 보인다.
+   - animation-iteration-count: 1 (1회만 재생)
+   - 듀레이션은 inline `--knu-tap-duration` (기본 0.6s)
+   - 슬롯 정렬은 inline `animation-delay: (idx/4) * duration`
+   - .knu-tap-frame:last-child 는 fill-mode: forwards 로 마지막 프레임 유지 */
+@keyframes knu-tap-frame {
+  0%   { opacity: 1 }
+  25%  { opacity: 0 }
+  100% { opacity: 0 }
+}
+.knu-tap-frame {
+  opacity: 0;
+  animation-name: knu-tap-frame;
+  animation-duration: var(--knu-tap-duration, 0.6s);
+  animation-iteration-count: 1;
+  animation-timing-function: step-end;
+  animation-fill-mode: none;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: opacity;
+  image-rendering: -webkit-optimize-contrast;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .knu-pulse, .knu-shimmer, .knu-spin { animation: none; }
   /* 모션 줄이기 환경: 첫 프레임 1장만 정적으로 노출 */
   .knu-runner-frame { animation: none; opacity: 0; }
   .knu-runner-frame:first-child { opacity: 1; }
+  .knu-tap-frame    { animation: none; opacity: 0; }
+  .knu-tap-frame:last-child { opacity: 1; }
 }
 
 /* ── 온보딩 카드 Path Draw 애니메이션 ── */
