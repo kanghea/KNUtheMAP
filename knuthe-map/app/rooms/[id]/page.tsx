@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { createServiceClient } from '@/lib/supabase'
 import {
@@ -56,8 +57,20 @@ export default async function RoomDetailPage({
         {room.images.length > 0 ? (
           <div style={{ display: 'flex', overflowX: 'auto', scrollbarWidth: 'none', gap: 2 }}>
             {room.images.map((src, i) => (
-              <img key={i} src={src} alt=""
-                style={{ width: '100vw', height: 280, objectFit: 'cover', flexShrink: 0 }} />
+              <div key={i} style={{
+                position: 'relative',
+                width:  '100vw', height: 280, flexShrink: 0,
+                background: '#1a1a1a',
+              }}>
+                <Image
+                  src={src}
+                  alt={`매물 사진 ${i + 1}`}
+                  fill
+                  sizes="100vw"
+                  priority={i === 0}
+                  style={{ objectFit: 'cover' }}
+                />
+              </div>
             ))}
           </div>
         ) : (

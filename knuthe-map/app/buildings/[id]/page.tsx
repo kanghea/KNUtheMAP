@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { createServiceClient } from '@/lib/supabase'
 import { MAPBOX_TOKEN } from '@/lib/mapbox'
@@ -224,8 +225,17 @@ export default async function BuildingPage({
             fallbackImg={satelliteImg}
           />
         ) : satelliteImg ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={satelliteImg} alt={title} className="w-full h-full object-cover" />
+          // Mapbox 정적 지도는 자체 CDN 캐시가 있어 Vercel optimizer를 거치면 중복 비용.
+          // → unoptimized 로 직링크 통과시킴.
+          <Image
+            src={satelliteImg}
+            alt={title}
+            fill
+            sizes="100vw"
+            unoptimized
+            priority
+            className="object-cover"
+          />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-blue-900 to-blue-800" />
         )}

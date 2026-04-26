@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { createBrowserSupabase } from '@/lib/supabase-browser'
 import { loadPrefs, savePrefs } from '@/lib/prefs'
 import { getZoneByDept } from '@/lib/department-zones'
@@ -104,8 +105,13 @@ export default function ProfileEditor({ profile, showStudentFields = true, theme
       {/* 아바타 + 이메일 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 4 }}>
         {profile.avatar_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={profile.avatar_url} alt="" style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover' }} />
+          <Image
+            src={profile.avatar_url}
+            alt={profile.nickname ?? '프로필 사진'}
+            width={52}
+            height={52}
+            style={{ borderRadius: '50%', objectFit: 'cover' }}
+          />
         ) : (
           <div style={{
             width: 52, height: 52, borderRadius: '50%', background: tok.accentBg,

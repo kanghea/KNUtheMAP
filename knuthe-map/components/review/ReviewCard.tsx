@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { formatDistanceToNow } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
@@ -56,8 +57,13 @@ export default function ReviewCard({ review }: { review: Review }) {
       {/* 헤더 */}
       <div className="flex items-center gap-2.5 mb-3">
         {avatar ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img src={avatar} alt={displayName} className="w-8 h-8 rounded-full object-cover" />
+          <Image
+            src={avatar}
+            alt={displayName}
+            width={32}
+            height={32}
+            className="rounded-full object-cover"
+          />
         ) : (
           <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs font-bold">
             {displayName[0]}

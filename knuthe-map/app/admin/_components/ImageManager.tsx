@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import Image from 'next/image'
 
 interface Props {
   bucket: 'building-images' | 'room-images'
@@ -67,8 +68,13 @@ export default function ImageManager({ bucket, entityId, images, onSave, onClose
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
             {list.map((url) => (
               <div key={url} style={{ position: 'relative', aspectRatio: '1', borderRadius: 10, overflow: 'hidden' }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <Image
+                  src={url}
+                  alt="등록된 이미지"
+                  fill
+                  sizes="(max-width: 600px) 30vw, 180px"
+                  style={{ objectFit: 'cover' }}
+                />
                 <button
                   onClick={() => remove(url)}
                   style={{

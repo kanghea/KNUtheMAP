@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { createBrowserSupabase } from '@/lib/supabase-browser'
 
@@ -63,8 +64,13 @@ export default function LoginButton() {
   return (
     <div className="flex items-center gap-2">
       {user.avatar_url ? (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img src={user.avatar_url} alt={user.nickname ?? ''} className="w-8 h-8 rounded-full object-cover" />
+        <Image
+          src={user.avatar_url}
+          alt={user.nickname ?? '프로필 사진'}
+          width={32}
+          height={32}
+          className="rounded-full object-cover"
+        />
       ) : (
         <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs font-bold">
           {(user.nickname ?? '?')[0]}
