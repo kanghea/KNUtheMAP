@@ -23,12 +23,48 @@ interface BuildingResult {
 const CONTRACT_TYPES = ['월세', '전세'] as const
 const ROOM_TYPES = ['원룸', '투룸', '복층형원룸', '오피스텔', '아파트', '빌라', '단독주택']
 
+// 호수: 1 ~ 1599 (예: 101호, 201호 … 1599호)
+const UNIT_VALUES: number[] = Array.from({ length: 1599 }, (_, i) => i + 1)
+
+// 층수: 지하 5층 ~ 지상 50층 (0층 제외)
+const FLOOR_VALUES: number[] = [
+  ...Array.from({ length: 5 }, (_, i) => -(5 - i)),  // -5 .. -1
+  ...Array.from({ length: 50 }, (_, i) => i + 1),    // 1 .. 50
+]
+
+// 면적: 5평 ~ 60평 (0.5평 단위)
+const PYEONG_VALUES: number[] = Array.from({ length: 111 }, (_, i) => 5 + i * 0.5)
+// 면적: 5㎡ ~ 200㎡ (1㎡ 단위)
+const M2_VALUES:    number[] = Array.from({ length: 196 }, (_, i) => 5 + i)
+
+const M2_PER_PYEONG = 3.3058
+
+function pyeongToM2(p: number): number {
+  return Math.round(p * M2_PER_PYEONG * 10) / 10
+}
+function m2ToPyeong(m: number): number {
+  // 0.5평 단위로 반올림
+  return Math.round((m / M2_PER_PYEONG) * 2) / 2
+}
+function nearestInArray(arr: number[], v: number): number {
+  let best = arr[0]
+  let diff = Math.abs(arr[0] - v)
+  for (const x of arr) {
+    const d = Math.abs(x - v)
+    if (d < diff) { diff = d; best = x }
+  }
+  return best
+}
+
 function formatDeposit(v: number): string {
   if (v === 0) return '없음'
   if (v >= 10000 && v % 10000 === 0) return `${v / 10000}억`
   if (v >= 1000  && v % 1000  === 0) return `${v / 1000}천만원`
   return `${v}만원`
 }
+
+const formatUnit  = (v: number) => `${v}호`
+const formatFloor = (v: number) => v < 0 ? `지하 ${-v}층` : `${v}층`
 
 export default function ContractForm({ renewal, onSaved, onCancel, theme = 'dark' as ThemeMode }: Props) {
   const tok = THEME_TOKENS[theme]
@@ -42,6 +78,24 @@ export default function ContractForm({ renewal, onSaved, onCancel, theme = 'dark
   const [useManual,      setUseManual]      = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // 호수·층수 (드럼)
+  const initialUnitNum = (() => {
+    if (!renewal?.unit_number) return 101
+    const m = renewal.unit_number.match(/\d+/)
+    return m ? Math.min(1599, Math.max(1, parseInt(m[0]))) : 101
+  })()
+  const initialFloor = (() => {
+    if (renewal?.floor == null) return 1
+    return nearestInArray(FLOOR_VALUES, renewal.floor)
+  })()
+
+  const [unitNum, setUnitNum] = useState(initialUnitNum)
+  const [floor,   setFloor]   = useState(initialFloor)
+
+  // 면적: 내부 상태는 항상 ㎡, 표시 단위만 토글
+  const [areaM2,   setAreaM2]   = useState<number>(renewal?.area_m2 ?? pyeongToM2(10))
+  const [areaUnit, setAreaUnit] = useState<'pyeong' | 'm2'>('pyeong')
+
   // 계약 필드
   const [contractType, setContractType] = useState<'월세' | '전세'>(
     renewal?.contract_type ?? '월세'
@@ -49,9 +103,6 @@ export default function ContractForm({ renewal, onSaved, onCancel, theme = 'dark
   const [deposit,      setDeposit]      = useState(renewal?.deposit      ?? 500)
   const [monthlyRent,  setMonthlyRent]  = useState(renewal?.monthly_rent ?? 30)
   const [maintenance,  setMaintenance]  = useState(renewal?.maintenance  ?? 0)
-  const [unitNumber,   setUnitNumber]   = useState(renewal?.unit_number ?? '')
-  const [floor,        setFloor]        = useState(String(renewal?.floor ?? ''))
-  const [areaM2,       setAreaM2]       = useState(String(renewal?.area_m2 ?? ''))
   const [roomType,     setRoomType]     = useState(renewal?.room_type ?? '')
   const [startDate,    setStartDate]    = useState(renewal?.contract_end ?? '')
   const [endDate,      setEndDate]      = useState('')
@@ -105,9 +156,9 @@ export default function ContractForm({ renewal, onSaved, onCancel, theme = 'dark
     const body = {
       building_id:          selectedBldg?.id    ?? null,
       address_text:         useManual ? manualAddress : null,
-      unit_number:          unitNumber  || null,
-      floor:                floor       ? parseInt(floor)       : null,
-      area_m2:              areaM2      ? parseFloat(areaM2)    : null,
+      unit_number:          formatUnit(unitNum),
+      floor:                floor,
+      area_m2:              Math.round(areaM2 * 10) / 10,
       room_type:            roomType    || null,
       contract_type:        contractType,
       deposit:              deposit,
@@ -157,6 +208,21 @@ export default function ContractForm({ renewal, onSaved, onCancel, theme = 'dark
     borderBottom: `1px solid ${tok.cardBorder}`,
     marginBottom: 18,
   }
+
+  // 면적 드럼 표시값/배열 (단위 토글에 따라 달라짐)
+  const areaDrumValue = areaUnit === 'pyeong'
+    ? nearestInArray(PYEONG_VALUES, m2ToPyeong(areaM2))
+    : nearestInArray(M2_VALUES, Math.round(areaM2))
+  const areaDrumValues = areaUnit === 'pyeong' ? PYEONG_VALUES : M2_VALUES
+  const formatArea     = (v: number) => areaUnit === 'pyeong' ? `${v}평` : `${v}㎡`
+  const onAreaDrumChange = (v: number) => {
+    setAreaM2(areaUnit === 'pyeong' ? pyeongToM2(v) : v)
+  }
+
+  const areaPyeong = m2ToPyeong(areaM2)
+  const areaSecondary = areaUnit === 'pyeong'
+    ? `≈ ${pyeongToM2(areaPyeong).toFixed(1)}㎡`
+    : `≈ ${areaPyeong}평`
 
   return (
     <div style={{
@@ -287,37 +353,64 @@ export default function ContractForm({ renewal, onSaved, onCancel, theme = 'dark
         {/* ── 2. 방 정보 ─────────────────────────────────────── */}
         <div style={sectionStyle}>
           {sectionLabel('방 정보')}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div>
-                {subLabel('호수')}
-                <input style={inputStyle} placeholder="예) 301호" inputMode="text"
-                  value={unitNumber} onChange={(e) => setUnitNumber(e.target.value)} />
-              </div>
-              <div>
-                {subLabel('층수')}
-                <input style={inputStyle} placeholder="예) 3" type="number" inputMode="numeric"
-                  value={floor} onChange={(e) => setFloor(e.target.value)} />
-              </div>
+
+          <div style={{ marginBottom: 14 }}>
+            {subLabel('방 유형')}
+            <select
+              style={{ ...inputStyle, cursor: 'pointer' }}
+              value={roomType}
+              onChange={(e) => setRoomType(e.target.value)}
+            >
+              <option value="">선택 안 함</option>
+              {ROOM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+            <div>
+              {subLabel(`호수 · ${formatUnit(unitNum)}`)}
+              <MoneyDrumPicker tok={tok} values={UNIT_VALUES} value={unitNum}
+                onChange={setUnitNum} format={formatUnit} />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <div>
-                {subLabel('방 유형')}
-                <select
-                  style={{ ...inputStyle, cursor: 'pointer' }}
-                  value={roomType}
-                  onChange={(e) => setRoomType(e.target.value)}
-                >
-                  <option value="">선택 안 함</option>
-                  {ROOM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-              <div>
-                {subLabel('면적 (㎡)')}
-                <input style={inputStyle} placeholder="예) 25.5" type="number" inputMode="decimal" step="0.1"
-                  value={areaM2} onChange={(e) => setAreaM2(e.target.value)} />
-              </div>
+            <div>
+              {subLabel(`층수 · ${formatFloor(floor)}`)}
+              <MoneyDrumPicker tok={tok} values={FLOOR_VALUES} value={floor}
+                onChange={setFloor} format={formatFloor} />
             </div>
+          </div>
+
+          <div>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              marginBottom: 6,
+            }}>
+              <p style={{ fontSize: 12, fontWeight: 600, color: tok.textSecondary, margin: 0 }}>
+                면적 · {formatArea(areaDrumValue)}
+                <span style={{ marginLeft: 6, color: tok.textTertiary, fontWeight: 500 }}>
+                  {areaSecondary}
+                </span>
+              </p>
+              <button
+                type="button"
+                onClick={() => setAreaUnit((u) => u === 'pyeong' ? 'm2' : 'pyeong')}
+                aria-label="면적 단위 변환"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '5px 10px', borderRadius: 8,
+                  background: tok.accentBg, color: tok.accentColor,
+                  border: `1px solid ${tok.accentColor}33`,
+                  cursor: 'pointer', fontSize: 11, fontWeight: 700,
+                }}
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 7h18l-3-3" /><path d="M21 17H3l3 3" />
+                </svg>
+                {areaUnit === 'pyeong' ? '㎡로 보기' : '평으로 보기'}
+              </button>
+            </div>
+            <MoneyDrumPicker tok={tok} values={areaDrumValues} value={areaDrumValue}
+              onChange={onAreaDrumChange} format={formatArea} />
           </div>
         </div>
 
@@ -351,8 +444,12 @@ export default function ContractForm({ renewal, onSaved, onCancel, theme = 'dark
             </div>
           </div>
 
-          {/* 보증금 + 월세 (드럼) */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* 보증금 + 월세 (같은 행) */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: contractType === '월세' ? '1fr 1fr' : '1fr',
+            gap: 10, marginBottom: 14,
+          }}>
             <div>
               {subLabel(`보증금 · ${formatDeposit(deposit)}`)}
               <MoneyDrumPicker tok={tok} values={DEPOSIT_VALUES} value={deposit} onChange={setDeposit} />
@@ -363,10 +460,11 @@ export default function ContractForm({ renewal, onSaved, onCancel, theme = 'dark
                 <MoneyDrumPicker tok={tok} values={MONTHLY_VALUES} value={monthlyRent} onChange={setMonthlyRent} />
               </div>
             )}
-            <div>
-              {subLabel(`관리비 (선택) · ${maintenance === 0 ? '없음' : `${maintenance}만원`}`)}
-              <MoneyDrumPicker tok={tok} values={MAINTENANCE_VALUES} value={maintenance} onChange={setMaintenance} />
-            </div>
+          </div>
+
+          <div>
+            {subLabel(`관리비 (선택) · ${maintenance === 0 ? '없음' : `${maintenance}만원`}`)}
+            <MoneyDrumPicker tok={tok} values={MAINTENANCE_VALUES} value={maintenance} onChange={setMaintenance} />
           </div>
         </div>
 
