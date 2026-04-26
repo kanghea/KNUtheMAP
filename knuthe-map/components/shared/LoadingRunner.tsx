@@ -113,15 +113,13 @@ export function LoadingRunner({
 interface LoadingRunnerOverlayProps extends LoadingRunnerProps {
   /** 표시 여부 (false 면 렌더하지 않음). 기본 true */
   show?: boolean
-  /** 화면 하단에서 띄울 거리(px). 기본 32 */
-  bottom?: number
-  /** z-index. 기본 50 (sticky 헤더 zIndex 10 보다 위) */
+  /** z-index. 기본 2147483647 (브라우저 최대값) — 어떤 모달/네비/맵 위에도 떠 있게 */
   zIndex?: number
 }
 
 /**
  * 표준 로딩 오버레이.
- * **항상 화면 하단 중앙 고정 위치**에 떠 있다 (페이지마다 위치가 달라지지 않음).
+ * **항상 화면 정중앙 + 최상단 z-index** 에 떠 있다 (페이지마다 위치가 달라지지 않음).
  *
  * 사용처:
  * - `loading.tsx` (페이지 전환 SSR 단계) — `<LoadingRunnerOverlay />` 그대로
@@ -133,8 +131,7 @@ export function LoadingRunnerOverlay({
   show = true,
   size = 144,
   duration = 1,
-  bottom = 32,
-  zIndex = 50,
+  zIndex = 2147483647,
   className,
   style,
 }: LoadingRunnerOverlayProps) {
@@ -143,9 +140,9 @@ export function LoadingRunnerOverlay({
     <div
       style={{
         position: 'fixed',
+        top: '50%',
         left: '50%',
-        bottom,
-        transform: 'translateX(-50%)',
+        transform: 'translate(-50%, -50%)',
         zIndex,
         pointerEvents: 'none',
       }}
