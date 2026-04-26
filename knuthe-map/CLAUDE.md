@@ -28,3 +28,13 @@
 - 별점, 리뷰 수, 통계 등은 실제 DB 데이터에서만 가져온다.
 - DB 테이블이 아직 없으면 해당 UI 요소를 숨기거나 "준비 중" 상태로 표시한다.
 - "일단 임시로" 넣는 더미값도 허용하지 않는다.
+
+### 컴포넌트 재사용 우선
+새 페이지나 UI를 만들기 전에 **반드시 `components/shared/` 와 `lib/hooks/` 를 먼저 확인**하고
+기존 컴포넌트로 조립할 수 있는지 점검한다.
+- 카드/헤더/스켈레톤/메뉴/뱃지/아이콘을 인라인으로 다시 구현하지 않는다.
+- 같은 패턴이 2곳 이상에서 반복되면 즉시 `components/shared/` 로 추출한다.
+- 새 페이지의 외곽은 항상 `<PageWrapper tok={tok}>` + `<DashboardHeader tok={tok}>` 로 시작.
+- 색·여백·radius 등 시각 토큰은 인라인 hex/rgba 가 아니라 `THEME_TOKENS` (서버: `getServerThemeTokens()`, 클라이언트: `useTheme()`) 에서만 가져온다.
+
+상세 인벤토리·prop 시그니처는 `docs/ui.md` 의 "공유 컴포넌트" 섹션 참조.
