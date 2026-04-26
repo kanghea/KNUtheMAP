@@ -1,6 +1,14 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createSupabaseServer } from '@/lib/supabase-server'
+import { getServerThemeTokens } from '@/lib/theme-server'
+import { PageWrapper } from '@/components/shared/PageWrapper'
+import { DashboardHeader, HeaderAvatarLink } from '@/components/shared/DashboardHeader'
+import { Card } from '@/components/shared/Card'
+import { StatCard } from '@/components/shared/StatCard'
+import { MenuItem } from '@/components/shared/MenuItem'
+import { Badge } from '@/components/shared/Badge'
+import { IconUser } from '@/components/shared/icons'
 
 export default async function AgentPage() {
   const supabase = await createSupabaseServer()
@@ -10,6 +18,8 @@ export default async function AgentPage() {
   const { data: profile } = await supabase
     .from('users').select('role, nickname').eq('id', user.id).single()
   if (!profile || !['agent', 'admin'].includes(profile.role)) redirect('/')
+
+  const { tok } = await getServerThemeTokens()
 
   // 관리 건물 수 + 활성 매물 수 + 최근 관리 건물을 병렬 실행
   const [{ count: buildingCount }, { count: listingCount }, { data: buildings }] = await Promise.all([
@@ -30,94 +40,71 @@ export default async function AgentPage() {
       .limit(5),
   ])
 
-  return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', paddingBottom: 100 }}>
-      <header style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #f1f5f9',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '14px 20px',
-      }}>
-        <div>
-          <h1 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>중개사 대시보드</h1>
-          <p style={{ fontSize: 11, color: '#94a3b8', margin: '2px 0 0' }}>
-            {profile.nickname ?? user.email}
-          </p>
-        </div>
-        <Link href="/me" style={{
-          width: 34, height: 34, borderRadius: 10, background: '#f1f5f9',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
-        }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151"
-            strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
-        </Link>
-      </header>
+  const stats = [
+    { label: '관리 건물', value: buildingCount ?? 0, icon: '🏢', color: '#7c3aed',       bg: 'rgba(124,58,237,0.12)', href: '/agent/buildings' },
+    { label: '활성 매물', value: listingCount  ?? 0, icon: '📋', color: tok.accentColor, bg: tok.accentBg,            href: '/agent/listings' },
+  ]
 
-      <div style={{ maxWidth: 520, margin: '0 auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+  const menus = [
+    { href: '/agent/buildings', icon: '🏢', label: '건물 관리',     description: '관리 건물 추가·확인' },
+    { href: '/agent/listings',  icon: '📝', label: '매물 등록·관리', description: '방 매물 올리기' },
+    { href: '/agent/stats',     icon: '📊', label: '통계',           description: '조회수·찜 현황 확인' },
+  ]
+
+  return (
+    <PageWrapper tok={tok}>
+      <DashboardHeader
+        tok={tok}
+        title="중개사 대시보드"
+        subtitle={profile.nickname ?? user.email}
+        backHref="/"
+        backLabel="홈으로"
+        right={
+          <HeaderAvatarLink tok={tok} href="/me">
+            <IconUser size={16} color={tok.textSecondary} />
+          </HeaderAvatarLink>
+        }
+      />
+
+      <div style={{ maxWidth: 520, margin: '0 auto', padding: '20px 16px',
+                    display: 'flex', flexDirection: 'column', gap: 14 }}>
 
         {/* 통계 요약 */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          {[
-            { label: '관리 건물', value: buildingCount ?? 0, icon: '🏢', color: '#7c3aed', bg: '#f5f3ff', href: '/agent/buildings' },
-            { label: '활성 매물', value: listingCount ?? 0,  icon: '📋', color: '#2563eb', bg: '#eff6ff', href: '/agent/listings' },
-          ].map((s) => (
-            <Link key={s.href} href={s.href} style={{
-              background: s.bg, borderRadius: 16, padding: '18px 16px',
-              border: `1px solid ${s.color}20`, textDecoration: 'none',
-              display: 'flex', flexDirection: 'column', gap: 4,
-            }}>
-              <span style={{ fontSize: 24 }}>{s.icon}</span>
-              <span style={{ fontSize: 26, fontWeight: 800, color: s.color }}>{s.value}</span>
-              <span style={{ fontSize: 12, color: s.color, fontWeight: 600 }}>{s.label}</span>
-            </Link>
+          {stats.map(s => (
+            <StatCard
+              key={s.href}
+              href={s.href}
+              icon={s.icon}
+              value={s.value}
+              label={s.label}
+              color={s.color}
+              background={s.bg}
+            />
           ))}
         </div>
 
         {/* 빠른 메뉴 */}
-        <div style={{
-          background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.04)', overflow: 'hidden',
-        }}>
-          {[
-            { href: '/agent/buildings', icon: '🏢', label: '건물 관리', desc: '관리 건물 추가·확인' },
-            { href: '/agent/listings',  icon: '📝', label: '매물 등록·관리', desc: '방 매물 올리기' },
-            { href: '/agent/stats',     icon: '📊', label: '통계', desc: '조회수·찜 현황 확인' },
-          ].map((item, i) => (
-            <Link key={item.href} href={item.href} style={{
-              display: 'flex', alignItems: 'center', gap: 14,
-              padding: '14px 18px', textDecoration: 'none',
-              borderBottom: i < 2 ? '1px solid #f8fafc' : 'none',
-              background: '#fff',
-            }}>
-              <span style={{
-                width: 40, height: 40, borderRadius: 12, background: '#f8fafc',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0,
-              }}>{item.icon}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{item.label}</div>
-                <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>{item.desc}</div>
-              </div>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1"
-                strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 18l6-6-6-6"/>
-              </svg>
-            </Link>
+        <Card tok={tok} overflow="hidden" padding={0}>
+          {menus.map((m, i) => (
+            <MenuItem
+              key={m.href}
+              tok={tok}
+              href={m.href}
+              icon={m.icon}
+              label={m.label}
+              description={m.description}
+              divider={i < menus.length - 1}
+            />
           ))}
-        </div>
+        </Card>
 
         {/* 최근 관리 건물 */}
         {(buildings ?? []).length > 0 && (
-          <div style={{
-            background: '#fff', borderRadius: 20, border: '1px solid #f1f5f9',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.04)', padding: '18px 20px',
-          }}>
+          <Card tok={tok} padding="18px 20px">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <h2 style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', margin: 0 }}>관리 건물</h2>
-              <Link href="/agent/buildings" style={{ fontSize: 12, color: '#2563eb', textDecoration: 'none' }}>
+              <h2 style={{ fontSize: 14, fontWeight: 700, color: tok.textPrimary, margin: 0 }}>관리 건물</h2>
+              <Link href="/agent/buildings" style={{ fontSize: 12, color: tok.accentColor, textDecoration: 'none' }}>
                 전체 보기
               </Link>
             </div>
@@ -130,32 +117,27 @@ export default async function AgentPage() {
                   <Link key={i} href={`/buildings/${b.id}`} style={{
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '10px 12px', borderRadius: 10,
-                    border: '1px solid #f1f5f9', background: '#f8fafc',
+                    border: `1px solid ${tok.cardBorder}`, background: tok.inputBg,
                     textDecoration: 'none',
                   }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a',
+                      <div style={{ fontSize: 13, fontWeight: 600, color: tok.textPrimary,
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {b.name ?? '이름 없는 건물'}
                       </div>
-                      <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1,
+                      <div style={{ fontSize: 11, color: tok.textTertiary, marginTop: 1,
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {b.address}
                       </div>
                     </div>
-                    {b.zone && (
-                      <span style={{
-                        fontSize: 10, padding: '2px 7px', borderRadius: 999,
-                        background: '#f1f5f9', color: '#64748b', flexShrink: 0,
-                      }}>{b.zone}</span>
-                    )}
+                    {b.zone && <Badge label={b.zone} color={tok.textSecondary} background={tok.cardBorder} />}
                   </Link>
                 )
               })}
             </div>
-          </div>
+          </Card>
         )}
       </div>
-    </div>
+    </PageWrapper>
   )
 }

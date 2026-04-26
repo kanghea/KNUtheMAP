@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import UnitModal from '../../_components/UnitModal'
+import { IconPencil, IconTrash } from '@/components/shared/icons'
 
 export interface Unit {
   id: string
@@ -36,31 +37,6 @@ const FILTER_TABS: { key: FilterTab; label: string }[] = [
   { key: 'occupied', label: '입주' },
   { key: 'reserved', label: '예약' },
 ]
-
-// Pencil icon
-function PencilIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-    </svg>
-  )
-}
-
-// Trash icon
-function TrashIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="3 6 5 6 21 6"/>
-      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-      <path d="M10 11v6"/>
-      <path d="M14 11v6"/>
-      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-    </svg>
-  )
-}
 
 export default function UnitsClient({ buildingId, totalFloors, initialUnits }: Props) {
   const [units, setUnits] = useState<Unit[]>(initialUnits)
@@ -235,7 +211,7 @@ export default function UnitsClient({ buildingId, totalFloors, initialUnits }: P
                     style={iconBtnStyle}
                     title="수정"
                   >
-                    <PencilIcon />
+                    <IconPencil />
                   </button>
 
                   <button
@@ -244,7 +220,7 @@ export default function UnitsClient({ buildingId, totalFloors, initialUnits }: P
                     style={{ ...iconBtnStyle, color: '#ef4444', borderColor: '#fecaca' }}
                     title="삭제"
                   >
-                    <TrashIcon />
+                    <IconTrash />
                   </button>
                 </div>
               </div>

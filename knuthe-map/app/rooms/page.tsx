@@ -8,37 +8,14 @@ import { Room, formatPrice, formatArea } from '@/lib/types/room'
 import { DEFAULT_FILTERS } from '@/components/map/DynamicFilter'
 import { roomMatchesFilters } from '@/lib/room-filter'
 import { useFilters } from '@/lib/filter-context'
-import { loadPrefs } from '@/lib/prefs'
-import { THEME_TOKENS, type ThemeMode } from '@/lib/theme-tokens'
+import { useTheme } from '@/lib/hooks/useTheme'
+import { THEME_TOKENS } from '@/lib/theme-tokens'
+import { IconHome, IconHeart, IconSearch } from '@/components/shared/icons'
+import { EmptyState } from '@/components/shared/EmptyState'
 
 const DynamicFilter  = dynamic(() => import('@/components/map/DynamicFilter'), { ssr: false })
 const RoomsMapView   = dynamic(() => import('@/components/map/RoomsMapView'),  { ssr: false })
 const RoomFilterCard = dynamic(() => import('@/app/_room-filter'),             { ssr: false })
-
-// ── SVG 아이콘 ──────────────────────────────────────────────────────
-
-const IconHome = ({ size = 28, color = '#94a3b8' }: { size?: number; color?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-    <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
-  </svg>
-)
-
-const IconHeart = ({ filled = false, size = 14, color }: { filled?: boolean; size?: number; color?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24"
-    fill={filled ? (color ?? '#ef4444') : 'none'}
-    stroke={filled ? (color ?? '#ef4444') : (color ?? '#94a3b8')}
-    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-  </svg>
-)
-
-const IconSearch = ({ size = 48, color = '#94a3b8' }: { size?: number; color?: string }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.35-4.35" />
-  </svg>
-)
 
 // ── 매물 카드 ────────────────────────────────────────────────────────
 
@@ -59,11 +36,21 @@ function RoomCard({ room, tok }: { room: Room; tok: typeof THEME_TOKENS.dark }) 
             background: tok.cardBorder, overflow: 'hidden', position: 'relative',
           }}>
             {thumb
-              ? <img src={thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ? <img
+                  src={thumb}
+                  alt={`${room.buildings?.name ?? ''} 매물 사진`}
+                  width={96}
+                  height={96}
+                  loading="lazy"
+                  decoding="async"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
               : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IconHome size={32} color={tok.textTertiary} /></div>
             }
             <button
               onClick={(e) => { e.preventDefault(); setLiked(v => !v) }}
+              aria-label={liked ? '찜 해제' : '찜하기'}
+              aria-pressed={liked}
               style={{
                 position: 'absolute', top: 6, right: 6,
                 width: 28, height: 28, borderRadius: '50%',
@@ -104,8 +91,7 @@ export default function RoomsPage() {
   const [viewMode,   setViewMode]   = useState<'list' | 'map'>('map')
   const [clusterIds, setClusterIds] = useState<string[] | null>(null)
   const { filters, setFilters }     = useFilters()
-  const theme: ThemeMode = loadPrefs()?.theme ?? 'dark'
-  const tok = THEME_TOKENS[theme]
+  const { theme, tok }              = useTheme()
   const supabaseRef = useRef(createBrowserSupabase())
 
   const isFiltered = JSON.stringify(filters) !== JSON.stringify(DEFAULT_FILTERS)
@@ -341,30 +327,14 @@ export default function RoomsPage() {
             <span style={{ fontSize: 14, color: tok.textTertiary }}>불러오는 중…</span>
           </div>
         ) : filtered.length === 0 ? (
-          <div style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-            justifyContent: 'center', padding: '60px 24px', gap: 12,
-          }}>
-            {isFiltered
+          <EmptyState
+            tok={tok}
+            icon={isFiltered
               ? <IconSearch size={48} color={tok.textTertiary} />
-              : <IconHome size={48} color={tok.textTertiary} />
-            }
-            <p style={{ fontSize: 16, fontWeight: 700, color: tok.textPrimary, margin: 0 }}>
-              {isFiltered ? '조건에 맞는 방이 없어요' : '아직 등록된 매물이 없어요'}
-            </p>
-            {isFiltered && (
-              <button
-                onClick={() => setFilters(DEFAULT_FILTERS)}
-                style={{
-                  marginTop: 4, padding: '8px 20px', borderRadius: 999,
-                  background: tok.cardBg, border: `1px solid ${tok.cardBorder}`,
-                  cursor: 'pointer', fontSize: 13, fontWeight: 600, color: tok.textSecondary,
-                }}
-              >
-                필터 초기화
-              </button>
-            )}
-          </div>
+              : <IconHome   size={48} color={tok.textTertiary} />}
+            title={isFiltered ? '조건에 맞는 방이 없어요' : '아직 등록된 매물이 없어요'}
+            action={isFiltered ? { label: '필터 초기화', onClick: () => setFilters(DEFAULT_FILTERS) } : undefined}
+          />
         ) : (
           filtered.map(r => <RoomCard key={r.id} room={r} tok={tok} />)
         )}
