@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { ZONE_DATA } from '@/lib/zone-data'
 
@@ -24,15 +25,13 @@ export default async function ZonePage({
         overflow: 'hidden',
       }}>
         {zone.imageUrl && (
-          <img
+          <Image
             src={zone.imageUrl}
             alt={`${zone.shortName} 구역`}
-            style={{
-              position: 'absolute', inset: 0,
-              width: '100%', height: '100%',
-              objectFit: 'cover',
-              opacity: 0.75,
-            }}
+            fill
+            sizes="100vw"
+            priority
+            style={{ objectFit: 'cover', opacity: 0.75 }}
           />
         )}
         <Link href="/map" style={{

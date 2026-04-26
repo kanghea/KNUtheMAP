@@ -20,16 +20,20 @@ export default async function AdminPage() {
   const { tok } = themed
   const service = createServiceClient()
 
+  // 대시보드 통계 — 표시용이므로 count='estimated' 사용:
+  //   - 작은 테이블(~수천행): 결과적으로 exact 와 동일
+  //   - 큰 테이블: planner 통계 기반 추정값 (O(N) 풀스캔 회피)
+  // 정확한 카운트가 필요한 곳은 별도로 'exact' 사용할 것.
   const [
     { count: pendingCount },
     { count: userCount },
     { count: buildingCount },
     { count: roomCount },
   ] = await Promise.all([
-    service.from('role_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-    service.from('users').select('*', { count: 'exact', head: true }),
-    service.from('buildings').select('*', { count: 'exact', head: true }).eq('is_active', true),
-    service.from('rooms').select('*', { count: 'exact', head: true }).eq('is_active', true),
+    service.from('role_requests').select('*', { count: 'estimated', head: true }).eq('status', 'pending'),
+    service.from('users').select('*', { count: 'estimated', head: true }),
+    service.from('buildings').select('*', { count: 'estimated', head: true }).eq('is_active', true),
+    service.from('rooms').select('*', { count: 'estimated', head: true }).eq('is_active', true),
   ])
 
   const stats = [

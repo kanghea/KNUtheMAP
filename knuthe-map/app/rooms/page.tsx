@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { createBrowserSupabase } from '@/lib/supabase-browser'
 import { Room, formatPrice, formatArea } from '@/lib/types/room'
@@ -36,14 +37,13 @@ function RoomCard({ room, tok }: { room: Room; tok: typeof THEME_TOKENS.dark }) 
             background: tok.cardBorder, overflow: 'hidden', position: 'relative',
           }}>
             {thumb
-              ? <img
+              ? <Image
                   src={thumb}
                   alt={`${room.buildings?.name ?? ''} 매물 사진`}
-                  width={96}
-                  height={96}
+                  fill
+                  sizes="96px"
                   loading="lazy"
-                  decoding="async"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  style={{ objectFit: 'cover' }}
                 />
               : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IconHome size={32} color={tok.textTertiary} /></div>
             }

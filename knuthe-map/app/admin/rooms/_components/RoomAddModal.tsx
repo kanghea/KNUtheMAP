@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 import DepositDial from '@/components/shared/DepositDial'
 import { THEME_TOKENS } from '@/lib/theme-tokens'
 
@@ -321,8 +322,15 @@ export default function RoomAddModal({ onCreated, onClose }: Props) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
               {previewUrls.map((url, idx) => (
                 <div key={url} style={{ position: 'relative', aspectRatio: '1', borderRadius: 10, overflow: 'hidden', background: '#f1f5f9' }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  {/* blob: URL — Vercel optimizer 가 fetch 할 수 없으므로 unoptimized */}
+                  <Image
+                    src={url}
+                    alt={`사진 미리보기 ${idx + 1}`}
+                    fill
+                    sizes="(max-width: 600px) 22vw, 130px"
+                    unoptimized
+                    style={{ objectFit: 'cover' }}
+                  />
                   <button
                     onClick={() => removeFile(idx)}
                     style={{

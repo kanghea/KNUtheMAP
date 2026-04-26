@@ -38,16 +38,16 @@ export default async function MePage() {
   // role별 추가 데이터 — 모든 쿼리를 한번에 병렬 실행
   const [roomsRes, bldgRes, rRes, uRes] = await Promise.all([
     (role === 'owner' || role === 'agent')
-      ? service.from('rooms').select('id', { count: 'exact', head: true }).eq('listed_by', user.id)
+      ? service.from('rooms').select('id', { count: 'estimated', head: true }).eq('listed_by', user.id)
       : Promise.resolve({ count: 0 }),
     role === 'admin'
-      ? service.from('buildings').select('id', { count: 'exact', head: true }).eq('is_active', true)
+      ? service.from('buildings').select('id', { count: 'estimated', head: true }).eq('is_active', true)
       : Promise.resolve({ count: 0 }),
     role === 'admin'
-      ? service.from('rooms').select('id', { count: 'exact', head: true }).eq('is_active', true)
+      ? service.from('rooms').select('id', { count: 'estimated', head: true }).eq('is_active', true)
       : Promise.resolve({ count: 0 }),
     role === 'admin'
-      ? service.from('users').select('id', { count: 'exact', head: true })
+      ? service.from('users').select('id', { count: 'estimated', head: true })
       : Promise.resolve({ count: 0 }),
   ])
   const myRoomsCount   = roomsRes.count ?? 0

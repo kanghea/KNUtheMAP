@@ -25,11 +25,11 @@ export default async function AgentPage() {
   const [{ count: buildingCount }, { count: listingCount }, { data: buildings }] = await Promise.all([
     supabase
       .from('agent_buildings')
-      .select('*', { count: 'exact', head: true })
+      .select('*', { count: 'estimated', head: true })
       .eq('agent_id', user.id),
     supabase
       .from('rooms')
-      .select('*', { count: 'exact', head: true })
+      .select('*', { count: 'estimated', head: true })
       .eq('listed_by', user.id)
       .eq('is_active', true),
     supabase

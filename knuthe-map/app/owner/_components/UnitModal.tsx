@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 import type { Unit } from './BuildingFloorMap'
 import DepositDial from '@/components/shared/DepositDial'
 import { THEME_TOKENS } from '@/lib/theme-tokens'
@@ -253,8 +254,15 @@ export default function UnitModal({ unit, defaultFloor, buildingId, onClose, onS
                       transition: 'outline .15s',
                     }}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    {/* blob: 와 https:// supabase URL이 혼재 — unoptimized 로 양쪽 모두 안전 처리 */}
+                    <Image
+                      src={src}
+                      alt={`사진 ${idx + 1}`}
+                      fill
+                      sizes="(max-width: 600px) 22vw, 130px"
+                      unoptimized
+                      style={{ objectFit: 'cover' }}
+                    />
 
                     {/* 대표 이미지 배지 */}
                     {isMain && (
