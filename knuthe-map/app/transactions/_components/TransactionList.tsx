@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { createBrowserSupabase } from '@/lib/supabase-browser'
 import AreaToggle from '@/components/shared/AreaToggle'
+import { LoadingRunnerOverlay } from '@/components/shared/LoadingRunner'
 import { THEME_TOKENS, type ThemeMode, type ThemeTokens } from '@/lib/theme-tokens'
 
 // ── 타입 ──────────────────────────────────────────────────────────────
@@ -335,6 +336,7 @@ export default function TransactionList() {
           </div>
         )}
       </div>
+      <LoadingRunnerOverlay show={loading} />
     </div>
   )
 }

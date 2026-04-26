@@ -10,6 +10,7 @@ import { DashboardHeader } from '@/components/shared/DashboardHeader'
 import { Card } from '@/components/shared/Card'
 import { SkeletonCard } from '@/components/shared/Skeleton'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { LoadingRunnerOverlay } from '@/components/shared/LoadingRunner'
 import { IconUsers, IconAlert } from '@/components/shared/icons'
 
 interface MatchResult {
@@ -201,6 +202,7 @@ export default function RoommateClient({ saveDraft }: { saveDraft: boolean }) {
           </div>
         )}
       </main>
+      <LoadingRunnerOverlay show={loading} />
     </PageWrapper>
   )
 }
