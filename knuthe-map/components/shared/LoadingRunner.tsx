@@ -1,14 +1,19 @@
-import Image from 'next/image'
 import type { CSSProperties } from 'react'
 
 /**
- * 화면 전환 시 표시되는 12프레임 러닝 애니메이션.
+ * 화면 전환·데이터 로딩 시 표시되는 12프레임 러닝 애니메이션.
  *
  * ## 동작 원리
  * - 12장의 PNG 프레임을 같은 좌표에 absolute로 겹쳐 둔다.
  * - 각 프레임은 cycle 의 1/12 (= 8.3333%) 동안만 `opacity: 1`.
  * - `animation-delay` 를 i × (duration / 12) 만큼 양수로 주어 슬롯을 정렬.
+ * - 키프레임은 `step-end` 타이밍 → 프레임 사이 보간 0, 완전한 하드 컷.
  * - 키프레임/타이밍 함수는 `app/globals.css` 의 `.knu-runner-frame` + `@keyframes knu-runner-frame` 정의.
+ *
+ * ## 깜빡임 방지
+ * - 모든 프레임을 plain `<img>` + `loading="eager"` + `fetchPriority="high"` 로 즉시 다운로드
+ * - 각 `<img>` 에 `transform: translateZ(0)` 로 GPU 합성 강제 → 프레임 전환 시 리페인트 방지
+ * - 키프레임 timing-function `step-end` → opacity 보간 없이 정확한 0/1 토글
  *
  * ## 프레임 시각 설계
  * 기본 1초 = 1000ms 기준, 한 프레임 = 83.333ms 노출.
@@ -30,15 +35,14 @@ import type { CSSProperties } from 'react'
  * | 12  | 916.667 |1000.00 | 다운(다음 사이클로) |
  *
  * ## 자산 위치
- * `public/images/loading-runner/frame-01.png` ~ `frame-12.png`
- * 자산 준비 가이드는 같은 폴더의 README.md 참조.
+ * `public/images/loading-runner/frame-01.png` ~ `frame-12.png` (256×256 RGBA)
  */
 
 export const RUNNER_FRAME_COUNT = 12
 const RUNNER_BASE_PATH = '/images/loading-runner'
 
 interface LoadingRunnerProps {
-  /** 한 변(px). 기본 96 */
+  /** 한 변(px). 기본 144 (오버레이 기본 크기와 동일) */
   size?: number
   /** 1사이클 길이(초). 기본 1 */
   duration?: number
@@ -51,10 +55,10 @@ interface LoadingRunnerProps {
 /**
  * 인라인 러닝 러너.
  * 페이지 안 임의 위치에 그대로 박아 쓸 수 있다.
- * 페이지 전환 오버레이로 쓰려면 `<LoadingRunnerOverlay>` 사용.
+ * 페이지 전환·데이터 로딩 오버레이로 쓰려면 `<LoadingRunnerOverlay>` 사용.
  */
 export function LoadingRunner({
-  size = 96,
+  size = 144,
   duration = 1,
   className,
   style,
@@ -78,13 +82,20 @@ export function LoadingRunner({
         const n = i + 1
         const fileNum = String(n).padStart(2, '0')
         return (
-          <Image
+          // plain <img> 사용 이유:
+          //  - next/image 는 lazy-loading·placeholder 처리로 첫 사이클 깜빡임 가능
+          //  - 12장 모두 즉시 디코드해야 하드 컷이 매끄러움
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             key={n}
             src={`${RUNNER_BASE_PATH}/frame-${fileNum}.png`}
             alt=""
             width={size}
             height={size}
-            unoptimized
+            decoding="sync"
+            loading="eager"
+            // @ts-expect-error fetchPriority 는 React 19 표준이지만 일부 타입에서 누락
+            fetchpriority="high"
             draggable={false}
             className="knu-runner-frame"
             style={{
@@ -100,46 +111,43 @@ export function LoadingRunner({
 }
 
 interface LoadingRunnerOverlayProps extends LoadingRunnerProps {
-  /** 화면 어느 쪽에 띄울지. 기본 'bottom' */
-  placement?: 'bottom' | 'center' | 'top'
-  /** placement 기준 가장자리에서의 거리(px). 기본 32 */
-  inset?: number
+  /** 표시 여부 (false 면 렌더하지 않음). 기본 true */
+  show?: boolean
+  /** 화면 하단에서 띄울 거리(px). 기본 32 */
+  bottom?: number
   /** z-index. 기본 50 (sticky 헤더 zIndex 10 보다 위) */
   zIndex?: number
 }
 
 /**
- * `loading.tsx` 표준 사용처.
- * 스켈레톤 위에 fixed 로 떠 있는 러닝 러너.
- * - 기본은 bottom-center → 헤더/콘텐츠와 겹치지 않으면서 페이지 전환을 알림
- * - pointer-events: none 이라 클릭을 막지 않음
+ * 표준 로딩 오버레이.
+ * **항상 화면 하단 중앙 고정 위치**에 떠 있다 (페이지마다 위치가 달라지지 않음).
+ *
+ * 사용처:
+ * - `loading.tsx` (페이지 전환 SSR 단계) — `<LoadingRunnerOverlay />` 그대로
+ * - 클라이언트 컴포넌트의 데이터 로딩 — `<LoadingRunnerOverlay show={loading} />`
+ *
+ * pointer-events: none 이라 위에 떠 있어도 하단 UI 의 클릭을 막지 않는다.
  */
 export function LoadingRunnerOverlay({
-  size = 80,
+  show = true,
+  size = 144,
   duration = 1,
-  placement = 'bottom',
-  inset = 32,
+  bottom = 32,
   zIndex = 50,
   className,
   style,
 }: LoadingRunnerOverlayProps) {
-  const positional: CSSProperties = (() => {
-    if (placement === 'center') {
-      return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }
-    }
-    if (placement === 'top') {
-      return { top: inset, left: '50%', transform: 'translateX(-50%)' }
-    }
-    return { bottom: inset, left: '50%', transform: 'translateX(-50%)' }
-  })()
-
+  if (!show) return null
   return (
     <div
       style={{
         position: 'fixed',
+        left: '50%',
+        bottom,
+        transform: 'translateX(-50%)',
         zIndex,
         pointerEvents: 'none',
-        ...positional,
       }}
     >
       <LoadingRunner

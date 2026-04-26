@@ -32,8 +32,7 @@ export default async function MapLoading() {
         <Card tok={tok} radius={999} style={{ height: 44 }} />
       </div>
 
-      {/* 지도 위는 화면 중앙으로 띄워야 하단 필터 토글과 겹치지 않음 */}
-      <LoadingRunnerOverlay placement="center" />
+      <LoadingRunnerOverlay />
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import ContractForm from './ContractForm'
 import ContractCard from './ContractCard'
 import { THEME_TOKENS, type ThemeMode } from '@/lib/theme-tokens'
+import { LoadingRunnerOverlay } from '@/components/shared/LoadingRunner'
 
 export interface HistoryEntry {
   id: string
@@ -118,6 +119,8 @@ export default function MyContractsManager({ theme = 'dark' as ThemeMode }: { th
           onCancel={() => { setShowForm(false); setRenewing(null) }}
         />
       )}
+
+      <LoadingRunnerOverlay show={loading} />
 
       {/* ── 계약 목록 ────────────────────────────────────────── */}
       {loading ? (

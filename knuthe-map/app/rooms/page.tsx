@@ -13,6 +13,7 @@ import { useTheme } from '@/lib/hooks/useTheme'
 import { THEME_TOKENS } from '@/lib/theme-tokens'
 import { IconHome, IconHeart, IconSearch } from '@/components/shared/icons'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { LoadingRunnerOverlay } from '@/components/shared/LoadingRunner'
 
 const DynamicFilter  = dynamic(() => import('@/components/map/DynamicFilter'), { ssr: false })
 const RoomsMapView   = dynamic(() => import('@/components/map/RoomsMapView'),  { ssr: false })
@@ -226,6 +227,7 @@ export default function RoomsPage() {
             <DynamicFilter filters={filters} onChange={setFilters} />
           </div>
         </div>
+        <LoadingRunnerOverlay show={loading} />
       </div>
     )
   }
@@ -339,6 +341,7 @@ export default function RoomsPage() {
           filtered.map(r => <RoomCard key={r.id} room={r} tok={tok} />)
         )}
       </div>
+      <LoadingRunnerOverlay show={loading} />
     </div>
   )
 }

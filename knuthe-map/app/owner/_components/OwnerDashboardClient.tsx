@@ -5,6 +5,7 @@ import Link from 'next/link'
 import BuildingFloorMap, { type Unit } from './BuildingFloorMap'
 import UnitModal from './UnitModal'
 import BuildingRegister from './BuildingRegister'
+import { LoadingRunnerOverlay } from '@/components/shared/LoadingRunner'
 
 interface OwnerBuilding {
   id: string
@@ -237,6 +238,7 @@ export default function OwnerDashboardClient({ ownerBuilding: initial, userId }:
           />
         )}
       </div>
+      <LoadingRunnerOverlay show={loading} />
 
       {/* 빠른 링크 */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
