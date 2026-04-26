@@ -1,5 +1,6 @@
 import { getServerThemeTokens } from '@/lib/theme-server'
 import { Skeleton } from '@/components/shared/Skeleton'
+import { LoadingRunnerOverlay } from '@/components/shared/LoadingRunner'
 
 export default async function RoomsLoading() {
   const { tok } = await getServerThemeTokens()
@@ -33,6 +34,7 @@ export default async function RoomsLoading() {
           </div>
         ))}
       </div>
+      <LoadingRunnerOverlay />
     </div>
   )
 }

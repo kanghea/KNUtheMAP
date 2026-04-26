@@ -1,5 +1,6 @@
 import { getServerThemeTokens } from '@/lib/theme-server'
 import { Card } from '@/components/shared/Card'
+import { LoadingRunnerOverlay } from '@/components/shared/LoadingRunner'
 
 export default async function MapLoading() {
   const { tok, theme } = await getServerThemeTokens()
@@ -30,6 +31,9 @@ export default async function MapLoading() {
       <div style={{ position: 'absolute', bottom: 24, left: '50%', transform: 'translateX(-50%)', width: 160 }}>
         <Card tok={tok} radius={999} style={{ height: 44 }} />
       </div>
+
+      {/* 지도 위는 화면 중앙으로 띄워야 하단 필터 토글과 겹치지 않음 */}
+      <LoadingRunnerOverlay placement="center" />
     </div>
   )
 }

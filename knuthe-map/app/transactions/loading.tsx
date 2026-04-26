@@ -2,6 +2,7 @@ import { getServerThemeTokens } from '@/lib/theme-server'
 import { PageWrapper } from '@/components/shared/PageWrapper'
 import { DashboardHeaderSkeleton } from '@/components/shared/DashboardHeader'
 import { SkeletonCard } from '@/components/shared/Skeleton'
+import { LoadingRunnerOverlay } from '@/components/shared/LoadingRunner'
 
 export default async function TransactionsLoading() {
   const { tok } = await getServerThemeTokens()
@@ -14,6 +15,7 @@ export default async function TransactionsLoading() {
           <SkeletonCard key={i} tok={tok} height={92} radius={14} />
         ))}
       </div>
+      <LoadingRunnerOverlay />
     </PageWrapper>
   )
 }

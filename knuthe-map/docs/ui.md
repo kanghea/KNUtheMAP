@@ -52,6 +52,7 @@ THEME_TOKENS.light.cardBg  // 라이트 모드 카드 배경색
 - 온보딩 애니메이션 (stroke-dasharray)
 - Mapbox 팝업 오버라이드
 - 공용 애니메이션 클래스 (`.knu-pulse`, `.knu-shimmer`, `.knu-spin`) — `prefers-reduced-motion` 자동 OFF
+- 12프레임 러닝 로더 (`@keyframes knu-runner-frame` + `.knu-runner-frame`) — `LoadingRunner.tsx` 가 사용. 자산은 `public/images/loading-runner/frame-01..12.png` (가이드는 폴더 README)
 
 ---
 
@@ -85,6 +86,8 @@ THEME_TOKENS.light.cardBg  // 라이트 모드 카드 배경색
 | `<Badge>` | 알약 라벨 (zone·계약유형·상태) | `label`, `color`, `background`, `size?` |
 | `<Skeleton>` | 단일 사각형 스켈레톤 | `tok?`, `width?`, `height?`, `radius?`, `pulse?` |
 | `<SkeletonCard>` | 카드 모양 스켈레톤 | `tok`, `height?`, `radius?`, `pulse?` |
+| `<LoadingRunner>` | 12프레임 러닝 로더 (인라인) | `size?`(96), `duration?`(1s) |
+| `<LoadingRunnerOverlay>` | `loading.tsx` 표준 fixed 오버레이 | `placement?`('bottom'\|'center'\|'top'), `size?`(80), `duration?`(1s) |
 
 ### 아이콘 (`components/shared/icons.tsx`)
 

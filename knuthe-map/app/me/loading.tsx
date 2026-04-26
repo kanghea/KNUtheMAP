@@ -3,6 +3,7 @@ import { PageWrapper } from '@/components/shared/PageWrapper'
 import { DashboardHeaderSkeleton } from '@/components/shared/DashboardHeader'
 import { Card } from '@/components/shared/Card'
 import { Skeleton } from '@/components/shared/Skeleton'
+import { LoadingRunnerOverlay } from '@/components/shared/LoadingRunner'
 
 export default async function MeLoading() {
   const { tok } = await getServerThemeTokens()
@@ -19,6 +20,7 @@ export default async function MeLoading() {
           </div>
         </Card>
       </div>
+      <LoadingRunnerOverlay />
     </PageWrapper>
   )
 }
