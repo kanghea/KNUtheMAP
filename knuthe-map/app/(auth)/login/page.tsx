@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { createBrowserSupabase } from '@/lib/supabase-browser'
-import { loadPrefs } from '@/lib/prefs'
-import { THEME_TOKENS, type ThemeMode } from '@/lib/theme-tokens'
+import { useTheme } from '@/lib/hooks/useTheme'
+import { Card } from '@/components/shared/Card'
 
 // Open Redirect 방지: 같은 출처의 상대 경로만 허용 (//evil.com 차단)
 function safeNext(raw: string | null): string {
@@ -13,11 +13,8 @@ function safeNext(raw: string | null): string {
 }
 
 export default function LoginPage() {
-  // 첫 렌더부터 사용자 테마 적용 — loadPrefs는 SSR 환경에서 null을 반환하므로 안전
-  const [theme] = useState<ThemeMode>(() => loadPrefs()?.theme ?? 'dark')
+  const { tok } = useTheme()
   const [loading, setLoading] = useState(false)
-
-  const tok = THEME_TOKENS[theme]
 
   const handleGoogleLogin = async () => {
     if (loading) return
@@ -40,15 +37,8 @@ export default function LoginPage() {
       background: tok.pageBg, padding: '0 16px',
     }}>
       <div style={{ width: '100%', maxWidth: 384 }}>
-        <div style={{
-          background: tok.cardBg,
-          borderRadius: 16,
-          boxShadow: tok.shadow,
-          border: `1px solid ${tok.cardBorder}`,
-          padding: '40px 32px',
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', gap: 24,
-        }}>
+        <Card tok={tok} radius={16} padding="40px 32px"
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 24, fontWeight: 700, color: tok.textPrimary }}>KNUtheMAP</span>
             <span style={{ fontSize: 14, color: tok.textTertiary }}>경북대 주변 건물 정보 지도</span>
@@ -75,11 +65,10 @@ export default function LoginPage() {
             }}
           >
             {loading ? (
-              <span style={{
+              <span className="knu-spin" style={{
                 width: 16, height: 16, borderRadius: '50%',
                 border: `2px solid ${tok.textTertiary}`,
                 borderTopColor: tok.textPrimary,
-                animation: 'spin .7s linear infinite',
               }} />
             ) : (
               <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
@@ -95,10 +84,8 @@ export default function LoginPage() {
           <p style={{ fontSize: 12, color: tok.textTertiary, textAlign: 'center', lineHeight: 1.6, margin: 0 }}>
             로그인하면 리뷰 작성과 거래 제보가 가능합니다
           </p>
-        </div>
+        </Card>
       </div>
-
-      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
   )
 }

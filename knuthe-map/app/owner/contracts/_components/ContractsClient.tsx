@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { IconPencil, IconClose } from '@/components/shared/icons'
 
 export interface Contract {
   id: string
@@ -60,27 +61,6 @@ function daysUntil(dateStr: string | null): number | null {
   if (!dateStr) return null
   const diff = new Date(dateStr).getTime() - Date.now()
   return Math.ceil(diff / (1000 * 60 * 60 * 24))
-}
-
-// --- Icons ---
-function PencilIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-    </svg>
-  )
-}
-
-function XIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18"/>
-      <line x1="6" y1="6" x2="18" y2="18"/>
-    </svg>
-  )
 }
 
 // --- ContractModal ---
@@ -533,7 +513,7 @@ export default function ContractsClient({ buildingId, initialContracts, units }:
                       style={iconBtnStyle}
                       title="수정"
                     >
-                      <PencilIcon />
+                      <IconPencil />
                     </button>
                     {c.status === 'active' && (
                       <button
@@ -542,7 +522,7 @@ export default function ContractsClient({ buildingId, initialContracts, units }:
                         style={{ ...iconBtnStyle, color: '#ef4444', borderColor: '#fecaca' }}
                         title="종료 처리"
                       >
-                        <XIcon />
+                        <IconClose size={14} />
                       </button>
                     )}
                   </div>

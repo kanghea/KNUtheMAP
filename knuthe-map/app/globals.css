@@ -34,6 +34,29 @@ input, textarea, select {
 .drum-picker::-webkit-scrollbar { display: none; }
 .drum-picker { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* ── 공용 스켈레톤/로딩 애니메이션 ──────────────────────────
+   loading.tsx 들이 각자 정의하던 keyframes를 한 곳에 모은다.
+   네이밍 충돌 방지를 위해 `knu-` 접두 사용.
+   `prefers-reduced-motion: reduce` 환경에서는 애니메이션 끔. */
+@keyframes knu-pulse {
+  0%, 100% { opacity: 1 }
+  50%      { opacity: 0.5 }
+}
+@keyframes knu-shimmer {
+  0%   { background-position: 200% 0 }
+  100% { background-position: -200% 0 }
+}
+@keyframes knu-spin {
+  to { transform: rotate(360deg) }
+}
+.knu-pulse   { animation: knu-pulse   1.5s ease-in-out infinite; }
+.knu-shimmer { animation: knu-shimmer 1.6s linear infinite; }
+.knu-spin    { animation: knu-spin    .7s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .knu-pulse, .knu-shimmer, .knu-spin { animation: none; }
+}
+
 /* ── 온보딩 카드 Path Draw 애니메이션 ── */
 .option-icon path,
 .option-icon circle,
