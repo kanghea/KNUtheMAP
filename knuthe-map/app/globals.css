@@ -53,8 +53,33 @@ input, textarea, select {
 .knu-shimmer { animation: knu-shimmer 1.6s linear infinite; }
 .knu-spin    { animation: knu-spin    .7s linear infinite; }
 
+/* ── 12프레임 러닝 로더 (LoadingRunner.tsx) ──
+   12장의 PNG 프레임을 absolute로 겹쳐두고 슬롯 단위 opacity 토글로 표시.
+   각 프레임은 cycle의 1/12 = 8.3333% 동안만 보인다.
+   - .knu-runner-frame 의 opacity 기본값 0 → 자기 슬롯에서만 1
+   - linear 타이밍 + 8.3333%↔8.3334% 사이의 인스턴트 컷 (0.0001% 폭)
+     → 페이드 없이 하드 컷 전환
+   - 듀레이션은 inline `--knu-runner-duration` (기본 1s) 으로 주입
+   - delay 는 inline `animation-delay: (idx/12) * duration` 으로 슬롯 정렬 */
+@keyframes knu-runner-frame {
+  0%, 8.3333%   { opacity: 1 }
+  8.3334%, 100% { opacity: 0 }
+}
+.knu-runner-frame {
+  opacity: 0;
+  animation-name: knu-runner-frame;
+  animation-duration: var(--knu-runner-duration, 1s);
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+  animation-fill-mode: none;
+  will-change: opacity;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .knu-pulse, .knu-shimmer, .knu-spin { animation: none; }
+  /* 모션 줄이기 환경: 첫 프레임 1장만 정적으로 노출 */
+  .knu-runner-frame { animation: none; opacity: 0; }
+  .knu-runner-frame:first-child { opacity: 1; }
 }
 
 /* ── 온보딩 카드 Path Draw 애니메이션 ── */

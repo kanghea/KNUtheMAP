@@ -1,3 +1,5 @@
+import { LoadingRunnerOverlay } from '@/components/shared/LoadingRunner'
+
 export default function BuildingLoading() {
   return (
     <div style={{ minHeight: '100vh', background: '#0a0a0a' }}>
@@ -32,6 +34,8 @@ export default function BuildingLoading() {
         </div>
         <div style={{ height: 120, borderRadius: 12, background: 'rgba(255,255,255,0.04)' }} />
       </div>
+
+      <LoadingRunnerOverlay />
 
       <style>{`
         @keyframes shimmer {
