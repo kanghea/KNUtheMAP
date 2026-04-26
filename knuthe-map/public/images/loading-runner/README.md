@@ -2,9 +2,15 @@
 
 `<LoadingRunner>` (components/shared/LoadingRunner.tsx) 가 참조하는 프레임 PNG 자산 폴더.
 
-## 필요 파일
+## 현재 자산 (256×256, RGBA)
 
-이 폴더에 정확히 12장의 PNG를 다음 이름으로 저장한다.
+원본 도안(1536×1024 JPEG)에서 정밀 슬라이스해 생성. 모든 프레임은
+- 발바닥 기준선이 캔버스 하단에서 22px 위 (`y=234`)
+- 캐릭터 중심 X 가 캔버스 중앙 (`x=128`)
+- 외곽 흰색은 4-connectivity flood-fill 로 투명 처리, 내부 흰 소매는 보존
+- 가장 큰 프레임(f1=컨택트, h=319px) 기준 215px 로 통일 스케일
+
+## 파일 목록
 
 | 번호 | 파일명          | 포즈 (도안 라벨)         |
 | ---- | --------------- | ------------------------ |
@@ -35,18 +41,23 @@
   - 흰 배경으로 저장하면 다크모드에서 사각형이 도드라짐
 - **그림자**: 캔버스 안에 포함하지 말 것 (컴포넌트가 별도 그림자를 처리)
 
-## 도안에서 추출하는 방법
+## 재생성 방법
 
-업로드한 도안 이미지(`런닝 애니메이션 12프레임 도안`) 기준:
+원본 도안(`런닝 애니메이션 12프레임 도안`) 1536×1024 JPEG 가 있을 때:
 
-1. 각 프레임은 라벨 아래에 위치한 캐릭터 영역만 잘라낸다.
-2. 잘라낸 후 정사각형 캔버스 중앙에 배치, 발바닥 Y 좌표를 통일.
-3. 알파 채널로 흰 배경 제거 (PhotoShop: 색상 범위 → 흰색 / Figma: Remove BG 플러그인).
-4. 12장을 동일한 크기로 export.
+```bash
+# Pillow + scipy 필요
+pip3 install --user pillow scipy numpy
+python3 scripts/slice_runner_frames.py path/to/source.jpg
+```
+
+스크립트는 자동으로:
+1. 12개 셀(2행×6열, 각 256×512)로 분할
+2. 셀별 vertical band 검출 → 가장 큰 band 가 캐릭터 (라벨/타이틀 자동 제외)
+3. 4-connectivity flood-fill 로 외곽 흰색만 투명 처리 (내부 흰색 보존)
+4. 각 캐릭터의 무게중심 X · 발바닥 Y 측정 후 통일 캔버스에 정렬 paste
 
 ## 참고
 
-- 파일이 비어 있으면 `<LoadingRunner>` 는 아무것도 렌더하지 않고 (graceful fallback)
-  주변 스켈레톤만 보인다.
 - 새 프레임 디자인을 추가하려면 `frame-13.png` 부터 늘리고
-  `LoadingRunner.tsx` 의 `FRAME_COUNT` 만 수정.
+  `LoadingRunner.tsx` 의 `RUNNER_FRAME_COUNT` 만 수정.
