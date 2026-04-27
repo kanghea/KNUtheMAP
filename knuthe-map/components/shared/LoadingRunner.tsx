@@ -6,6 +6,7 @@ import type { CSSProperties } from 'react'
 /**
  * 화면 전환·데이터 로딩 시 표시되는 12프레임 러닝 애니메이션.
  * 사용자가 터치/클릭하면 4프레임 거부(stop) 제스처를 1회 재생한 뒤 다시 러닝으로 복귀.
+ * 로딩이 완료된 시점에는 4프레임 종료(end) 모션을 1회 재생하고 사라진다.
  *
  * ## 동작 원리 (running)
  * - 12장의 PNG 프레임을 같은 좌표에 absolute로 겹쳐 둔다.
@@ -19,6 +20,13 @@ import type { CSSProperties } from 'react'
  * - 듀레이션 600ms = 한 프레임 150ms 노출.
  * - `setTimeout` 으로 600ms 뒤 mode 를 'run' 으로 복귀.
  *
+ * ## 동작 원리 (end)
+ * - 4장의 PNG 프레임 (frame-01 ~ 04, 캐릭터가 맨홀로 사라지는 컷).
+ * - cycle 1회만 재생, 듀레이션 600ms.
+ * - `<LoadingRunnerOverlay show={...}>` 가 show: true → false 전환을 감지하면
+ *   playEnd=true 로 이 모드 진입, 600ms 뒤 onEndComplete 콜백으로 unmount.
+ * - 자산이 누락된 경우 첫 프레임 onError 가 발화되어 즉시 unmount (깨진 이미지 안 보임).
+ *
  * ## 깜빡임 방지
  * - 모든 프레임을 plain `<img>` + `loading="eager"` + `fetchpriority="high"` 로 즉시 다운로드
  * - 각 `<img>` 에 `transform: translateZ(0)` 로 GPU 합성 강제
@@ -28,14 +36,18 @@ import type { CSSProperties } from 'react'
  * ## 자산 위치
  * - 러닝: `public/images/loading-runner/frame-01..12.png` (256×256 RGBA)
  * - 거부: `public/images/loading-runner-tap/frame-01..04.png` (256×256 RGBA)
+ * - 종료: `public/images/loading-runner-end/frame-01..04.png` (256×256 RGBA)
  */
 
 export const RUNNER_FRAME_COUNT = 12
 export const TAP_FRAME_COUNT = 4
+export const END_FRAME_COUNT = 4
 export const TAP_DURATION_MS = 600
+export const END_DURATION_MS = 600
 
 const RUN_PATH = '/images/loading-runner'
 const TAP_PATH = '/images/loading-runner-tap'
+const END_PATH = '/images/loading-runner-end'
 
 interface FrameSetProps {
   /** 한 변(px) */
@@ -122,6 +134,51 @@ function TapFrames({ size, duration }: FrameSetProps) {
   )
 }
 
+interface EndFramesProps extends FrameSetProps {
+  /** 첫 프레임 onError → 자산 누락. 즉시 onSkip 호출. */
+  onSkip?: () => void
+}
+
+function EndFrames({ size, duration, onSkip }: EndFramesProps) {
+  const frameDelaySec = duration / END_FRAME_COUNT
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: size,
+        height: size,
+        ['--knu-end-duration' as string]: `${duration}s`,
+      }}
+    >
+      {Array.from({ length: END_FRAME_COUNT }, (_, i) => {
+        const n = i + 1
+        return (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={`end-${n}`}
+            src={`${END_PATH}/frame-${String(n).padStart(2, '0')}.png`}
+            alt=""
+            width={size}
+            height={size}
+            decoding="sync"
+            loading="eager"
+            // @ts-expect-error fetchpriority 는 React 19 표준이지만 일부 타입에서 누락
+            fetchpriority="high"
+            draggable={false}
+            onError={i === 0 ? onSkip : undefined}
+            className="knu-end-frame"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              animationDelay: `${i * frameDelaySec}s`,
+            }}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
 interface LoadingRunnerProps {
   /** 한 변(px). 기본 144 (오버레이 기본 크기와 동일) */
   size?: number
@@ -129,6 +186,10 @@ interface LoadingRunnerProps {
   duration?: number
   /** 탭 비활성화 (단순 표시 전용으로 쓰고 싶을 때). 기본 false */
   noInteract?: boolean
+  /** true 가 되는 순간 'end' 모드로 전환, 600ms 후 onEndComplete 호출. 기본 false */
+  playEnd?: boolean
+  /** end 애니메이션 끝났을 때 (또는 자산 누락으로 스킵 시) 콜백 */
+  onEndComplete?: () => void
   className?: string
   style?: CSSProperties
 }
@@ -142,29 +203,61 @@ export function LoadingRunner({
   size = 144,
   duration = 1,
   noInteract = false,
+  playEnd = false,
+  onEndComplete,
   className,
   style,
 }: LoadingRunnerProps) {
-  const [mode, setMode] = useState<'run' | 'tap'>('run')
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [mode, setMode] = useState<'run' | 'tap' | 'end'>('run')
+  const timerRef    = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const endTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const endCbRef    = useRef(onEndComplete)
+  useEffect(() => { endCbRef.current = onEndComplete }, [onEndComplete])
 
   // unmount 시 타이머 정리 — setMode 가 unmounted 컴포넌트에 호출되지 않게.
   useEffect(() => () => {
-    if (timerRef.current) clearTimeout(timerRef.current)
+    if (timerRef.current)    clearTimeout(timerRef.current)
+    if (endTimerRef.current) clearTimeout(endTimerRef.current)
   }, [])
+
+  // playEnd 트리거 → 'end' 모드 1회 재생, 끝나면 onEndComplete
+  useEffect(() => {
+    if (playEnd) {
+      // 진행 중 탭이 있으면 정리
+      if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null }
+      setMode('end')
+      if (endTimerRef.current) clearTimeout(endTimerRef.current)
+      endTimerRef.current = setTimeout(() => {
+        endTimerRef.current = null
+        endCbRef.current?.()
+      }, END_DURATION_MS)
+    } else {
+      // playEnd 가 다시 false 가 되면 (로딩 재개) 러닝으로 복귀
+      if (endTimerRef.current) { clearTimeout(endTimerRef.current); endTimerRef.current = null }
+      setMode('run')
+    }
+  }, [playEnd])
 
   const handleTap = useCallback(() => {
     if (noInteract) return
+    if (mode === 'end') return  // 종료 모션 진행 중엔 탭 무시
     if (timerRef.current) return  // 이미 탭 진행 중이면 무시
     setMode('tap')
     timerRef.current = setTimeout(() => {
       setMode('run')
       timerRef.current = null
     }, TAP_DURATION_MS)
-  }, [noInteract])
+  }, [noInteract, mode])
 
-  const interactive = !noInteract
+  // 자산 누락으로 'end' 가 깨질 때 즉시 onEndComplete (overlay 즉시 unmount)
+  const handleEndAssetMissing = useCallback(() => {
+    if (endTimerRef.current) { clearTimeout(endTimerRef.current); endTimerRef.current = null }
+    endCbRef.current?.()
+  }, [])
+
+  const interactive = !noInteract && mode !== 'end'
   const tapDurationSec = TAP_DURATION_MS / 1000
+  const endDurationSec = END_DURATION_MS / 1000
 
   return (
     <div
@@ -192,8 +285,10 @@ export function LoadingRunner({
     >
       {mode === 'run' ? (
         <RunFrames size={size} duration={duration} />
-      ) : (
+      ) : mode === 'tap' ? (
         <TapFrames size={size} duration={tapDurationSec} />
+      ) : (
+        <EndFrames size={size} duration={endDurationSec} onSkip={handleEndAssetMissing} />
       )}
     </div>
   )
@@ -204,6 +299,8 @@ interface LoadingRunnerOverlayProps extends LoadingRunnerProps {
   show?: boolean
   /** z-index. 기본 2147483647 (브라우저 최대값) */
   zIndex?: number
+  /** show: true → false 전환 시 종료(end) 모션 1회 재생 후 unmount. 기본 true */
+  closingAnimation?: boolean
 }
 
 /**
@@ -216,6 +313,10 @@ interface LoadingRunnerOverlayProps extends LoadingRunnerProps {
  *
  * 외곽 wrapper 는 pointer-events: none → 배경 페이지 클릭 가능.
  * 내부 LoadingRunner 는 pointer-events: auto → 캐릭터 자체는 탭 받음.
+ *
+ * `show: true → false` 전환 시 캐릭터가 4프레임 종료(end) 모션을 1회 재생하고
+ * 사라진다. 자산이 누락된 경우 즉시 unmount (깨진 이미지 안 보임).
+ * 종료 모션이 필요 없으면 `closingAnimation={false}`.
  */
 export function LoadingRunnerOverlay({
   show = true,
@@ -223,10 +324,30 @@ export function LoadingRunnerOverlay({
   duration = 1,
   noInteract = false,
   zIndex = 2147483647,
+  closingAnimation = true,
   className,
   style,
 }: LoadingRunnerOverlayProps) {
-  if (!show) return null
+  // show 가 true → false 로 바뀌면 즉시 unmount 하지 않고 종료 모션 1회 재생
+  const [closing, setClosing]   = useState(false)
+  const wasShownRef             = useRef(show)
+
+  useEffect(() => {
+    if (wasShownRef.current && !show) {
+      // 표시 중이었는데 false 로 → 닫힘 시작
+      if (closingAnimation) setClosing(true)
+    }
+    if (!wasShownRef.current && show) {
+      // 다시 켜지면 닫힘 취소
+      setClosing(false)
+    }
+    wasShownRef.current = show
+  }, [show, closingAnimation])
+
+  const handleEndComplete = useCallback(() => { setClosing(false) }, [])
+
+  if (!show && !closing) return null
+
   return (
     <div
       style={{
@@ -242,6 +363,8 @@ export function LoadingRunnerOverlay({
         size={size}
         duration={duration}
         noInteract={noInteract}
+        playEnd={closing}
+        onEndComplete={handleEndComplete}
         className={className}
         style={style}
       />
