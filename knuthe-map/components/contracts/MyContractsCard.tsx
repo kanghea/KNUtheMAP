@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { createBrowserSupabase } from '@/lib/supabase-browser'
 
 // ── 타입 ──────────────────────────────────────────────────────────────
 
@@ -15,7 +14,22 @@ interface Contract {
   floor:         number | null
   room_type:     string | null
   contract_date: string | null
-  source:        string
+  buildings: {
+    name:    string | null
+    address: string | null
+  } | null
+}
+
+interface UserContractRow {
+  id:             string
+  contract_type:  '월세' | '전세'
+  deposit:        number
+  monthly_rent:   number | null
+  area_m2:        number | null
+  floor:          number | null
+  room_type:      string | null
+  contract_start: string | null
+  contract_end:   string | null
   buildings: {
     name:    string | null
     address: string | null
@@ -104,22 +118,25 @@ export default function MyContractsCard({ initialContracts, hideHeader, theme = 
       return
     }
 
-    const supabase = createBrowserSupabase()
-
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      setLoggedIn(!!user)
-      if (!user) { setLoading(false); return }
+      const res = await fetch('/api/user-contracts')
+      if (res.status === 401) { setLoggedIn(false); setLoading(false); return }
+      setLoggedIn(true)
+      if (!res.ok) { setContracts([]); setLoading(false); return }
 
-      const { data } = await supabase
-        .from('transactions')
-        .select('id, contract_type, rent, deposit, area_m2, floor, room_type, contract_date, source, buildings(name, address)')
-        .eq('reported_by', user.id)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(20)
-
-      setContracts((data as unknown as Contract[]) ?? [])
+      const rows = (await res.json()) as UserContractRow[]
+      const mapped: Contract[] = (rows ?? []).map((r) => ({
+        id:            r.id,
+        contract_type: r.contract_type,
+        rent:          r.monthly_rent,
+        deposit:       r.deposit,
+        area_m2:       r.area_m2,
+        floor:         r.floor,
+        room_type:     r.room_type,
+        contract_date: r.contract_start ?? r.contract_end ?? null,
+        buildings:     r.buildings ?? null,
+      }))
+      setContracts(mapped)
       setLoading(false)
     }
 
@@ -149,7 +166,7 @@ export default function MyContractsCard({ initialContracts, hideHeader, theme = 
         }}>
           <span style={{ fontSize: 28 }}>📋</span>
           <p style={{ margin: 0, fontSize: 13, color: tok.textThird, textAlign: 'center', lineHeight: 1.6 }}>
-            로그인하면 내가 제보한<br />계약 내역을 관리할 수 있어요
+            로그인하면 내 계약을<br />등록·관리할 수 있어요
           </p>
           <Link
             href="/login"
@@ -193,10 +210,10 @@ export default function MyContractsCard({ initialContracts, hideHeader, theme = 
         }}>
           <span style={{ fontSize: 28 }}>📭</span>
           <p style={{ margin: 0, fontSize: 13, color: tok.textThird, textAlign: 'center' }}>
-            아직 제보한 거래 내역이 없어요
+            아직 등록된 계약이 없어요
           </p>
           <p style={{ margin: 0, fontSize: 12, color: tok.textThird, textAlign: 'center' }}>
-            건물 페이지에서 실거주 리뷰를 작성하면<br />자동으로 등록됩니다
+            마이페이지에서 계약을 추가하면<br />여기에 표시됩니다
           </p>
         </div>
       </div>
