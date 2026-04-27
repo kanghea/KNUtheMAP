@@ -187,7 +187,7 @@ export default function MapView({ filters, initialZone, flyTo }: MapViewProps) {
             const lats = bldgs.map((f) => (f.geometry as GeoJSON.Point).coordinates[1])
             map.fitBounds(
               [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
-              { padding: 80, maxZoom: 15, duration: 800 },
+              { padding: 80, maxZoom: 17.5, duration: 800 },
             )
           }
         }
@@ -215,6 +215,9 @@ export default function MapView({ filters, initialZone, flyTo }: MapViewProps) {
 
       for (const [osm_id, zone] of zonesMapRef.current) {
         if (!zone.lat || !zone.lng) continue
+        // 이미 이 구역으로 도착해 있는 경우, 자기 자신 pill 은 그리지 않음
+        // ( /zones/[name] CTA → /map?zone=X → pill 클릭 → /zones/[name] 무한 루프 방지 )
+        if (initialZone && zone.name === initialZone) continue
 
         const displayName = zone.name
         const count = zoneCounts.get(osm_id) ?? 0
