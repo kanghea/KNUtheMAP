@@ -23,8 +23,20 @@ interface BuildingResult {
 const CONTRACT_TYPES = ['월세', '전세'] as const
 const ROOM_TYPES = ['원룸', '투룸', '복층형원룸', '오피스텔', '아파트', '빌라', '단독주택']
 
-// 호수: 1 ~ 1599 (예: 101호, 201호 … 1599호)
-const UNIT_VALUES: number[] = Array.from({ length: 1599 }, (_, i) => i + 1)
+// 호수: 한 층당 8개 슬롯(N01~N08), 1~50층 → [101..108, 201..208, …, 5001..5008]
+const SLOTS_PER_FLOOR = 8
+const UNIT_VALUES: number[] = (() => {
+  const arr: number[] = []
+  for (let f = 1; f <= 50; f++) {
+    for (let s = 1; s <= SLOTS_PER_FLOOR; s++) arr.push(f * 100 + s)
+  }
+  return arr
+})()
+const floorOf = (unit: number) => Math.floor(unit / 100)
+const slotOf  = (unit: number) => {
+  const s = unit % 100
+  return Math.min(SLOTS_PER_FLOOR, Math.max(1, s))
+}
 
 // 층수: 지하 5층 ~ 지상 50층 (0층 제외)
 const FLOOR_VALUES: number[] = [
@@ -78,19 +90,25 @@ export default function ContractForm({ renewal, onSaved, onCancel, theme = 'dark
   const [useManual,      setUseManual]      = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // 호수·층수 (드럼)
-  const initialUnitNum = (() => {
-    if (!renewal?.unit_number) return 101
-    const m = renewal.unit_number.match(/\d+/)
-    return m ? Math.min(1599, Math.max(1, parseInt(m[0]))) : 101
-  })()
-  const initialFloor = (() => {
-    if (renewal?.floor == null) return 1
-    return nearestInArray(FLOOR_VALUES, renewal.floor)
+  // 호수·층수 (드럼) — 한 층당 슬롯 8개로 연동
+  const { initialFloor, initialSlot } = (() => {
+    const f0 = renewal?.floor != null ? nearestInArray(FLOOR_VALUES, renewal.floor) : 1
+    const num = renewal?.unit_number?.match(/\d+/)?.[0]
+    if (!num) return { initialFloor: f0, initialSlot: 1 }
+    const n = parseInt(num)
+    // n>=100: floor*100+slot 형식 / 1~99: 슬롯 단독 (구버전 데이터)
+    if (n >= 100) {
+      const f = floorOf(n)
+      return f0 < 0
+        ? { initialFloor: f0, initialSlot: 1 }
+        : { initialFloor: Math.min(50, Math.max(1, f)), initialSlot: slotOf(n) }
+    }
+    return { initialFloor: f0 > 0 ? f0 : 1, initialSlot: Math.min(SLOTS_PER_FLOOR, Math.max(1, n)) }
   })()
 
-  const [unitNum, setUnitNum] = useState(initialUnitNum)
-  const [floor,   setFloor]   = useState(initialFloor)
+  const [floor, setFloor] = useState(initialFloor)
+  const [slot,  setSlot]  = useState(initialSlot)
+  const unitNum = floor > 0 ? floor * 100 + slot : null
 
   // 면적: 내부 상태는 항상 ㎡, 표시 단위만 토글
   const [areaM2,   setAreaM2]   = useState<number>(renewal?.area_m2 ?? pyeongToM2(10))
@@ -156,7 +174,7 @@ export default function ContractForm({ renewal, onSaved, onCancel, theme = 'dark
     const body = {
       building_id:          selectedBldg?.id    ?? null,
       address_text:         useManual ? manualAddress : null,
-      unit_number:          formatUnit(unitNum),
+      unit_number:          unitNum != null ? formatUnit(unitNum) : null,
       floor:                floor,
       area_m2:              Math.round(areaM2 * 10) / 10,
       room_type:            roomType    || null,
@@ -368,14 +386,42 @@ export default function ContractForm({ renewal, onSaved, onCancel, theme = 'dark
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
             <div>
-              {subLabel(`호수 · ${formatUnit(unitNum)}`)}
-              <MoneyDrumPicker tok={tok} values={UNIT_VALUES} value={unitNum}
-                onChange={setUnitNum} format={formatUnit} />
+              {subLabel(`호수 · ${unitNum != null ? formatUnit(unitNum) : '—'}`)}
+              {unitNum != null ? (
+                <MoneyDrumPicker
+                  tok={tok}
+                  values={UNIT_VALUES}
+                  value={unitNum}
+                  onChange={(v) => {
+                    const f = floorOf(v)
+                    const s = slotOf(v)
+                    setFloor(f)
+                    setSlot(s)
+                  }}
+                  format={formatUnit}
+                />
+              ) : (
+                <div style={{
+                  height: 44 * 5, borderRadius: 12, background: tok.inputBg,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: tok.textTertiary, fontSize: 13, padding: '0 12px', textAlign: 'center',
+                }}>
+                  지상층에서만<br />호수를 선택할 수 있어요
+                </div>
+              )}
             </div>
             <div>
               {subLabel(`층수 · ${formatFloor(floor)}`)}
-              <MoneyDrumPicker tok={tok} values={FLOOR_VALUES} value={floor}
-                onChange={setFloor} format={formatFloor} />
+              <MoneyDrumPicker
+                tok={tok}
+                values={FLOOR_VALUES}
+                value={floor}
+                onChange={(f) => {
+                  setFloor(f)
+                  if (f > 0 && (slot < 1 || slot > SLOTS_PER_FLOOR)) setSlot(1)
+                }}
+                format={formatFloor}
+              />
             </div>
           </div>
 
