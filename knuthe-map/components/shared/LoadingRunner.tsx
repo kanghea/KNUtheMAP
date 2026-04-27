@@ -303,6 +303,64 @@ interface LoadingRunnerOverlayProps extends LoadingRunnerProps {
   closingAnimation?: boolean
 }
 
+/** 부모 unmount 시점에 단 하나만 떠 있도록 제한하는 ID */
+const VANILLA_END_ID = '__knu-loading-runner-end-anim'
+
+/**
+ * 부모가 LoadingRunnerOverlay 자체를 unmount 하는 경우(loading.tsx 라우트
+ * 전환 등)에는 React 가 즉시 컴포넌트를 떼어내 종료 애니메이션이 재생될
+ * 시간이 없다. 이 경우 cleanup 안에서 vanilla DOM 으로 동일한 종료 모션을
+ * `<body>` 에 잠깐 띄웠다가 자동 제거한다 (React lifecycle 무관).
+ *
+ * - singleton: 같은 ID 노드가 이미 있으면 제거 후 새로 띄움 (스택 방지)
+ * - CSS class `.knu-end-frame` 를 그대로 사용 (globals.css 의 키프레임 적용)
+ */
+function playDetachedEndAnimation(size: number) {
+  if (typeof document === 'undefined') return
+  document.getElementById(VANILLA_END_ID)?.remove()
+
+  const wrapper = document.createElement('div')
+  wrapper.id = VANILLA_END_ID
+  wrapper.style.cssText = [
+    'position:fixed',
+    'top:50%',
+    'left:50%',
+    'transform:translate(-50%,-50%)',
+    'z-index:2147483647',
+    'pointer-events:none',
+    `width:${size}px`,
+    `height:${size}px`,
+  ].join(';')
+  wrapper.style.setProperty('--knu-end-duration', `${END_DURATION_MS / 1000}s`)
+  wrapper.setAttribute('aria-hidden', 'true')
+
+  const slot = (END_DURATION_MS / 1000) / END_FRAME_COUNT
+  for (let i = 0; i < END_FRAME_COUNT; i++) {
+    const img = document.createElement('img')
+    img.src = `${END_PATH}/frame-${String(i + 1).padStart(2, '0')}.png`
+    img.alt = ''
+    img.draggable = false
+    img.className = 'knu-end-frame'
+    img.style.cssText = [
+      'position:absolute',
+      'inset:0',
+      `width:${size}px`,
+      `height:${size}px`,
+      `animation-delay:${i * slot}s`,
+    ].join(';')
+    if (i === 0) {
+      img.addEventListener('error', () => wrapper.remove(), { once: true })
+    }
+    wrapper.appendChild(img)
+  }
+
+  document.body.appendChild(wrapper)
+  // animation duration + 약간의 GPU 합성 여유 후 제거
+  setTimeout(() => {
+    if (wrapper.isConnected) wrapper.remove()
+  }, END_DURATION_MS + 80)
+}
+
 /**
  * 표준 로딩 오버레이.
  * **항상 화면 정중앙 + 최상단 z-index** 에 떠 있다.
@@ -314,9 +372,13 @@ interface LoadingRunnerOverlayProps extends LoadingRunnerProps {
  * 외곽 wrapper 는 pointer-events: none → 배경 페이지 클릭 가능.
  * 내부 LoadingRunner 는 pointer-events: auto → 캐릭터 자체는 탭 받음.
  *
- * `show: true → false` 전환 시 캐릭터가 4프레임 종료(end) 모션을 1회 재생하고
- * 사라진다. 자산이 누락된 경우 즉시 unmount (깨진 이미지 안 보임).
- * 종료 모션이 필요 없으면 `closingAnimation={false}`.
+ * 종료(end) 모션이 재생되는 두 경로:
+ *  1. show: true → false 전환 → React 안에서 4프레임 종료 모션 재생 후 unmount
+ *  2. 부모가 컴포넌트 자체를 unmount (loading.tsx 라우트 전환 등)
+ *     → cleanup 안에서 vanilla DOM 으로 동일 모션을 `<body>` 에 잠깐 띄움
+ *
+ * 1번 경로로 이미 종료 모션이 재생됐다면 2번은 스킵 (중복 방지).
+ * `closingAnimation={false}` 면 양쪽 모두 비활성화.
  */
 export function LoadingRunnerOverlay({
   show = true,
@@ -328,9 +390,12 @@ export function LoadingRunnerOverlay({
   className,
   style,
 }: LoadingRunnerOverlayProps) {
-  // show 가 true → false 로 바뀌면 즉시 unmount 하지 않고 종료 모션 1회 재생
-  const [closing, setClosing]   = useState(false)
-  const wasShownRef             = useRef(show)
+  const [closing, setClosing] = useState(false)
+  const wasShownRef    = useRef(show)
+  const endPlayedRef   = useRef(false)
+  // cleanup closure 가 항상 최신 값을 보도록 ref 로 저장
+  const optsRef        = useRef({ size, closingAnimation })
+  useEffect(() => { optsRef.current = { size, closingAnimation } })
 
   useEffect(() => {
     if (wasShownRef.current && !show) {
@@ -338,13 +403,26 @@ export function LoadingRunnerOverlay({
       if (closingAnimation) setClosing(true)
     }
     if (!wasShownRef.current && show) {
-      // 다시 켜지면 닫힘 취소
+      // 다시 켜지면 닫힘 취소 + endPlayed 리셋 (다음 cycle 의 unmount 도 종료 모션)
       setClosing(false)
+      endPlayedRef.current = false
     }
     wasShownRef.current = show
   }, [show, closingAnimation])
 
-  const handleEndComplete = useCallback(() => { setClosing(false) }, [])
+  const handleEndComplete = useCallback(() => {
+    endPlayedRef.current = true
+    setClosing(false)
+  }, [])
+
+  // 부모가 강제 unmount 할 때(라우트 전환 등) vanilla 종료 모션 fallback
+  useEffect(() => () => {
+    const { size, closingAnimation } = optsRef.current
+    if (!closingAnimation) return
+    if (!wasShownRef.current) return  // 한 번도 안 보였으면 안 띄움
+    if (endPlayedRef.current) return  // React 안에서 이미 재생됨
+    playDetachedEndAnimation(size)
+  }, [])
 
   if (!show && !closing) return null
 
