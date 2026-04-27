@@ -317,6 +317,15 @@ interface LoadingRunnerOverlayProps extends LoadingRunnerProps {
  * `show: true → false` 전환 시 캐릭터가 4프레임 종료(end) 모션을 1회 재생하고
  * 사라진다. 자산이 누락된 경우 즉시 unmount (깨진 이미지 안 보임).
  * 종료 모션이 필요 없으면 `closingAnimation={false}`.
+ *
+ * ## Next.js `loading.tsx` 강제 unmount 처리
+ * Next.js 가 라우트 전환 완료 시 `loading.tsx` 트리를 한 번에 unmount 하면
+ * `show` 가 true → false 전환을 거치지 못하고 컴포넌트가 즉시 사라져
+ * 종료 모션이 재생되지 않는다.
+ * 이를 보완하기 위해 unmount 시점에 `show` 가 여전히 true 였다면
+ * 컴포넌트가 사라지기 직전 `<body>` 에 종료 모션 4프레임을 그대로 입힌
+ * "잔류 노드" 를 임시로 떼어 둔 뒤 600ms 후 자동 제거한다.
+ * (React 트리 밖이라 라우트가 unmount 되어도 살아남는다.)
  */
 export function LoadingRunnerOverlay({
   show = true,
@@ -331,6 +340,18 @@ export function LoadingRunnerOverlay({
   // show 가 true → false 로 바뀌면 즉시 unmount 하지 않고 종료 모션 1회 재생
   const [closing, setClosing]   = useState(false)
   const wasShownRef             = useRef(show)
+  // unmount 잔류 노드 생성용으로 마지막 props 를 ref 에 보관
+  const showRef                 = useRef(show)
+  const closingAnimRef          = useRef(closingAnimation)
+  const sizeRef                 = useRef(size)
+  const zIndexRef               = useRef(zIndex)
+  // 인-컴포넌트 종료 모션이 이미 재생되었는지 (= 잔류 노드 불필요)
+  const playedEndRef            = useRef(false)
+
+  useEffect(() => { showRef.current        = show             }, [show])
+  useEffect(() => { closingAnimRef.current = closingAnimation }, [closingAnimation])
+  useEffect(() => { sizeRef.current        = size             }, [size])
+  useEffect(() => { zIndexRef.current      = zIndex           }, [zIndex])
 
   useEffect(() => {
     if (wasShownRef.current && !show) {
@@ -344,7 +365,25 @@ export function LoadingRunnerOverlay({
     wasShownRef.current = show
   }, [show, closingAnimation])
 
-  const handleEndComplete = useCallback(() => { setClosing(false) }, [])
+  // 새 오버레이가 마운트되면 이전 잔류 노드 제거 (연속 라우트 전환 시 캐릭터 중첩 방지)
+  useEffect(() => {
+    removeEndAnimationResiduals()
+  }, [])
+
+  // 강제 unmount 시 (Next.js loading.tsx 트리 제거 등) 종료 모션 잔류 노드 생성
+  useEffect(() => () => {
+    if (showRef.current && closingAnimRef.current && !playedEndRef.current) {
+      createEndAnimationResidual({
+        size:   sizeRef.current,
+        zIndex: zIndexRef.current,
+      })
+    }
+  }, [])
+
+  const handleEndComplete = useCallback(() => {
+    playedEndRef.current = true
+    setClosing(false)
+  }, [])
 
   if (!show && !closing) return null
 
@@ -370,4 +409,74 @@ export function LoadingRunnerOverlay({
       />
     </div>
   )
+}
+
+const RESIDUAL_CLASS = 'knu-loading-runner-end-residual'
+
+/**
+ * React 트리 밖에서 종료(end) 모션 4프레임을 한 번만 재생하는 DOM 노드를
+ * `<body>` 에 직접 붙였다 600ms 후 떼어 낸다.
+ * Next.js `loading.tsx` 강제 unmount 처럼 React 가 컴포넌트를 즉시 제거해
+ * 컴포넌트 안 종료 모션을 재생할 시간이 없는 상황에서 호출.
+ */
+function createEndAnimationResidual({
+  size,
+  zIndex,
+}: {
+  size:   number
+  zIndex: number
+}) {
+  if (typeof document === 'undefined') return
+
+  const container = document.createElement('div')
+  container.className = RESIDUAL_CLASS
+  container.style.position      = 'fixed'
+  container.style.top           = '50%'
+  container.style.left          = '50%'
+  container.style.transform     = 'translate(-50%, -50%)'
+  container.style.zIndex        = String(zIndex)
+  container.style.pointerEvents = 'none'
+  container.style.width         = `${size}px`
+  container.style.height        = `${size}px`
+  container.style.setProperty('--knu-end-duration', `${END_DURATION_MS / 1000}s`)
+
+  const frameDelaySec = (END_DURATION_MS / 1000) / END_FRAME_COUNT
+  let assetMissing = false
+
+  for (let i = 0; i < END_FRAME_COUNT; i++) {
+    const n = i + 1
+    const img = document.createElement('img')
+    img.src       = `${END_PATH}/frame-${String(n).padStart(2, '0')}.png`
+    img.alt       = ''
+    img.width     = size
+    img.height    = size
+    img.draggable = false
+    img.loading   = 'eager'
+    img.decoding  = 'sync'
+    ;(img as HTMLImageElement & { fetchPriority?: string }).fetchPriority = 'high'
+    img.className = 'knu-end-frame'
+    img.style.position       = 'absolute'
+    img.style.inset          = '0'
+    img.style.animationDelay = `${i * frameDelaySec}s`
+    if (i === 0) {
+      img.onerror = () => {
+        // 자산 누락: 잔류 노드 즉시 제거 (깨진 이미지 안 보임)
+        assetMissing = true
+        container.remove()
+      }
+    }
+    container.appendChild(img)
+  }
+
+  document.body.appendChild(container)
+
+  // 종료 모션 + 약간의 여유 (16ms × 2 ≈ 1프레임 +) 후 제거
+  setTimeout(() => {
+    if (!assetMissing) container.remove()
+  }, END_DURATION_MS + 50)
+}
+
+function removeEndAnimationResiduals() {
+  if (typeof document === 'undefined') return
+  document.querySelectorAll(`.${RESIDUAL_CLASS}`).forEach(el => el.remove())
 }
