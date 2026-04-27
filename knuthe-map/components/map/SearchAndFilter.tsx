@@ -154,8 +154,8 @@ function DualRange({ min, max, from, to, step = 1, onChange, fmtMin, fmtMax, tok
   )
 }
 
-function RangeRow({ label, summary, open, onToggle, children, maxH = 120, tok }: {
-  label: string; summary: string; open: boolean; onToggle: () => void; children: React.ReactNode; maxH?: number; tok: Tok
+function RangeRow({ label, summary, open, onToggle, children, tok }: {
+  label: string; summary: string; open: boolean; onToggle: () => void; children: React.ReactNode; tok: Tok
 }) {
   return (
     <div>
@@ -173,8 +173,15 @@ function RangeRow({ label, summary, open, onToggle, children, maxH = 120, tok }:
           </svg>
         </div>
       </button>
-      <div style={{ overflow: 'hidden', maxHeight: open ? maxH : 0, transition: 'max-height .25s ease' }}>
-        {children}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateRows: open ? '1fr' : '0fr',
+          transition: 'grid-template-rows .28s cubic-bezier(.22,.61,.36,1)',
+          willChange: 'grid-template-rows',
+        }}
+      >
+        <div style={{ minHeight: 0, overflow: 'hidden' }}>{children}</div>
       </div>
     </div>
   )
@@ -428,18 +435,27 @@ export default function SearchAndFilter({ filters, onChange, onSelect, theme = '
         {/* ── 카드 (검색결과 + 필터) ──────────────────────── */}
         <div
           style={{
+            display: 'grid',
+            gridTemplateRows: showCard ? '1fr' : '0fr',
+            opacity: showCard ? 1 : 0,
+            transition:
+              'grid-template-rows .28s cubic-bezier(.22,.61,.36,1), opacity .2s ease',
+            willChange: 'grid-template-rows, opacity',
+          }}
+        >
+        <div style={{ minHeight: 0, overflow: 'hidden' }}>
+        <div
+          style={{
             background:   tok.bgCard,
             borderTop:    'none',
-            borderRight:  showCard ? `1px solid ${tok.border}` : 'none',
-            borderBottom: showCard ? `1px solid ${tok.border}` : 'none',
-            borderLeft:   showCard ? `1px solid ${tok.border}` : 'none',
+            borderRight:  `1px solid ${tok.border}`,
+            borderBottom: `1px solid ${tok.border}`,
+            borderLeft:   `1px solid ${tok.border}`,
             borderRadius: '0 0 20px 20px',
-            overflow:     'hidden',
-            maxHeight:    showCard ? 'calc(100vh - 120px)' : 0,
+            maxHeight:    'calc(100vh - 120px)',
             overflowY:    'auto',
-            boxShadow:    showCard ? tok.shadowCard : 'none',
-            opacity:      showCard ? 1 : 0,
-            transition:   'max-height .25s cubic-bezier(.4,0,.2,1), opacity .15s ease',
+            boxShadow:    tok.shadowCard,
+            WebkitOverflowScrolling: 'touch',
           }}
         >
           {/* ── 검색 결과 ────────────────────────────────── */}
@@ -532,11 +548,17 @@ export default function SearchAndFilter({ filters, onChange, onSelect, theme = '
           </button>
 
           {/* ── 필터 콘텐츠 ─────────────────────────────── */}
-          <div style={{
-            maxHeight:  filterOpen ? 900 : 0,
-            overflow:   'hidden',
-            transition: 'max-height .32s cubic-bezier(.4,0,.2,1)',
-          }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateRows: filterOpen ? '1fr' : '0fr',
+              opacity: filterOpen ? 1 : 0,
+              transition:
+                'grid-template-rows .32s cubic-bezier(.22,.61,.36,1), opacity .22s ease',
+              willChange: 'grid-template-rows, opacity',
+            }}
+          >
+            <div style={{ minHeight: 0, overflow: 'hidden' }}>
             <div style={{ padding: '0 16px 4px' }}>
 
               <div style={{ height: 1, background: tok.divider, marginBottom: 8 }} />
@@ -593,7 +615,7 @@ export default function SearchAndFilter({ filters, onChange, onSelect, theme = '
               <RangeRow
                 label="출입문 거리"
                 summary={filters.gate && filters.gateMinutes ? `${filters.gate} · ${filters.gateMinutes}분 이내` : '설정 안 함'}
-                open={section === 'gate'} onToggle={() => toggleSection('gate')} maxH={200} tok={tok}
+                open={section === 'gate'} onToggle={() => toggleSection('gate')} tok={tok}
               >
                 <div style={{ paddingBottom: 12, paddingTop: 4 }}>
                   <p style={{ fontSize: 10, color: tok.textLabel, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>기준 출입문</p>
@@ -689,7 +711,10 @@ export default function SearchAndFilter({ filters, onChange, onSelect, theme = '
                 </button>
               </div>
             </div>
+            </div>
           </div>
+        </div>
+        </div>
         </div>
       </div>
     </>

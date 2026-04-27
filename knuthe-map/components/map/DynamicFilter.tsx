@@ -162,9 +162,9 @@ function DualRange({ min, max, from, to, step = 1, onChange, fmtMin, fmtMax }: D
 // ── 섹션 행 (클릭 → 슬라이더 토글) ──────────────────────────────
 
 function RangeRow({
-  label, summary, open, onToggle, children, maxH = 120,
+  label, summary, open, onToggle, children,
 }: {
-  label: string; summary: string; open: boolean; onToggle: () => void; children: React.ReactNode; maxH?: number
+  label: string; summary: string; open: boolean; onToggle: () => void; children: React.ReactNode
 }) {
   return (
     <div>
@@ -186,12 +186,13 @@ function RangeRow({
       </button>
       <div
         style={{
-          overflow: 'hidden',
-          maxHeight: open ? maxH : 0,
-          transition: 'max-height .25s ease',
+          display: 'grid',
+          gridTemplateRows: open ? '1fr' : '0fr',
+          transition: 'grid-template-rows .28s cubic-bezier(.22,.61,.36,1)',
+          willChange: 'grid-template-rows',
         }}
       >
-        {children}
+        <div style={{ minHeight: 0, overflow: 'hidden' }}>{children}</div>
       </div>
     </div>
   )
@@ -413,7 +414,6 @@ export default function DynamicFilter({ filters, onChange }: Props) {
               : '설정 안 함'}
             open={section === 'gate'}
             onToggle={() => toggleSection('gate')}
-            maxH={200}
           >
             <div className="pb-3 pt-1">
               <p className="text-[10px] text-white/40 uppercase tracking-wide mb-1.5">기준 출입문</p>
