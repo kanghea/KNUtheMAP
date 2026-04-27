@@ -9,9 +9,10 @@ import type { CSSProperties } from 'react'
  *
  * ## 동작 원리 (running)
  * - 12장의 PNG 프레임을 같은 좌표에 absolute로 겹쳐 둔다.
- * - 각 프레임은 cycle 의 1/12 (= 8.3333%) 동안만 `opacity: 1`.
+ * - 각 프레임의 슬롯은 cycle 의 1/12 (= 8.3333%).
  * - `animation-delay` 를 i × (duration / 12) 만큼 양수로 주어 슬롯을 정렬.
- * - 키프레임은 `step-end` 타이밍 → 프레임 사이 보간 0, 완전한 하드 컷.
+ * - 키프레임은 짧은 fade-in → hold → fade-out 으로 다음 프레임과 ~1%
+ *   cross-fade. 셀 애니메이션 룩은 유지하면서 12fps judder 만 부드럽게.
  *
  * ## 동작 원리 (tap)
  * - 4장의 PNG 프레임 (frame-01 ~ 04). cycle 1회만 재생 (`animation-iteration-count: 1`).
@@ -21,7 +22,8 @@ import type { CSSProperties } from 'react'
  * ## 깜빡임 방지
  * - 모든 프레임을 plain `<img>` + `loading="eager"` + `fetchpriority="high"` 로 즉시 다운로드
  * - 각 `<img>` 에 `transform: translateZ(0)` 로 GPU 합성 강제
- * - 키프레임 timing-function `step-end` → opacity 보간 없이 정확한 0/1 토글
+ * - 키프레임 timing-function `linear` + 슬롯 안 fade-in/hold/fade-out 으로
+ *   합성 전환만 부드럽게 (재페인트 X, GPU 만 opacity 보간)
  *
  * ## 자산 위치
  * - 러닝: `public/images/loading-runner/frame-01..12.png` (256×256 RGBA)
