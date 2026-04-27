@@ -110,6 +110,32 @@ input, textarea, select {
   image-rendering: -webkit-optimize-contrast;
 }
 
+/* ── 4프레임 종료 모션 (LoadingRunner.tsx 의 'end' 모드) ──
+   로딩이 완료된 시점에 1회 재생되고 사라지는 닫힘 애니메이션
+   (캐릭터가 맨홀로 들어가 사라지는 컷). 탭 모드와 동일한 슬롯/타이밍.
+   - animation-iteration-count: 1
+   - 듀레이션은 inline `--knu-end-duration` (기본 0.6s)
+   - 슬롯 정렬은 inline `animation-delay: (idx/4) * duration` */
+@keyframes knu-end-frame {
+  0%   { opacity: 0 }
+  3%   { opacity: 1 }
+  22%  { opacity: 1 }
+  27%  { opacity: 0 }
+  100% { opacity: 0 }
+}
+.knu-end-frame {
+  opacity: 0;
+  animation-name: knu-end-frame;
+  animation-duration: var(--knu-end-duration, 0.6s);
+  animation-iteration-count: 1;
+  animation-timing-function: linear;
+  animation-fill-mode: none;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: opacity;
+  image-rendering: -webkit-optimize-contrast;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .knu-pulse, .knu-shimmer, .knu-spin { animation: none; }
   /* 모션 줄이기 환경: 첫 프레임 1장만 정적으로 노출 */
@@ -117,6 +143,7 @@ input, textarea, select {
   .knu-runner-frame:first-child { opacity: 1; }
   .knu-tap-frame    { animation: none; opacity: 0; }
   .knu-tap-frame:last-child { opacity: 1; }
+  .knu-end-frame    { animation: none; opacity: 0; }
 }
 
 /* ── 온보딩 카드 Path Draw 애니메이션 ── */
