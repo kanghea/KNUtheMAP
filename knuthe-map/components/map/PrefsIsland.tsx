@@ -1,8 +1,8 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { useRole, type Role } from '@/lib/useRole'
 import { THEME_TOKENS, type ThemeMode } from '@/lib/theme-tokens'
 import type { ViewMode } from '@/lib/view-mode-cookie'
@@ -164,30 +164,77 @@ interface Props {
   initialViewMode?: ViewMode
 }
 
+// 햅틱 피드백 — 지원하지 않는 브라우저(iOS Safari 등)는 자동 무시.
+function tapHaptic() {
+  if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+    try { navigator.vibrate(8) } catch { /* noop */ }
+  }
+}
+
 export default function PrefsIsland({ initialRole = 'tenant', initialTheme = 'dark', initialViewMode = 'rooms' }: Props) {
   const pathname          = usePathname()
+  const router            = useRouter()
   const clientRole        = useRole()
   const role              = clientRole ?? initialRole  // 클라이언트 role 우선, 로딩 중엔 서버값 사용
-  const [toast, setToast] = useState(false)
   const tok               = THEME_TOKENS[initialTheme]
 
-  // 온보딩 중에는 숨김
-  const isOnboarding = pathname === '/' &&
-    typeof window !== 'undefined' && window.location.search.includes('reset=1')
-  if (isOnboarding) return null
+  // useTransition: 라우트 전환 중인지 추적해 진행 인디케이터를 띄움.
+  const [isPending, startTransition] = useTransition()
 
-  const items = navItems(role, initialViewMode)
+  // 낙관적 active — 클릭한 href를 기록. `isPending`이 true인 동안만 의미가 있고,
+  // 전환이 끝나면 자연스럽게 pathname 기반 매칭으로 돌아간다 (별도 클리어 불필요).
+  const [pendingHref, setPendingHref] = useState<string | null>(null)
 
-  const showToast = () => {
+  // 토스트(준비 중 기능 안내).
+  const [toast, setToast] = useState(false)
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // 토스트 타이머 cleanup (unmount/연속 클릭 race 방지).
+  useEffect(() => () => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
+  }, [])
+
+  const showToast = useCallback(() => {
+    tapHaptic()
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
     setToast(true)
-    setTimeout(() => setToast(false), 2000)
-  }
+    toastTimerRef.current = setTimeout(() => {
+      setToast(false)
+      toastTimerRef.current = null
+    }, 2000)
+  }, [])
+
+  // 라우트 prefetch — 사용자가 항목에 손을 올리거나 터치 시작 시 미리 데이터를 받아둔다.
+  // 클릭 시점에는 SSR 응답이 캐시에 와 있을 가능성이 높아 체감 지연이 거의 사라진다.
+  const prefetchHref = useCallback((href: string) => {
+    try { router.prefetch(href) } catch { /* noop */ }
+  }, [router])
+
+  // 클릭 핸들러 — 낙관적 active + 햅틱 + transition 안에서 router.push.
+  // <Link>의 기본 동작을 가로채서:
+  //   1) 같은 라우트면 무시
+  //   2) 즉시 active 강조 이동
+  //   3) 햅틱
+  //   4) router.push를 startTransition으로 감싸 isPending 노출
+  const handleNav = useCallback((e: React.MouseEvent<HTMLAnchorElement>, href: string, isActive: boolean) => {
+    // 새 탭/외부 모드 클릭 등은 기본 동작 유지
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
+    e.preventDefault()
+    if (isActive) return  // 이미 그 페이지면 아무것도 안 함
+    tapHaptic()
+    setPendingHref(href)
+    startTransition(() => { router.push(href) })
+  }, [router])
+
+  // 메모이즈 — role/viewMode가 안 바뀌면 배열·아이콘 ReactNode 재생성을 막는다.
+  const items = useMemo(() => navItems(role, initialViewMode), [role, initialViewMode])
 
   // 색 매핑 — 다크/라이트 모두에서 active는 accent로 명확히, inactive는 textTertiary로 절제
   const activeIconColor   = tok.accentColor
   const inactiveIconColor = tok.textTertiary
 
-  const itemStyle = (active: boolean, disabled?: boolean): React.CSSProperties => ({
+  // 기본 스타일은 고정 객체로 캐싱 (active/disabled 변형만 분기).
+  const baseItemStyle = useMemo<React.CSSProperties>(() => ({
     display:        'flex',
     flexDirection:  'column',
     alignItems:     'center',
@@ -195,29 +242,62 @@ export default function PrefsIsland({ initialRole = 'tenant', initialTheme = 'da
     padding:        '6px 12px',
     borderRadius:   999,
     textDecoration: 'none',
-    background:     active ? tok.accentBg : 'transparent',
     transition:     'background .15s, transform .1s',
     flexShrink:     0,
-    opacity:        disabled ? 0.4 : 1,
-    cursor:         disabled ? 'default' : 'pointer',
-  })
+    border:         'none',
+    outline:        'none',
+    background:     'transparent',
+  }), [])
 
-  const lblStyle = (active: boolean): React.CSSProperties => ({
+  const itemStyle = useCallback((active: boolean, disabled?: boolean): React.CSSProperties => ({
+    ...baseItemStyle,
+    background: active ? tok.accentBg : 'transparent',
+    opacity:    disabled ? 0.4 : 1,
+    cursor:     disabled ? 'default' : 'pointer',
+  }), [baseItemStyle, tok.accentBg])
+
+  const lblStyle = useCallback((active: boolean): React.CSSProperties => ({
     fontSize:   10,
     fontWeight: 600,
     color:      active ? tok.accentColor : tok.textTertiary,
     whiteSpace: 'nowrap',
-  })
+  }), [tok.accentColor, tok.textTertiary])
+
+  // 온보딩 중(`/?reset=1`)에는 숨김 — 모든 hooks 선언 이후에 분기.
+  const isOnboarding = pathname === '/' &&
+    typeof window !== 'undefined' && window.location.search.includes('reset=1')
+  if (isOnboarding) return null
 
   return (
     <>
       <style>{`
-        .nav-item:active { transform: scale(0.88); }
+        .knu-nav-item:active { transform: scale(0.88); }
+        .knu-nav-item:focus-visible { outline: 2px solid ${tok.accentColor}; outline-offset: 2px; }
+        @keyframes knu-nav-progress {
+          0%   { transform: translateX(-100%); }
+          50%  { transform: translateX(0%); }
+          100% { transform: translateX(100%); }
+        }
+        .knu-nav-progress {
+          position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+          background: linear-gradient(90deg, transparent, ${tok.accentColor}, transparent);
+          animation: knu-nav-progress 0.9s linear infinite;
+          pointer-events: none;
+        }
+        @keyframes knu-nav-dot {
+          0%, 100% { opacity: 0.35; transform: scale(0.85); }
+          50%      { opacity: 1;    transform: scale(1.15); }
+        }
+        .knu-nav-dot {
+          width: 4px; height: 4px; border-radius: 999px;
+          background: ${tok.accentColor};
+          animation: knu-nav-dot 0.8s ease-in-out infinite;
+        }
       `}</style>
 
       {/* 준비 중 토스트 — 항상 어두운 배경(알림 관행) */}
       {toast && (
-        <div style={{
+        <div role="status" aria-live="polite" style={{
           position:  'fixed',
           bottom:    'calc(90px + env(safe-area-inset-bottom))',
           left:      '50%',
@@ -237,23 +317,33 @@ export default function PrefsIsland({ initialRole = 'tenant', initialTheme = 'da
         </div>
       )}
 
-      <div style={{
-        position:     'fixed',
-        bottom:       'calc(28px + env(safe-area-inset-bottom))',
-        left:         '50%',
-        transform:    'translateX(-50%)',
-        zIndex:       30,
-        width:        'max-content',
-        background:   tok.cardBg,
-        border:       `1px solid ${tok.cardBorder}`,
-        boxShadow:    tok.shadow,
-        borderRadius: 999,
-        overflow:     'hidden',
-      }}>
+      <nav
+        aria-label="주 네비게이션"
+        aria-busy={isPending || undefined}
+        style={{
+          position:     'fixed',
+          bottom:       'calc(28px + env(safe-area-inset-bottom))',
+          left:         '50%',
+          transform:    'translateX(-50%)',
+          zIndex:       30,
+          width:        'max-content',
+          background:   tok.cardBg,
+          border:       `1px solid ${tok.cardBorder}`,
+          boxShadow:    tok.shadow,
+          borderRadius: 999,
+          overflow:     'hidden',
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'nowrap', padding: '6px 8px' }}>
           {items.map((item, i) => {
-            const active = item.match(pathname)
-            const color  = active ? activeIconColor : inactiveIconColor
+            // 낙관적 강조: 라우트 전환 중에는 클릭한 href만 active.
+            // 전환이 끝나면 pathname 매칭으로 자연스럽게 복귀.
+            const active = (isPending && pendingHref)
+              ? item.href === pendingHref
+              : item.match(pathname)
+            const color = active ? activeIconColor : inactiveIconColor
+            const showPendingDot = isPending && pendingHref === item.href
+
             return (
               <div key={item.href} style={{ display: 'flex', alignItems: 'center' }}>
                 {i > 0 && (
@@ -261,10 +351,11 @@ export default function PrefsIsland({ initialRole = 'tenant', initialTheme = 'da
                 )}
                 {item.disabled ? (
                   <button
-                    className="nav-item"
+                    type="button"
+                    className="knu-nav-item"
                     onClick={showToast}
                     aria-label={`${item.label} (준비 중)`}
-                    style={{ ...itemStyle(false, true), border: 'none', background: 'transparent' }}
+                    style={{ ...itemStyle(false, true) }}
                   >
                     {item.icon(inactiveIconColor)}
                     <span style={lblStyle(false)}>{item.label}</span>
@@ -272,11 +363,23 @@ export default function PrefsIsland({ initialRole = 'tenant', initialTheme = 'da
                 ) : (
                   <Link
                     href={item.href}
-                    className="nav-item"
+                    prefetch
+                    className="knu-nav-item"
                     aria-label={item.label}
                     aria-current={active ? 'page' : undefined}
-                    style={itemStyle(active)}
+                    onClick={(e) => handleNav(e, item.href, item.match(pathname))}
+                    onPointerEnter={() => prefetchHref(item.href)}
+                    onPointerDown={() => prefetchHref(item.href)}
+                    style={{ ...itemStyle(active), position: 'relative' }}
                   >
+                    {/* 진행 중 dot — 클릭한 항목에만 작은 펄스 점을 띄움 */}
+                    {showPendingDot && (
+                      <span
+                        aria-hidden
+                        className="knu-nav-dot"
+                        style={{ position: 'absolute', top: 4, right: 8 }}
+                      />
+                    )}
                     {item.icon(color)}
                     <span style={lblStyle(active)}>{item.label}</span>
                   </Link>
@@ -285,7 +388,10 @@ export default function PrefsIsland({ initialRole = 'tenant', initialTheme = 'da
             )
           })}
         </div>
-      </div>
+
+        {/* island 하단 진행 바 — 라우트 전환 중 시각 신호 */}
+        {isPending && <div className="knu-nav-progress" aria-hidden />}
+      </nav>
     </>
   )
 }
