@@ -94,12 +94,14 @@ export function OnboardingShell({
   children:   React.ReactNode
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const mainRef      = useRef<HTMLElement>(null)
 
   useEffect(() => {
     if (scrollKey === undefined) return
-    // 컨테이너가 자체 스크롤 컨텍스트(position:fixed + overflowY:auto)이므로
-    // 이 ref를 0으로. 일부 모바일 브라우저는 window 스크롤도 같이 발생해 둘 다 호출.
+    // 컨테이너와 main 모두 overflowY:auto 이므로 둘 다 0으로 리셋.
+    // (flex:1 인 main이 실제 스크롤 컨텍스트가 되는 경우가 있어 컨테이너만으로는 부족.)
     containerRef.current?.scrollTo({ top: 0, behavior: 'auto' })
+    mainRef.current?.scrollTo({ top: 0, behavior: 'auto' })
     if (typeof window !== 'undefined') window.scrollTo(0, 0)
   }, [scrollKey])
 
@@ -196,7 +198,7 @@ export function OnboardingShell({
         </>
       )}
 
-      <main style={{
+      <main ref={mainRef} style={{
         flex:       1,
         display:    'flex',
         flexDirection: 'column',
