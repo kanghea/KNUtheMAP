@@ -247,6 +247,7 @@ export default function OnboardingClient() {
         stepLabel={`${rmSection + 1} / ${ROOMMATE_SECTIONS.length}`}
         dots={{ total: ROOMMATE_SECTIONS.length, current: rmSection }}
         onSkip={null}
+        scrollKey={`roommate-checklist:${rmSection}`}
       >
         <RoommateChecklist
           section={rmSection}
@@ -276,6 +277,7 @@ export default function OnboardingClient() {
         sub="두 가지 중 더 중요한 조건을 골라주세요"
         progress={null}
         onSkip={null}
+        scrollKey="roommate-swipe"
       >
         <RoommateSwipe onComplete={handleSwipeComplete} tok={tok} />
       </OnboardingShell>
@@ -285,7 +287,7 @@ export default function OnboardingClient() {
   // ── 룸메이트 로그인 화면 ──────────────────────────────────────────────────
   if (phase === 'roommate-login') {
     return (
-      <OnboardingShell tok={tok} theme={theme} title="" sub="" progress={null} onSkip={null}>
+      <OnboardingShell tok={tok} theme={theme} title="" sub="" progress={null} onSkip={null} scrollKey="roommate-login">
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '20px 0' }}>
           <div style={{
             width: 72, height: 72, borderRadius: '50%',
