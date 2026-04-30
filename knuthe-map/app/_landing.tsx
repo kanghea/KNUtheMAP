@@ -377,6 +377,67 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
           </div>
         )}
 
+        {/* ── 룸메이트 모드 ────────────────────────────────────── */}
+        <Link
+          href="/roommate"
+          style={{
+            display: 'block', textDecoration: 'none',
+            marginBottom: 14, borderRadius: 20, overflow: 'hidden',
+            background: 'linear-gradient(135deg, #6C63FF 0%, #8B5CF6 100%)',
+            boxShadow: '0 8px 32px rgba(108,99,255,0.28), inset 0 1px 0 rgba(255,255,255,0.18)',
+            position: 'relative',
+          }}
+        >
+          {/* 상단 유리 반사광 */}
+          <div style={{
+            position: 'absolute', top: 0, left: 0, right: 0, height: '52%',
+            background: 'linear-gradient(to bottom, rgba(255,255,255,0.14) 0%, transparent 100%)',
+            pointerEvents: 'none',
+          }} />
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 14,
+            padding: '18px 20px', position: 'relative',
+          }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: 14,
+              background: 'rgba(255,255,255,0.18)',
+              border: '1px solid rgba(255,255,255,0.28)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff"
+                strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                <span style={{
+                  fontSize: 10, fontWeight: 700, color: '#fff',
+                  background: 'rgba(255,255,255,0.22)', borderRadius: 6,
+                  padding: '2px 6px', letterSpacing: '0.04em',
+                }}>
+                  NEW
+                </span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
+                  룸메이트 모드
+                </span>
+              </div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.78)', lineHeight: 1.4 }}>
+                생활 패턴이 잘 맞는 룸메이트를 찾아보세요
+              </div>
+            </div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff"
+              strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"
+              style={{ flexShrink: 0, opacity: 0.85 }}>
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </div>
+        </Link>
+
         {/* ── 하단 링크 ────────────────────────────────────────── */}
         <div style={{ textAlign: 'center', padding: '4px 0', display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
           <Link href="/me" style={{ fontSize: 11, color: tok.footerText, textDecoration: 'none', fontWeight: 500 }}>
