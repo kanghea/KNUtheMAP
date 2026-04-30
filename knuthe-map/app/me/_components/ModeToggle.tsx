@@ -26,9 +26,9 @@ export default function ModeToggle({ initialRole, theme, hasRoommateProfile }: P
     if (mode === active || busy) return
     setError(null)
 
-    // 룸메이트 모드 진입 시 프로필 없으면 온보딩으로
+    // 룸메이트 모드 진입 시 프로필 없으면 룸메이트 전용 온보딩으로
     if (mode === 'roommate' && !hasRoommateProfile) {
-      router.push('/?reset=1')
+      router.push('/onboarding/roommate')
       return
     }
 
@@ -43,7 +43,7 @@ export default function ModeToggle({ initialRole, theme, hasRoommateProfile }: P
       const json = await res.json().catch(() => ({}))
       if (!res.ok) {
         if (res.status === 409 && json.needsOnboarding) {
-          router.push('/?reset=1')
+          router.push('/onboarding/roommate')
           return
         }
         setError(json.error ?? '모드 전환에 실패했어요')

@@ -72,7 +72,8 @@ export default function RoommateClient({ saveDraft }: { saveDraft: boolean }) {
 
     const res = await fetch(`/api/roommate?${params.toString()}`)
     if (res.status === 404) {
-      router.push('/?reset=1')
+      // 프로필이 없으면 룸메이트 전용 온보딩으로 (전체 온보딩 재시작 X)
+      router.push('/onboarding/roommate')
       return
     }
     if (!res.ok) {
