@@ -1,7 +1,18 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseServer } from '@/lib/supabase-server'
+import { sealRole, ROLE_COOKIE_NAME, ROLE_COOKIE_OPTIONS } from '@/lib/role-cookie'
+import {
+  sealViewMode,
+  VIEW_MODE_COOKIE_NAME,
+  VIEW_MODE_COOKIE_OPTIONS,
+} from '@/lib/view-mode-cookie'
 
 // POST /api/roommate — 룸메이트 프로필 생성/업데이트
+//
+// 설계 메모:
+//  - users.role 은 여기 한 곳에서만 'roommate' 로 갱신된다(RLS 정책이 요구).
+//    이후의 사용자 모드 토글은 viewMode 쿠키만 갱신하고 DB는 건드리지 않는다.
+//  - role 쿠키와 viewMode 쿠키도 함께 발행해 SSR이 즉시 새 상태로 렌더되도록 한다.
 export async function POST(request: Request) {
   const supabase = await createSupabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
@@ -29,13 +40,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  // role을 roommate로 업데이트
-  await supabase
+  // 현재 role 확인 — 이미 roommate면 굳이 다시 쓰지 않는다(불필요한 DB write 방지)
+  const { data: u } = await supabase
     .from('users')
-    .update({ role: 'roommate' })
+    .select('role')
     .eq('id', user.id)
+    .single()
 
-  return NextResponse.json({ profile: data })
+  if (u?.role !== 'roommate') {
+    await supabase
+      .from('users')
+      .update({ role: 'roommate' })
+      .eq('id', user.id)
+  }
+
+  // 응답에 role / viewMode 쿠키 동봉 — 이후 SSR 패스에서 즉시 'roommate' 모드로 표시
+  const response = NextResponse.json({ profile: data })
+  response.cookies.set(ROLE_COOKIE_NAME, sealRole('roommate'), ROLE_COOKIE_OPTIONS)
+  response.cookies.set(VIEW_MODE_COOKIE_NAME, sealViewMode('roommate'), VIEW_MODE_COOKIE_OPTIONS)
+  return response
 }
 
 // GET /api/roommate — 매칭 목록 조회
