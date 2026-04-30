@@ -9,16 +9,18 @@ import { DashboardHeader } from '@/components/shared/DashboardHeader'
 import { Card } from '@/components/shared/Card'
 import ProfileEditor      from './_components/ProfileEditor'
 import LogoutButton       from './_components/LogoutButton'
+import ModeToggle         from './_components/ModeToggle'
 import MyContractsManager from './_components/MyContractsManager'
 import OwnerSection       from './_components/OwnerSection'
 import AgentSection       from './_components/AgentSection'
 import AdminSection       from './_components/AdminSection'
 
 const ROLE_LABELS: Record<string, string> = {
-  tenant: '학생',
-  owner:  '건물주',
-  agent:  '공인중개사',
-  admin:  '관리자',
+  tenant:   '학생',
+  roommate: '학생',
+  owner:    '건물주',
+  agent:    '공인중개사',
+  admin:    '관리자',
 }
 
 export default async function MePage() {
@@ -36,7 +38,7 @@ export default async function MePage() {
   const service = createServiceClient()
 
   // role별 추가 데이터 — 모든 쿼리를 한번에 병렬 실행
-  const [roomsRes, bldgRes, rRes, uRes] = await Promise.all([
+  const [roomsRes, bldgRes, rRes, uRes, rmProfileRes] = await Promise.all([
     (role === 'owner' || role === 'agent')
       ? service.from('rooms').select('id', { count: 'estimated', head: true }).eq('listed_by', user.id)
       : Promise.resolve({ count: 0 }),
@@ -49,11 +51,15 @@ export default async function MePage() {
     role === 'admin'
       ? service.from('users').select('id', { count: 'estimated', head: true })
       : Promise.resolve({ count: 0 }),
+    (role === 'tenant' || role === 'roommate')
+      ? service.from('roommate_profiles').select('user_id', { head: true, count: 'exact' }).eq('user_id', user.id)
+      : Promise.resolve({ count: 0 }),
   ])
-  const myRoomsCount   = roomsRes.count ?? 0
-  const buildingsCount = bldgRes.count ?? 0
-  const roomsCount     = rRes.count ?? 0
-  const usersCount     = uRes.count ?? 0
+  const myRoomsCount       = roomsRes.count ?? 0
+  const buildingsCount     = bldgRes.count ?? 0
+  const roomsCount         = rRes.count ?? 0
+  const usersCount         = uRes.count ?? 0
+  const hasRoommateProfile = (rmProfileRes.count ?? 0) > 0
 
   // 테마 읽기
   const jar      = await cookies()
@@ -83,13 +89,24 @@ export default async function MePage() {
           {profile ? (
             <ProfileEditor
               profile={profile}
-              showStudentFields={role === 'tenant'}
+              showStudentFields={role === 'tenant' || role === 'roommate'}
               theme={theme}
             />
           ) : (
             <p style={{ fontSize: 13, color: tok.textTertiary }}>프로필 정보를 불러올 수 없어요.</p>
           )}
         </Card>
+
+        {/* ── 보기 모드 토글 (학생만) ───────────────────────────── */}
+        {(role === 'tenant' || role === 'roommate') && (
+          <Card tok={tok} padding={20} style={{ marginBottom: 16 }}>
+            <ModeToggle
+              initialRole={role}
+              theme={theme}
+              hasRoommateProfile={hasRoommateProfile}
+            />
+          </Card>
+        )}
 
         {/* ── role별 섹션 ────────────────────────────────────────── */}
         {role === 'tenant' && (

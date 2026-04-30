@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useRole, type Role } from '@/lib/useRole'
 import { THEME_TOKENS, type ThemeMode } from '@/lib/theme-tokens'
+import type { ViewMode } from '@/lib/view-mode-cookie'
 
 // ── 아이콘 ───────────────────────────────────────────────────────────────────
 // color는 부모에서 active/inactive·테마에 따라 계산해 전달.
@@ -107,12 +108,13 @@ type NavItem = {
   disabled?: boolean  // 미구현 탭
 }
 
-function navItems(role: Role): NavItem[] {
+function navItems(role: Role, viewMode: ViewMode): NavItem[] {
   const me: NavItem = {
     href: '/me', label: '마이', icon: (c) => <IconMe color={c} />,
     match: (p) => p.startsWith('/me'),
   }
 
+  // owner / agent / admin은 viewMode와 무관하게 자기 대시보드 nav 사용.
   if (role === 'owner') return [
     { href: '/owner',           label: '대시보드', icon: (c) => <IconBuilding color={c} />, match: (p) => p === '/owner' },
     { href: '/owner/units',     label: '호실관리', icon: (c) => <IconRooms color={c} />,    match: (p) => p.startsWith('/owner/units') },
@@ -135,13 +137,14 @@ function navItems(role: Role): NavItem[] {
     me,
   ]
 
-  if (role === 'roommate') return [
+  // tenant / roommate는 viewMode 쿠키로 nav 분기 (사용자가 /me에서 토글).
+  if (viewMode === 'roommate') return [
     { href: '/',          label: '홈',       icon: (c) => <IconHome color={c} />,     match: (p) => p === '/' },
     { href: '/roommate',  label: '룸메이트', icon: (c) => <IconRoommate color={c} />, match: (p) => p.startsWith('/roommate') },
     me,
   ]
 
-  // tenant (default)
+  // 기본: 방보기 모드
   return [
     { href: '/',      label: '홈',      icon: (c) => <IconHome color={c} />,   match: (p) => p === '/' },
     { href: '/rooms', label: '방보기',  icon: (c) => <IconRooms color={c} />,  match: (p) => p.startsWith('/rooms') },
@@ -157,9 +160,11 @@ interface Props {
   /** 서버 컴포넌트(layout.tsx)에서 쿠키로 결정한 테마.
    *  hydration mismatch 방지를 위해 SSR과 동일한 값을 전달해야 함. */
   initialTheme?: ThemeMode
+  /** 서버 컴포넌트에서 쿠키로 결정한 보기 모드. */
+  initialViewMode?: ViewMode
 }
 
-export default function PrefsIsland({ initialRole = 'tenant', initialTheme = 'dark' }: Props) {
+export default function PrefsIsland({ initialRole = 'tenant', initialTheme = 'dark', initialViewMode = 'rooms' }: Props) {
   const pathname          = usePathname()
   const clientRole        = useRole()
   const role              = clientRole ?? initialRole  // 클라이언트 role 우선, 로딩 중엔 서버값 사용
@@ -171,7 +176,7 @@ export default function PrefsIsland({ initialRole = 'tenant', initialTheme = 'da
     typeof window !== 'undefined' && window.location.search.includes('reset=1')
   if (isOnboarding) return null
 
-  const items = navItems(role)
+  const items = navItems(role, initialViewMode)
 
   const showToast = () => {
     setToast(true)
