@@ -4,6 +4,7 @@ import { createSupabaseServer } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
 import { parsePrefs } from '@/lib/prefs'
 import { THEME_TOKENS, type ThemeMode } from '@/lib/theme-tokens'
+import { unsealViewMode, VIEW_MODE_COOKIE_NAME } from '@/lib/view-mode-cookie'
 import { PageWrapper } from '@/components/shared/PageWrapper'
 import { DashboardHeader } from '@/components/shared/DashboardHeader'
 import { Card } from '@/components/shared/Card'
@@ -61,11 +62,15 @@ export default async function MePage() {
   const usersCount         = uRes.count ?? 0
   const hasRoommateProfile = (rmProfileRes.count ?? 0) > 0
 
-  // 테마 읽기
+  // 테마·viewMode 쿠키 읽기
   const jar      = await cookies()
   const prefsRaw = jar.get('knu_prefs')?.value
   const theme: ThemeMode = prefsRaw ? (parsePrefs(prefsRaw)?.theme ?? 'dark') : 'dark'
   const tok = THEME_TOKENS[theme]
+
+  const sealedView = jar.get(VIEW_MODE_COOKIE_NAME)?.value
+  const viewMode   = (sealedView ? unsealViewMode(sealedView) : null)
+    ?? (role === 'roommate' ? 'roommate' : 'rooms')
 
   const roleLabel = ROLE_LABELS[role] ?? role
 
@@ -101,7 +106,7 @@ export default async function MePage() {
         {(role === 'tenant' || role === 'roommate') && (
           <Card tok={tok} padding={20} style={{ marginBottom: 16 }}>
             <ModeToggle
-              initialRole={role}
+              initialViewMode={viewMode}
               theme={theme}
               hasRoommateProfile={hasRoommateProfile}
             />
