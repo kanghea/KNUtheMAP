@@ -123,6 +123,7 @@ export default function RoommateOnboardingClient({
         stepLabel={`${section + 1} / ${ROOMMATE_SECTIONS.length}`}
         dots={{ total: ROOMMATE_SECTIONS.length, current: section }}
         onSkip={null}
+        scrollKey={`checklist:${section}`}
       >
         <RoommateChecklist
           section={section}
@@ -152,6 +153,7 @@ export default function RoommateOnboardingClient({
         sub="두 가지 중 더 중요한 조건을 골라주세요"
         progress={null}
         onSkip={null}
+        scrollKey="swipe"
       >
         {error && (
           <p style={{ marginBottom: 12, fontSize: 13, color: '#ef4444', textAlign: 'center' }}>
@@ -173,6 +175,7 @@ export default function RoommateOnboardingClient({
         sub=""
         progress={null}
         onSkip={null}
+        scrollKey="saving"
       >
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '40px 0' }}>
           <p style={{ fontSize: 14, color: tok.textSecondary }}>프로필을 저장하는 중이에요…</p>
@@ -183,7 +186,7 @@ export default function RoommateOnboardingClient({
 
   // ── 로그인 필요 (비로그인 사용자가 스와이프까지 끝낸 경우) ──────────────
   return (
-    <OnboardingShell tok={tok} theme={initialTheme} title="" sub="" progress={null} onSkip={null}>
+    <OnboardingShell tok={tok} theme={initialTheme} title="" sub="" progress={null} onSkip={null} scrollKey="login-required">
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '20px 0' }}>
         <div style={{
           width: 72, height: 72, borderRadius: '50%',

@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { useEffect, useRef } from 'react'
 
 // ── 디자인 토큰 ─────────────────────────────────────────────────────────────
 // 룸메이트 온보딩과 학생 온보딩 모두에서 공유하는 시각 토큰.
@@ -77,7 +78,7 @@ export type OnboardingTheme = keyof typeof ONBOARDING_TOKENS
 
 // ── 공통 쉘 ────────────────────────────────────────────────────────────────
 export function OnboardingShell({
-  tok, theme, title, sub, progress, stepLabel, dots, onSkip, children,
+  tok, theme, title, sub, progress, stepLabel, dots, onSkip, scrollKey, children,
 }: {
   tok:        OnboardingTok
   theme:      string
@@ -87,10 +88,24 @@ export function OnboardingShell({
   stepLabel?: string
   dots?:      { total: number; current: number }
   onSkip:     (() => void) | null
+  /** 단계/페이즈가 바뀔 때마다 컨테이너를 최상단으로 즉시 스크롤한다.
+   *  ex) `${phase}:${section}` 같이 변경 시점이 식별되는 키 전달. */
+  scrollKey?: string | number
   children:   React.ReactNode
 }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (scrollKey === undefined) return
+    // 컨테이너가 자체 스크롤 컨텍스트(position:fixed + overflowY:auto)이므로
+    // 이 ref를 0으로. 일부 모바일 브라우저는 window 스크롤도 같이 발생해 둘 다 호출.
+    containerRef.current?.scrollTo({ top: 0, behavior: 'auto' })
+    if (typeof window !== 'undefined') window.scrollTo(0, 0)
+  }, [scrollKey])
+
   return (
     <div
+      ref={containerRef}
       data-theme={theme}
       style={{
         position:   'fixed',
