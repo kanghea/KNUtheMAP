@@ -394,9 +394,9 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
         >
           <Image
             src="/images/roommate-cta.jpg"
-            alt="룸메이트 구해요 — 깨끗한 빈 침대 준비 완료"
-            width={1112}
-            height={1415}
+            alt="룸메 구함 — 이층 침대 빈 자리에서 룸메이트를 찾고 있어요"
+            width={1672}
+            height={941}
             sizes="(max-width: 480px) calc(100vw - 32px), 448px"
             style={{ display: 'block', width: '100%', height: 'auto' }}
             priority={false}
