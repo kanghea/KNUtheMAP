@@ -16,7 +16,7 @@ import RoommateClient from './_client'
 export default async function RoommatePage({
   searchParams,
 }: {
-  searchParams: Promise<{ save_draft?: string }>
+  searchParams: Promise<{ save_draft?: string; living_type?: string }>
 }) {
   const user = await getServerUser()
 
@@ -39,5 +39,15 @@ export default async function RoommatePage({
   }
 
   const sp = await searchParams
-  return <RoommateClient saveDraft={sp.save_draft === '1'} />
+  // 홈에서 거주 유형 듀얼 카드로 진입했을 때 초기 탭을 그 값으로 설정.
+  // 잘못된 값은 무시되고 기본값('dormitory')이 적용된다.
+  const initialTab = sp.living_type === 'offcampus' ? 'offcampus'
+                   : sp.living_type === 'dormitory' ? 'dormitory'
+                   : null
+  return (
+    <RoommateClient
+      saveDraft={sp.save_draft === '1'}
+      initialTab={initialTab}
+    />
+  )
 }

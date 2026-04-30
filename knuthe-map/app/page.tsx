@@ -5,6 +5,7 @@ import { getServerUser, getServerRole } from '@/lib/auth-server'
 import { unsealViewMode, VIEW_MODE_COOKIE_NAME } from '@/lib/view-mode-cookie'
 import OnboardingClient from './_onboarding'
 import LandingPage from './_landing'
+import RoommateLanding from './_roommate-landing'
 
 export default async function Page({
   searchParams,
@@ -22,13 +23,15 @@ export default async function Page({
     if (role === 'owner')    redirect('/owner')
     if (role === 'agent')    redirect('/agent')
 
-    // role='roommate'이면 기본적으로 /roommate로 보내되,
-    // 사용자가 viewMode='rooms'로 토글했다면 홈/랜딩에 머물도록 한다.
+    // 룸메이트 모드 사용자는 룸메이트 전용 홈을 본다.
+    //  - role==='roommate' AND viewMode!=='rooms' (기본값 포함) → 룸메이트 홈
+    //  - role==='roommate' AND viewMode==='rooms' (방보기 토글) → 기존 방보기 랜딩
+    //  - 그 외 (tenant 등) → 기존 방보기 랜딩
     if (role === 'roommate') {
-      const jar     = await cookies()
-      const sealed  = jar.get(VIEW_MODE_COOKIE_NAME)?.value
-      const view    = sealed ? unsealViewMode(sealed) : null
-      if (view !== 'rooms') redirect('/roommate')
+      const jar    = await cookies()
+      const sealed = jar.get(VIEW_MODE_COOKIE_NAME)?.value
+      const view   = sealed ? unsealViewMode(sealed) : null
+      if (view !== 'rooms') return <RoommateLanding userId={user.id} />
     }
   }
 
