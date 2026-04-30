@@ -33,13 +33,20 @@ interface MatchResult {
 const ROOMMATE_ACCENT = '#6C63FF'  // 룸메이트 정체성 색 (보라)
 const SCORE_GRADIENT  = `linear-gradient(135deg, ${ROOMMATE_ACCENT}, #8B5CF6)`
 
-export default function RoommateClient({ saveDraft }: { saveDraft: boolean }) {
+export default function RoommateClient({
+  saveDraft,
+  initialTab = null,
+}: {
+  saveDraft: boolean
+  /** 홈의 거주 유형 듀얼 카드에서 진입 시 초기 탭. null이면 'dormitory' */
+  initialTab?: 'dormitory' | 'offcampus' | null
+}) {
   const router = useRouter()
   const { tok } = useTheme()
   const [matches, setMatches] = useState<MatchResult[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [tab, setTab] = useState<'dormitory' | 'offcampus'>('dormitory')
+  const [tab, setTab] = useState<'dormitory' | 'offcampus'>(initialTab ?? 'dormitory')
   const [dormFilter, setDormFilter] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
 
