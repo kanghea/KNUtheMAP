@@ -307,6 +307,43 @@ interface LoadingRunnerOverlayProps extends LoadingRunnerProps {
 const VANILLA_END_ID = '__knu-loading-runner-end-anim'
 
 /**
+ * 라우트 전환 핸드오프(handoff) 코디네이션:
+ *
+ * `app/<route>/loading.tsx` 의 overlay 가 unmount 되는 시점에 같은 페이지의
+ * 클라이언트 컴포넌트가 곧바로 자체 `<LoadingRunnerOverlay show={loading} />`
+ * 를 mount 하는 경우, 두 overlay 모두가 종료 모션을 재생하면 사용자에겐
+ * "종료 애니메이션이 두 번" 보인다 (loading.tsx unmount 의 vanilla end + page 의
+ *  React-internal end).
+ *
+ * 이를 방지하기 위해 모듈 레벨에서:
+ * - mount 된 overlay 개수(`activeOverlayCount`) 추적
+ * - unmount 시 vanilla end 재생을 ~80ms 지연 예약
+ * - 그 사이에 새 overlay 가 mount 되면 예약을 취소 (= handoff 성공)
+ *
+ * handoff 가 없는 일반 unmount(예: admin 라우트로의 단발성 전환) 에서는
+ * 80ms 후 정상적으로 vanilla end 가 재생된다.
+ */
+let activeOverlayCount = 0
+let pendingDetachedEnd: ReturnType<typeof setTimeout> | null = null
+const HANDOFF_GRACE_MS = 80
+
+function scheduleDetachedEnd(size: number) {
+  if (pendingDetachedEnd) clearTimeout(pendingDetachedEnd)
+  pendingDetachedEnd = setTimeout(() => {
+    pendingDetachedEnd = null
+    if (activeOverlayCount > 0) return  // handoff: 다른 overlay 가 떠 있음
+    playDetachedEndAnimation(size)
+  }, HANDOFF_GRACE_MS)
+}
+
+function cancelPendingDetachedEnd() {
+  if (pendingDetachedEnd) {
+    clearTimeout(pendingDetachedEnd)
+    pendingDetachedEnd = null
+  }
+}
+
+/**
  * 부모가 LoadingRunnerOverlay 자체를 unmount 하는 경우(loading.tsx 라우트
  * 전환 등)에는 React 가 즉시 컴포넌트를 떼어내 종료 애니메이션이 재생될
  * 시간이 없다. 이 경우 cleanup 안에서 vanilla DOM 으로 동일한 종료 모션을
@@ -415,13 +452,22 @@ export function LoadingRunnerOverlay({
     setClosing(false)
   }, [])
 
-  // 부모가 강제 unmount 할 때(라우트 전환 등) vanilla 종료 모션 fallback
-  useEffect(() => () => {
-    const { size, closingAnimation } = optsRef.current
-    if (!closingAnimation) return
-    if (!wasShownRef.current) return  // 한 번도 안 보였으면 안 띄움
-    if (endPlayedRef.current) return  // React 안에서 이미 재생됨
-    playDetachedEndAnimation(size)
+  // 부모가 강제 unmount 할 때(라우트 전환 등) vanilla 종료 모션 fallback.
+  // 라우트 전환의 두 단계(loading.tsx → page) 가 각자 종료 애니메이션을
+  // 재생해 두 번 보이는 문제를 막기 위해 모듈 레벨 카운터로 handoff 검출.
+  useEffect(() => {
+    activeOverlayCount += 1
+    // 직전 unmount 가 예약한 vanilla end 가 있으면 취소 (= 핸드오프 흡수)
+    cancelPendingDetachedEnd()
+    return () => {
+      activeOverlayCount -= 1
+      const { size, closingAnimation } = optsRef.current
+      if (!closingAnimation) return
+      if (!wasShownRef.current) return  // 한 번도 안 보였으면 안 띄움
+      if (endPlayedRef.current) return  // React 안에서 이미 재생됨
+      // 새 overlay 가 곧 mount 될 수 있으므로 즉시 재생하지 않고 짧게 지연
+      scheduleDetachedEnd(size)
+    }
   }, [])
 
   if (!show && !closing) return null
