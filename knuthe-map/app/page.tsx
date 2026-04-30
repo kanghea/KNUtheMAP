@@ -2,6 +2,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { parsePrefs } from '@/lib/prefs'
 import { getServerUser, getServerRole } from '@/lib/auth-server'
+import { unsealViewMode, VIEW_MODE_COOKIE_NAME } from '@/lib/view-mode-cookie'
 import OnboardingClient from './_onboarding'
 import LandingPage from './_landing'
 
@@ -20,7 +21,15 @@ export default async function Page({
     if (role === 'admin')    redirect('/admin')
     if (role === 'owner')    redirect('/owner')
     if (role === 'agent')    redirect('/agent')
-    if (role === 'roommate') redirect('/roommate')
+
+    // role='roommate'이면 기본적으로 /roommate로 보내되,
+    // 사용자가 viewMode='rooms'로 토글했다면 홈/랜딩에 머물도록 한다.
+    if (role === 'roommate') {
+      const jar     = await cookies()
+      const sealed  = jar.get(VIEW_MODE_COOKIE_NAME)?.value
+      const view    = sealed ? unsealViewMode(sealed) : null
+      if (view !== 'rooms') redirect('/roommate')
+    }
   }
 
   // ?reset=1 이면 온보딩 강제

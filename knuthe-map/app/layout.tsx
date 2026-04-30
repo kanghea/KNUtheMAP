@@ -6,6 +6,7 @@ import Providers from "./providers";
 import { cookies } from "next/headers";
 import { getServerRole } from "@/lib/auth-server";
 import { unsealRole, ROLE_COOKIE_NAME } from "@/lib/role-cookie";
+import { unsealViewMode, VIEW_MODE_COOKIE_NAME, type ViewMode } from "@/lib/view-mode-cookie";
 import { parsePrefs } from "@/lib/prefs";
 import type { ThemeMode } from "@/lib/theme-tokens";
 import type { Role } from "@/lib/useRole";
@@ -34,16 +35,26 @@ export default async function RootLayout({
   // unsealRole()이 GCM 인증 태그를 검증하므로 변조된 쿠키는 null 반환.
   // 쿠키 없거나 복호화 실패 시 getServerRole()로 폴백 (cache()로 page.tsx와 공유).
   // 테마 쿠키도 함께 읽어 PrefsIsland에 SSR-동일한 값으로 hydration mismatch 방지.
-  let role:  Role      = 'tenant'
-  let theme: ThemeMode = 'dark'
+  //
+  // viewMode 쿠키: role과 분리된 "보기 모드"(방보기 ↔ 룸메이트). role이 권한이라면
+  // viewMode는 표시. 쿠키 없으면 role을 기준으로 기본값 추정.
+  let role:     Role      = 'tenant'
+  let theme:    ThemeMode = 'dark'
+  let viewMode: ViewMode | null = null
   try {
     const jar    = await cookies()
     const sealed = jar.get(ROLE_COOKIE_NAME)?.value
     role = (sealed ? unsealRole(sealed) : null) ?? await getServerRole()
 
+    const sealedView = jar.get(VIEW_MODE_COOKIE_NAME)?.value
+    viewMode = sealedView ? unsealViewMode(sealedView) : null
+
     const prefsRaw = jar.get('knu_prefs')?.value
     if (prefsRaw) theme = parsePrefs(prefsRaw)?.theme ?? 'dark'
   } catch {}
+
+  // viewMode 쿠키 없으면 role로부터 추정: roommate role → 'roommate', 그 외 → 'rooms'
+  const initialViewMode: ViewMode = viewMode ?? (role === 'roommate' ? 'roommate' : 'rooms')
 
   return (
     <html
@@ -53,7 +64,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <Providers>
           {children}
-          <PrefsIsland initialRole={role} initialTheme={theme} />
+          <PrefsIsland initialRole={role} initialTheme={theme} initialViewMode={initialViewMode} />
         </Providers>
       </body>
     </html>
