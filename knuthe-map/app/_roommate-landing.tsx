@@ -341,9 +341,19 @@ export default async function RoommateLanding({ userId }: Props) {
           </section>
         )}
 
-        {/* ── 모드 전환 카드 (현재 룸메이트 모드) ─────────────── */}
+        {/* ── 모드 전환 카드 (현재 룸메이트 모드) ───────────────
+            상단에 KNU 마스코트 일러스트(원룸·주택·오피스텔을 둘러보는 K)를
+            깔아 "방 구하기" 행위를 즉각 환기. 이미지가 누락되면 컴포넌트가
+            자동으로 텍스트 전용 레이아웃으로 폴백한다. */}
         <section style={{ marginBottom: 14 }}>
-          <ModeSwitchCard tok={tok} currentMode="roommate" />
+          <ModeSwitchCard
+            tok={tok}
+            currentMode="roommate"
+            imageSrc="/images/room-finding-cta.jpg"
+            imageAlt="K 마스코트가 원룸·주택·오피스텔을 둘러보는 일러스트"
+            imageWidth={1672}
+            imageHeight={941}
+          />
         </section>
 
         {/* ── 호환도 작동 원리 인포 ────────────────────────────── */}

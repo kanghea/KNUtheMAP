@@ -62,8 +62,8 @@ export default async function HomeLoading() {
             {/* 내 프로필 미니 스탯 */}
             <SkeletonCard tok={tok} height={150} radius={20} style={{ marginBottom: 14 }} />
 
-            {/* 모드 전환 카드 */}
-            <SkeletonCard tok={tok} height={140} radius={20} style={{ marginBottom: 14 }} />
+            {/* 모드 전환 카드 — 상단 일러스트 영역 + 카피 + CTA 자리 */}
+            <SkeletonCard tok={tok} height={356} radius={20} style={{ marginBottom: 14 }} />
 
             {/* 호환도 인포 */}
             <SkeletonCard tok={tok} height={52} radius={14} style={{ marginBottom: 14 }} />
