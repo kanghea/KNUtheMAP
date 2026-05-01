@@ -227,7 +227,10 @@ export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'dark' | 'l
   const [section,      setSection]      = useState<string | null>(null)
   const [notifOn,      setNotifOn]      = useState(false)
   const [showLogin,    setShowLogin]    = useState(false)
-  const [loggedIn,     setLoggedIn]     = useState(false)
+  // null = 세션 확인 중. false = 비로그인. true = 로그인.
+  // false로 초기화하면 getSession() 응답 전에 토글을 누른 사용자에게
+  // 항상 "로그인 필요" 패널이 잘못 뜨는 race가 발생함.
+  const [loggedIn,     setLoggedIn]     = useState<boolean | null>(null)
   const [loginLoading, setLoginLoading] = useState(false)
   const [expanded,     setExpanded]     = useState(false)
 
@@ -235,13 +238,24 @@ export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'dark' | 'l
 
   useEffect(() => {
     const supabase = createBrowserSupabase()
-    supabase.auth.getSession().then(({ data }) => setLoggedIn(!!data.session))
+    let cancelled = false
+    supabase.auth.getSession().then(({ data }) => {
+      if (cancelled) return
+      setLoggedIn(!!data.session)
+    })
     const { data: sub } = supabase.auth.onAuthStateChange((_, session) => {
       setLoggedIn(!!session)
-      if (session) setShowLogin(false)
     })
-    return () => sub.subscription.unsubscribe()
+    return () => {
+      cancelled = true
+      sub.subscription.unsubscribe()
+    }
   }, [])
+
+  // 세션이 늦게 도착해 loggedIn이 true가 되면 이미 열려 있던 로그인 패널을 닫는다.
+  useEffect(() => {
+    if (loggedIn === true) setShowLogin(false)
+  }, [loggedIn])
 
   const set = <K extends keyof MapFilters>(key: K, val: MapFilters[K]) =>
     setFilters({ ...filter, [key]: val })
@@ -254,7 +268,8 @@ export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'dark' | 'l
   const toggleSection = (s: string) => setSection((prev) => prev === s ? null : s)
 
   const handleNotifToggle = () => {
-    if (!loggedIn) { setShowLogin(true); return }
+    if (loggedIn === null) return            // 세션 확인 중엔 무시
+    if (loggedIn === false) { setShowLogin(true); return }
     setNotifOn((v) => !v)
   }
 
@@ -308,7 +323,7 @@ export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'dark' | 'l
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {notifOn && loggedIn && (
+          {notifOn && loggedIn === true && (
             <span style={{
               fontSize: 10, fontWeight: 700, color: tok.badgeColor,
               background: tok.badgeBg, borderRadius: 999, padding: '3px 8px',
@@ -453,15 +468,19 @@ export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'dark' | 'l
               </div>
               <button
                 onClick={handleNotifToggle}
+                disabled={loggedIn === null}
+                aria-busy={loggedIn === null || undefined}
                 style={{
-                  width: 44, height: 26, borderRadius: 999, border: 'none', cursor: 'pointer',
-                  background: notifOn && loggedIn ? '#2563eb' : tok.notifOff,
-                  position: 'relative', flexShrink: 0, transition: 'background .2s',
+                  width: 44, height: 26, borderRadius: 999, border: 'none',
+                  cursor: loggedIn === null ? 'wait' : 'pointer',
+                  background: notifOn && loggedIn === true ? '#2563eb' : tok.notifOff,
+                  opacity: loggedIn === null ? 0.6 : 1,
+                  position: 'relative', flexShrink: 0, transition: 'background .2s, opacity .2s',
                 }}
               >
                 <span style={{
                   position: 'absolute', top: 3,
-                  left: notifOn && loggedIn ? 21 : 3,
+                  left: notifOn && loggedIn === true ? 21 : 3,
                   width: 20, height: 20, borderRadius: '50%',
                   background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
                   transition: 'left .2s',
@@ -469,7 +488,7 @@ export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'dark' | 'l
               </button>
             </div>
 
-            {showLogin && !loggedIn && (
+            {showLogin && loggedIn === false && (
               <div style={{ borderTop: `1px solid ${tok.notifBd}`, padding: '14px 16px', background: tok.loginPanelBg }}>
                 <p style={{ margin: '0 0 12px', fontSize: 13, color: tok.textSecond, lineHeight: 1.6 }}>
                   알림 설정은 <strong style={{ color: tok.textPrimary }}>로그인</strong>이 필요해요.
