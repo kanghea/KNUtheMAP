@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import type { ThemeTokens, ThemeMode } from '@/lib/theme-tokens'
 import type { ChecklistItem, Rating } from '@/lib/bangbwayo-checklist'
@@ -118,10 +118,18 @@ export default function TrackCardFlow({
 
   useEffect(() => () => { if (savedTimerRef.current) clearTimeout(savedTimerRef.current) }, [])
 
-  // 단계 — 호수 미입력이면 unit 부터, 있으면 첫 항목부터
-  const initialStep: StepKind = track.unit_number
-    ? { kind: 'item', index: 0 }
-    : { kind: 'unit' }
+  // 단계 — 우선순위:
+  //   1. `?step=unit` 쿼리 파라미터가 있으면 무조건 unit 단계 (결과물 카드에서 진입한 경우)
+  //   2. 호수 미입력이면 unit 단계
+  //   3. 그 외는 첫 항목 카드부터
+  const searchParams = useSearchParams()
+  const forcedStepParam = searchParams?.get('step')
+  const initialStep: StepKind =
+    forcedStepParam === 'unit'     ? { kind: 'unit' } :
+    forcedStepParam === 'contract' ? { kind: 'contract' } :
+    forcedStepParam === 'finish'   ? { kind: 'finish' } :
+    track.unit_number              ? { kind: 'item', index: 0 } :
+                                     { kind: 'unit' }
   const [step, setStep] = useState<StepKind>(initialStep)
 
   const totalItems = checklist.length

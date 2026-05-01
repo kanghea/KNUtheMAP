@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import Image from 'next/image'
 import type { ThemeTokens } from '@/lib/theme-tokens'
 import type { Rating } from '@/lib/bangbwayo-checklist'
@@ -16,6 +17,7 @@ import type { ResultTrack } from '../page'
 
 interface Props {
   tok:    ThemeTokens
+  setId:  string
   tracks: ResultTrack[]
 }
 
@@ -26,7 +28,7 @@ const RATING_TINT: Record<Rating, { dot: string; label: string }> = {
   unknown: { dot: 'rgba(148,163,184,0.6)', label: '모름' },
 }
 
-export default function ResultsClient({ tok, tracks }: Props) {
+export default function ResultsClient({ tok, setId, tracks }: Props) {
   const [tilt, setTilt] = useState({ x: 0, y: 0 })
   const scrollerRef = useRef<HTMLDivElement>(null)
 
@@ -60,8 +62,12 @@ export default function ResultsClient({ tok, tracks }: Props) {
         }}
       >
         {tracks.map((rt) => (
-          <div
+          // 카드 클릭 시 트랙 흐름의 호수 단계로 진입.
+          // 호수가 이미 입력되어 있으면 그 값이 그대로 input 에 채워진 채 보임.
+          <Link
             key={rt.track.id}
+            href={`/bangbwayo/sets/${setId}/tracks/${rt.track.id}?step=unit`}
+            className="knu-press"
             style={{
               flex:           '0 0 88%',
               maxWidth:       420,
@@ -69,10 +75,12 @@ export default function ResultsClient({ tok, tracks }: Props) {
               transformStyle: 'preserve-3d',
               transform:      `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
               transition:     'transform .18s ease-out',
+              textDecoration: 'none',
+              display:        'block',
             }}
           >
             <TrackResultCard tok={tok} rt={rt} />
-          </div>
+          </Link>
         ))}
       </div>
 

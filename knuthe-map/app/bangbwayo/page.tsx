@@ -120,14 +120,18 @@ export default async function BangbwayoPage() {
               지난 투어
             </div>
             {past.map((s, i) => (
+              // 지난 투어 — 결과물 페이지로 바로 진입.
+              // 트랙이 0개여도 결과물 페이지의 EmptyState 가 받아준다.
               <Link
                 key={s.id}
-                href={`/bangbwayo/sets/${s.id}`}
+                href={`/bangbwayo/sets/${s.id}/results`}
+                className="knu-press"
                 style={{
                   textDecoration: 'none',
                   display: 'flex', alignItems: 'center', gap: 12,
                   padding: '14px 20px',
                   borderTop: i === 0 ? 'none' : `1px solid ${tok.cardBorder}`,
+                  transition: 'transform .1s, background .15s',
                 }}
               >
                 <div style={{ flex: 1, minWidth: 0 }}>
