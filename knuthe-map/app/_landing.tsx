@@ -372,7 +372,6 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
             에는 노출하지 않는다 (확정된 결정). */}
         <Link
           href="/bangbwayo"
-          prefetch={false}
           aria-label="방봐요 — 방 보러 갈 때 함께 가는 도구"
           style={{
             display:      'block',

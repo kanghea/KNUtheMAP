@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import type { ThemeTokens } from '@/lib/theme-tokens'
 import type { TimeOption, TimeOptionMeta } from '@/lib/bangbwayo-checklist'
+import { tapHaptic } from '@/lib/hooks/useHaptic'
 
 interface Props {
   tok:         ThemeTokens
@@ -26,6 +27,7 @@ export default function StartTrackButton({ tok, setId, timeOptions }: Props) {
   const [error, setError] = useState<string | null>(null)
 
   const handleStart = (option: TimeOption) => {
+    tapHaptic()
     setError(null)
     setPending(option)
     startTransition(async () => {
@@ -62,6 +64,7 @@ export default function StartTrackButton({ tok, setId, timeOptions }: Props) {
               type="button"
               disabled={disabled}
               onClick={() => handleStart(opt.value)}
+              className={opt.available ? 'knu-press' : undefined}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '14px 18px',
@@ -73,7 +76,7 @@ export default function StartTrackButton({ tok, setId, timeOptions }: Props) {
                 opacity: disabled && !isLoading ? 0.6 : 1,
                 fontSize: 14, fontWeight: 600,
                 textAlign: 'left',
-                transition: 'opacity .15s',
+                transition: 'opacity .15s, transform .1s',
               }}
             >
               <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

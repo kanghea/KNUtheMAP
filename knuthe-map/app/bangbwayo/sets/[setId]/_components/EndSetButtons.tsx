@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import type { ThemeTokens } from '@/lib/theme-tokens'
+import { tapHaptic, successHaptic } from '@/lib/hooks/useHaptic'
 
 interface Props {
   tok:   ThemeTokens
@@ -25,6 +26,8 @@ export default function EndSetButtons({ tok, setId }: Props) {
   const [error,   setError]   = useState<string | null>(null)
 
   const handleEnd = (status: 'ended' | 'results_generated') => {
+    if (status === 'results_generated') successHaptic()
+    else                                  tapHaptic()
     setError(null); setPending(status)
     startTransition(async () => {
       const res = await fetch(`/api/bangbwayo/sets/${setId}`, {
@@ -52,6 +55,7 @@ export default function EndSetButtons({ tok, setId }: Props) {
         <button
           type="button"
           disabled={isPending}
+          className="knu-press"
           onClick={() => handleEnd('ended')}
           style={{
             flex: 1,
@@ -70,6 +74,7 @@ export default function EndSetButtons({ tok, setId }: Props) {
         <button
           type="button"
           disabled={isPending}
+          className="knu-press"
           onClick={() => handleEnd('results_generated')}
           style={{
             flex: 1,
