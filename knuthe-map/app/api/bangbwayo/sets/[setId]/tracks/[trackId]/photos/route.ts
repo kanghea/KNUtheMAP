@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import exifr from 'exifr'
 import { createSupabaseServer } from '@/lib/supabase-server'
 import { createServiceClient }   from '@/lib/supabase'
 import { requireAuth }           from '@/lib/auth-guard'
 import { matchBuildingByCoord }  from '@/lib/bangbwayo-matching'
+import { reverseGeocodeToRoadAddress } from '@/lib/bangbwayo-reverse-geocode'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'] as const
@@ -34,7 +36,7 @@ export async function POST(
   // 트랙 본인 소유 확인 (RLS가 어차피 막지만 명시적으로)
   const { data: track } = await supabase
     .from('bangbwayo_tracks')
-    .select('id, building_id, set_id')
+    .select('id, building_id, set_id, building_address_text')
     .eq('id', trackId)
     .eq('set_id', setId)
     .maybeSingle()
@@ -55,14 +57,40 @@ export async function POST(
   if (file.size > MAX_BYTES)
     return NextResponse.json({ error: '파일 크기는 5MB 이하' }, { status: 400 })
 
-  const exifLat = exifLatStr !== null ? Number(exifLatStr) : null
-  const exifLng = exifLngStr !== null ? Number(exifLngStr) : null
-  const exifTakenAt = exifTakenAtStr || null
+  // 클라이언트가 보낸 좌표(현재 위치 기준의 폴백) 우선 후보
+  const clientLat = exifLatStr !== null ? Number(exifLatStr) : null
+  const clientLng = exifLngStr !== null ? Number(exifLngStr) : null
+  let exifTakenAt = exifTakenAtStr || null
 
-  // Storage 업로드 (service role — 비공개 버킷)
   const ext  = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
   const path = `${trackId}/${crypto.randomUUID()}.${ext}`
   const buffer = Buffer.from(await file.arrayBuffer())
+
+  // ── EXIF 좌표 추출 (사진 원본에서) ──────────────────────────────────────
+  // exifr 는 JPEG·HEIC·WebP 의 GPS·DateTimeOriginal 을 모두 읽는다.
+  // 사진 자체의 좌표가 가장 정확 (갤러리에서 옛 사진을 첨부해도 그때 좌표).
+  // 실패하거나 좌표가 없으면 클라이언트가 보낸 현재 위치 폴백.
+  let exifLat: number | null = null
+  let exifLng: number | null = null
+  try {
+    const meta = await exifr.parse(buffer, {
+      gps:   true,
+      pick: ['latitude', 'longitude', 'DateTimeOriginal', 'CreateDate'],
+    }) as { latitude?: number; longitude?: number; DateTimeOriginal?: Date; CreateDate?: Date } | undefined
+
+    if (meta) {
+      if (typeof meta.latitude  === 'number' && Number.isFinite(meta.latitude))  exifLat = meta.latitude
+      if (typeof meta.longitude === 'number' && Number.isFinite(meta.longitude)) exifLng = meta.longitude
+      const taken = meta.DateTimeOriginal ?? meta.CreateDate
+      if (taken && !exifTakenAt) exifTakenAt = taken.toISOString()
+    }
+  } catch {
+    // EXIF 파싱 실패 — 클라이언트 좌표로 폴백
+  }
+  if (exifLat === null && clientLat !== null && Number.isFinite(clientLat)) exifLat = clientLat
+  if (exifLng === null && clientLng !== null && Number.isFinite(clientLng)) exifLng = clientLng
+
+  // Storage 업로드 (service role — 비공개 버킷)
 
   const service = createServiceClient()
   const { error: upErr } = await service.storage
@@ -91,8 +119,12 @@ export async function POST(
     return NextResponse.json({ error: insErr?.message ?? '사진 메타 저장 실패' }, { status: 500 })
   }
 
-  // 좌표 자동 매칭 — 트랙에 building_id 가 아직 없을 때만
+  // 좌표 자동 매칭 + 주소 자동 입력 — 트랙에 building_id 가 아직 없을 때만 시도.
+  // 우선순위:
+  //   1. buildings 테이블 매칭 → building_id 설정 (formatTrackLabel 이 buildings.address 사용)
+  //   2. 매칭 실패 + building_address_text 비어있음 → 네이버 역지오코딩으로 도로명주소 자동 입력
   let matchedBuilding: { id: string; name: string | null; address: string | null; distanceM: number } | null = null
+  let geocodedAddress: string | null = null
   if (!track.building_id && Number.isFinite(exifLat) && Number.isFinite(exifLng)) {
     const m = await matchBuildingByCoord(supabase, exifLat as number, exifLng as number)
     if (m) {
@@ -105,6 +137,15 @@ export async function POST(
         name:      m.name,
         address:   m.address,
         distanceM: Math.round(m.distanceM),
+      }
+    } else if (!track.building_address_text?.trim()) {
+      // 좌표는 있는데 매칭 실패 + 사용자가 직접 입력한 주소도 없음 → 자동 입력
+      geocodedAddress = await reverseGeocodeToRoadAddress(exifLat as number, exifLng as number)
+      if (geocodedAddress) {
+        await supabase
+          .from('bangbwayo_tracks')
+          .update({ building_address_text: geocodedAddress })
+          .eq('id', trackId)
       }
     }
   }
@@ -120,5 +161,7 @@ export async function POST(
       url: signed?.signedUrl ?? null,
     },
     matchedBuilding,
+    /** 매칭 실패 + 역지오코딩으로 자동 채워진 주소 — 클라이언트에 알려서 헤더 갱신용 */
+    geocodedAddress,
   })
 }
