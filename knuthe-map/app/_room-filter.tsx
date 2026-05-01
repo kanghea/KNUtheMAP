@@ -233,6 +233,10 @@ export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'dark' | 'l
   const [loggedIn,     setLoggedIn]     = useState<boolean | null>(null)
   const [loginLoading, setLoginLoading] = useState(false)
   const [expanded,     setExpanded]     = useState(false)
+  // GET 응답 hydrate 가 끝나기 전에 디바운스 sync 가 도는 걸 막는 가드.
+  // 없으면 다른 디바이스에서 로그인 → notifOn=true 로 올라오는 순간
+  // 로컬 default filter 가 DB 의 저장된 조건을 덮어씀.
+  const [hydrated,     setHydrated]     = useState(false)
 
   const tok: Tok = TOK[theme]
 
@@ -257,22 +261,36 @@ export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'dark' | 'l
     if (loggedIn === true) setShowLogin(false)
   }, [loggedIn])
 
-  // 로그인 직후 서버에서 saved_filters 의 notify 상태를 hydrate.
+  // 로그인 직후 서버에서 saved_filters 의 notify + filters 상태를 hydrate.
   // 비로그인이거나 응답이 비면 notifOn 은 false 로 둔다.
+  // notify=true 면 알림이 매칭하는 filters 도 함께 복원해야
+  // 다른 디바이스에서 켰던 조건이 사라지지 않는다.
   useEffect(() => {
-    if (loggedIn !== true) { setNotifOn(false); return }
+    if (loggedIn !== true) { setNotifOn(false); setHydrated(false); return }
     let cancelled = false
     fetch('/api/saved-filters', { cache: 'no-store' })
       .then((r) => r.ok ? r.json() : null)
-      .then((j) => { if (!cancelled && j && typeof j.notify === 'boolean') setNotifOn(j.notify) })
+      .then((j) => {
+        if (cancelled || !j) return
+        if (typeof j.notify === 'boolean') setNotifOn(j.notify)
+        // filters 가 실제 MapFilters 모양일 때만 적용. 빈 {} (행은 있는데 한 번도
+        // 저장 안 한 상태) 이나 null (행 없음) 은 그대로 로컬 default 사용.
+        if (j.notify === true && j.filters && typeof j.filters === 'object'
+            && Array.isArray(j.filters.rentRange)) {
+          setFilters({ ...DEFAULT_FILTERS, ...j.filters })
+        }
+      })
       .catch(() => { /* 네트워크 실패는 토글을 false 로 유지 */ })
+      .finally(() => { if (!cancelled) setHydrated(true) })
     return () => { cancelled = true }
-  }, [loggedIn])
+  }, [loggedIn, setFilters])
 
   // 알림이 ON 인 동안 사용자가 필터를 바꾸면 DB 의 filters JSONB 도 따라가도록 동기화.
   // 800ms 디바운스로 슬라이더 드래그 중 PUT 폭주 방지.
+  // hydrated 가드: GET 응답이 도착하기 전에 디바운스가 돌아 로컬 default 가
+  // DB 의 저장된 조건을 덮어쓰는 사고를 방지.
   useEffect(() => {
-    if (loggedIn !== true || !notifOn) return
+    if (loggedIn !== true || !notifOn || !hydrated) return
     const timer = setTimeout(() => {
       fetch('/api/saved-filters', {
         method:  'PUT',
@@ -281,7 +299,7 @@ export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'dark' | 'l
       }).catch(() => { /* 동기화 실패는 무시 — 다음 변경에서 재시도됨 */ })
     }, 800)
     return () => clearTimeout(timer)
-  }, [filter, notifOn, loggedIn])
+  }, [filter, notifOn, loggedIn, hydrated])
 
   const set = <K extends keyof MapFilters>(key: K, val: MapFilters[K]) =>
     setFilters({ ...filter, [key]: val })
