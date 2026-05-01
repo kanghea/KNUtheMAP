@@ -26,6 +26,9 @@ export interface ThemeTokens {
   dialTrack:      string
   dialThumb:      string
   dialActiveBg:   string
+  /** 로고처럼 단색 PNG 자산을 테마에 맞게 반전시키는 CSS filter.
+   *  다크: brightness(0) invert(1) (검정→흰색), 라이트: none. */
+  logoFilter:     string
 }
 
 export const THEME_TOKENS: Record<ThemeMode, ThemeTokens> = {
@@ -51,6 +54,7 @@ export const THEME_TOKENS: Record<ThemeMode, ThemeTokens> = {
     dialTrack:      'rgba(255,255,255,0.1)',
     dialThumb:      '#2563eb',
     dialActiveBg:   'rgba(37,99,235,0.12)',
+    logoFilter:     'brightness(0) invert(1)',
   },
   light: {
     pageBg:         '#f8fafc',
@@ -74,5 +78,6 @@ export const THEME_TOKENS: Record<ThemeMode, ThemeTokens> = {
     dialTrack:      '#e2e8f0',
     dialThumb:      '#2563eb',
     dialActiveBg:   'rgba(37,99,235,0.06)',
+    logoFilter:     'none',
   },
 }

@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { UserPrefs, FACTOR_META } from '@/lib/prefs'
 import { FACTOR_ICONS, GateIcon } from '@/lib/factor-icons'
 import { DEPARTMENTS } from '@/lib/department-zones'
+import { THEME_TOKENS, type ThemeMode } from '@/lib/theme-tokens'
 import RoomFilterCard from './_room-filter'
 import MyContractsCard from '@/components/contracts/MyContractsCard'
 
@@ -30,68 +31,26 @@ const COLLEGE_COLORS: Record<string, { from: string; to: string; mid: string; ac
 }
 const DEFAULT_COLLEGE_COLOR = { from: '#1e3a8a', mid: '#1d4ed8', to: '#2563eb', accent: '#60a5fa', shadow: 'rgba(37,99,235,0.28)' }
 
-// ── 테마 토큰 ────────────────────────────────────────────────────
-
-const THEME = {
+// ── 페이지 전용 데코레이션 토큰 ──────────────────────────────────
+// 일반 시각 토큰(pageBg/cardBg/border/text/headerBg/inputBg/logoFilter 등)은
+// `THEME_TOKENS` 에서 가져온다. 여기에는 랜딩에서만 쓰는 우선순위 배지·강한
+// 카드 섀도 등 "이 페이지 고유" 값만 남긴다 — 공유 인터페이스를 부풀리지 않는다.
+const LANDING_DECO: Record<ThemeMode, {
+  priorityBg:     readonly [string, string, string]
+  priorityColors: readonly [string, string, string]
+  cardShadow:     string
+}> = {
   dark: {
-    pageBg:         '#0a0a0a',
-    cardBg:         '#111111',
-    cardBorder:     'rgba(255,255,255,0.07)',
-    textPrimary:    '#ffffff',
-    textSecondary:  'rgba(255,255,255,0.5)',
-    textTertiary:   'rgba(255,255,255,0.25)',
-    headerBg:       'rgba(10,10,10,0.92)',
-    headerBorder:   'rgba(255,255,255,0.07)',
-    settingsBg:     '#1a1a1a',
-    settingsBorder: 'rgba(255,255,255,0.15)',
-    settingsColor:  'rgba(255,255,255,0.5)',
-    zoneBg:         '#111111',
-    zoneBorder:     'rgba(255,255,255,0.07)',
-    zoneText:       '#ffffff',
-    zoneDesc:       'rgba(255,255,255,0.35)',
-    shadow:         '0 8px 32px rgba(0,0,0,0.5)',
     priorityBg:     ['rgba(37,99,235,0.12)', 'rgba(124,58,237,0.12)', 'rgba(8,145,178,0.12)'],
     priorityColors: ['#2563eb', '#7c3aed', '#0891b2'],
-    priorityText:   '#ffffff',
-    priorityLabel:  '#ffffff',
-    prioritySub:    'rgba(255,255,255,0.35)',
-    gateBg:         'rgba(255,255,255,0.05)',
-    gateText:       'rgba(255,255,255,0.65)',
-    gateStrong:     '#ffffff',
-    footerText:     'rgba(255,255,255,0.35)',
-    footerDot:      'rgba(255,255,255,0.12)',
-    logoFilter:     'brightness(0) invert(1)',
+    cardShadow:     '0 8px 32px rgba(0,0,0,0.5)',
   },
   light: {
-    pageBg:         '#f8fafc',
-    cardBg:         '#ffffff',
-    cardBorder:     '#e2e8f0',
-    textPrimary:    '#0f172a',
-    textSecondary:  '#64748b',
-    textTertiary:   '#94a3b8',
-    headerBg:       'rgba(248,250,252,0.92)',
-    headerBorder:   '#e2e8f0',
-    settingsBg:     '#f1f5f9',
-    settingsBorder: '#e2e8f0',
-    settingsColor:  '#64748b',
-    zoneBg:         '#ffffff',
-    zoneBorder:     '#e2e8f0',
-    zoneText:       '#0f172a',
-    zoneDesc:       '#94a3b8',
-    shadow:         '0 8px 32px rgba(0,0,0,0.10)',
     priorityBg:     ['rgba(37,99,235,0.08)', 'rgba(124,58,237,0.08)', 'rgba(8,145,178,0.08)'],
     priorityColors: ['#2563eb', '#7c3aed', '#0891b2'],
-    priorityText:   '#0f172a',
-    priorityLabel:  '#0f172a',
-    prioritySub:    '#64748b',
-    gateBg:         '#f1f5f9',
-    gateText:       '#64748b',
-    gateStrong:     '#0f172a',
-    footerText:     '#94a3b8',
-    footerDot:      '#e2e8f0',
-    logoFilter:     'none',
+    cardShadow:     '0 8px 32px rgba(0,0,0,0.10)',
   },
-} as const
+}
 
 // ── 구역 정보 ─────────────────────────────────────────────────────
 
@@ -125,7 +84,8 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
   const heroLabel   = [gradeLabel, prefs.dept].filter(Boolean).join(' · ') || null
 
   const theme = prefs.theme ?? 'dark'
-  const tok   = THEME[theme]
+  const tok   = THEME_TOKENS[theme]
+  const deco  = LANDING_DECO[theme]
 
   // 단과대 → 히어로 색상
   const college = prefs.dept
@@ -162,9 +122,9 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
           href="/?reset=1"
           style={{
             display: 'flex', alignItems: 'center', gap: 5,
-            fontSize: 12, fontWeight: 600, color: tok.settingsColor, textDecoration: 'none',
+            fontSize: 12, fontWeight: 600, color: tok.textSecondary, textDecoration: 'none',
             padding: '6px 12px', borderRadius: 999,
-            background: tok.settingsBg, border: `1px solid ${tok.settingsBorder}`,
+            background: tok.inputBg, border: `1px solid ${tok.inputBorder}`,
           }}
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -258,48 +218,77 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
           </div>
         </div>
 
-        {/* ── 구역 바로가기 (가로 스크롤) ─────────────────────── */}
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, padding: '0 2px' }}>
+        {/* ── 구역 바로가기 (가로 스크롤) ───────────────────────
+            UX 개선:
+            - 컨테이너 outer 에 좌우 mask-image fade → 스크롤 시 잘림이 어색하지 않고
+              "더 있다" 는 어포던스가 됨
+            - inner scroller 에 좌/우 16px 패딩 → 첫·마지막 카드가 가장자리에 칼날
+              잘리는 느낌 제거
+            - scroll-snap-type: x mandatory + 카드 scroll-snap-align: start
+            - 설명은 nowrap 해제, 카드 폭 일관성 유지 위해 minWidth 조정
+            - 페이지 컨테이너의 좌우 16px 패딩을 음의 마진으로 상쇄해서 마스크가 화면
+              가장자리부터 시작하게 함 (모바일에서 풀-블리드 가로 스크롤) */}
+        <div style={{ marginBottom: 14, marginInline: -16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, padding: '0 18px' }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: tok.textPrimary }}>구역 바로가기</span>
-            <Link href={mapUrl} style={{ fontSize: 11, color: tok.textTertiary, textDecoration: 'none', fontWeight: 500 }}>
+            <Link href={mapUrl} style={{ fontSize: 11, color: tok.textSecondary, textDecoration: 'none', fontWeight: 600 }}>
               전체 지도 →
             </Link>
           </div>
           <div style={{
-            display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4,
-            scrollbarWidth: 'none',
+            position: 'relative',
+            // 좌우 12px fade 마스크 — 스크롤 가능 영역의 가장자리 잘림을 의도적 그라디언트로 전환
+            WebkitMaskImage: 'linear-gradient(to right, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%)',
+            maskImage:       'linear-gradient(to right, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%)',
           }}>
-            {[...ZONES].sort((a, b) => {
-              const preferred = prefs.gate ?? prefs.zone
-              const aMatch = a.name === preferred ? -1 : 0
-              const bMatch = b.name === preferred ? -1 : 0
-              return aMatch - bMatch
-            }).map((z) => {
-              const isMyZone = z.name === (prefs.gate ?? prefs.zone)
-              return (
-                <Link
-                  key={z.name}
-                  href={`/map?zone=${encodeURIComponent(z.zone)}${prefs.priorities.length ? `&p=${prefs.priorities.join(',')}` : ''}&gate=${encodeURIComponent(z.name)}`}
-                  style={{
-                    flexShrink: 0,
-                    background: isMyZone ? `${col.to}22` : tok.zoneBg,
-                    borderRadius: 14,
-                    padding: '10px 14px',
-                    border: isMyZone ? `1.5px solid ${col.to}` : `1px solid ${tok.zoneBorder}`,
-                    textDecoration: 'none',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                    minWidth: 64,
-                    boxShadow: isMyZone ? `0 0 0 3px ${col.to}22` : tok.shadow,
-                  }}
-                >
-                  <span style={{ fontSize: 12, fontWeight: 700, color: isMyZone ? col.to : tok.zoneText }}>
-                    {z.name}
-                  </span>
-                  <span style={{ fontSize: 10, color: tok.zoneDesc, whiteSpace: 'nowrap' }}>{z.desc}</span>
-                </Link>
-              )
-            })}
+            <div
+              className="zone-shortcut-scroller"
+              style={{
+                display: 'flex', gap: 8,
+                overflowX: 'auto', paddingBottom: 4,
+                scrollSnapType: 'x mandatory',
+                scrollPaddingInlineStart: 16,
+                paddingInline: 16,
+                scrollbarWidth: 'none',
+              }}
+            >
+              {[...ZONES].sort((a, b) => {
+                const preferred = prefs.gate ?? prefs.zone
+                const aMatch = a.name === preferred ? -1 : 0
+                const bMatch = b.name === preferred ? -1 : 0
+                return aMatch - bMatch
+              }).map((z) => {
+                const isMyZone = z.name === (prefs.gate ?? prefs.zone)
+                return (
+                  <Link
+                    key={z.name}
+                    href={`/map?zone=${encodeURIComponent(z.zone)}${prefs.priorities.length ? `&p=${prefs.priorities.join(',')}` : ''}&gate=${encodeURIComponent(z.name)}`}
+                    style={{
+                      flex: '0 0 auto',
+                      scrollSnapAlign: 'start',
+                      background: isMyZone ? `${col.to}22` : tok.cardBg,
+                      borderRadius: 14,
+                      padding: '10px 14px',
+                      border: isMyZone ? `1.5px solid ${col.to}` : `1px solid ${tok.cardBorder}`,
+                      textDecoration: 'none',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                      minWidth: 96,
+                      boxShadow: isMyZone ? `0 0 0 3px ${col.to}22` : deco.cardShadow,
+                    }}
+                  >
+                    <span style={{ fontSize: 12, fontWeight: 700, color: isMyZone ? col.to : tok.textPrimary }}>
+                      {z.name}
+                    </span>
+                    <span style={{
+                      fontSize: 10, color: tok.textTertiary,
+                      textAlign: 'center', lineHeight: 1.3,
+                    }}>
+                      {z.desc}
+                    </span>
+                  </Link>
+                )
+              })}
+            </div>
           </div>
         </div>
 
@@ -310,7 +299,7 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
         <div style={{
           background: tok.cardBg, borderRadius: 20,
           border: `1px solid ${tok.cardBorder}`,
-          boxShadow: tok.shadow,
+          boxShadow: deco.cardShadow,
           marginBottom: 14, overflow: 'hidden',
         }}>
           <div style={{ padding: '16px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -327,7 +316,7 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
           <div style={{
             background: tok.cardBg, borderRadius: 20, padding: '16px 20px',
             border: `1px solid ${tok.cardBorder}`,
-            boxShadow: tok.shadow,
+            boxShadow: deco.cardShadow,
             marginBottom: 14,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -343,20 +332,20 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
                 return (
                   <div key={pid} style={{
                     display: 'flex', alignItems: 'center', gap: 10,
-                    background: tok.priorityBg[i], borderRadius: 10, padding: '9px 12px',
+                    background: deco.priorityBg[i], borderRadius: 10, padding: '9px 12px',
                   }}>
                     <span style={{
                       width: 20, height: 20, borderRadius: '50%',
-                      background: tok.priorityColors[i], color: '#fff',
+                      background: deco.priorityColors[i], color: '#fff',
                       fontSize: 10, fontWeight: 800, flexShrink: 0,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
                       {i + 1}
                     </span>
-                    <span style={{ fontSize: 15, flexShrink: 0, color: tok.priorityLabel }}>{FACTOR_ICONS[pid] ?? meta.icon}</span>
+                    <span style={{ fontSize: 15, flexShrink: 0, color: tok.textPrimary }}>{FACTOR_ICONS[pid] ?? meta.icon}</span>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: tok.priorityLabel }}>{meta.label}</div>
-                      <div style={{ fontSize: 11, color: tok.prioritySub }}>{meta.sub}</div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: tok.textPrimary }}>{meta.label}</div>
+                      <div style={{ fontSize: 11, color: tok.textSecondary }}>{meta.sub}</div>
                     </div>
                   </div>
                 )
@@ -365,12 +354,12 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
             {prefs.gate && (
               <div style={{
                 marginTop: 8, padding: '9px 12px',
-                background: tok.gateBg, borderRadius: 10,
+                background: tok.inputBg, borderRadius: 10,
                 display: 'flex', alignItems: 'center', gap: 8,
               }}>
-                <span style={{ fontSize: 14, color: tok.gateText }}>{GateIcon}</span>
-                <span style={{ fontSize: 12, color: tok.gateText, fontWeight: 500 }}>
-                  주로 쓰는 문: <strong style={{ color: tok.gateStrong }}>{prefs.gate}</strong>
+                <span style={{ fontSize: 14, color: tok.textSecondary }}>{GateIcon}</span>
+                <span style={{ fontSize: 12, color: tok.textSecondary, fontWeight: 500 }}>
+                  주로 쓰는 문: <strong style={{ color: tok.textPrimary }}>{prefs.gate}</strong>
                 </span>
               </div>
             )}
@@ -393,7 +382,7 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
             borderRadius: 20,
             overflow: 'hidden',
             border: `1px solid ${tok.cardBorder}`,
-            boxShadow: tok.shadow,
+            boxShadow: deco.cardShadow,
             background: '#ffffff',
             lineHeight: 0,
           }}
@@ -411,11 +400,11 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
 
         {/* ── 하단 링크 ────────────────────────────────────────── */}
         <div style={{ textAlign: 'center', padding: '4px 0', display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <Link href="/me" style={{ fontSize: 11, color: tok.footerText, textDecoration: 'none', fontWeight: 500 }}>
+          <Link href="/me" style={{ fontSize: 11, color: tok.textTertiary, textDecoration: 'none', fontWeight: 500 }}>
             마이페이지
           </Link>
-          <span style={{ color: tok.footerDot, fontSize: 11 }}>·</span>
-          <Link href="/?reset=1" style={{ fontSize: 11, color: tok.footerText, textDecoration: 'none', fontWeight: 500 }}>
+          <span style={{ color: tok.cardBorder, fontSize: 11 }}>·</span>
+          <Link href="/?reset=1" style={{ fontSize: 11, color: tok.textTertiary, textDecoration: 'none', fontWeight: 500 }}>
             온보딩 다시 하기
           </Link>
         </div>
