@@ -12,6 +12,7 @@ import ProfileEditor      from './_components/ProfileEditor'
 import LogoutButton       from './_components/LogoutButton'
 import ModeToggle         from './_components/ModeToggle'
 import MyContractsManager from './_components/MyContractsManager'
+import BangbwayoSection   from './_components/BangbwayoSection'
 import OwnerSection       from './_components/OwnerSection'
 import AgentSection       from './_components/AgentSection'
 import AdminSection       from './_components/AdminSection'
@@ -118,6 +119,11 @@ export default async function MePage() {
           <Card tok={tok} padding={20} style={{ marginBottom: 16 }}>
             <MyContractsManager theme={theme} />
           </Card>
+        )}
+
+        {/* ── 방봐요로 본 방들 (학생만) ────────────────────────── */}
+        {(role === 'tenant' || role === 'roommate') && (
+          <BangbwayoSection tok={tok} />
         )}
 
         {/* ── role별 섹션 ────────────────────────────────────────── */}

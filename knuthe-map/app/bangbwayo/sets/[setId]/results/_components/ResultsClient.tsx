@@ -94,7 +94,7 @@ export default function ResultsClient({ tok, tracks }: Props) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function TrackResultCard({ tok, rt }: { tok: ThemeTokens; rt: ResultTrack }) {
-  const { track, buildingName, responses, photos, checklist } = rt
+  const { track, responses, photos, checklist, label: title } = rt
 
   // 항목 → 응답 맵
   const respByKey: Record<string, Rating | null> = {}
@@ -107,12 +107,6 @@ function TrackResultCard({ tok, rt }: { tok: ThemeTokens; rt: ResultTrack }) {
     if (!photoByKey[p.checklist_item_key]) photoByKey[p.checklist_item_key] = p.url
   }
   const firstPhoto = photos[0]?.url ?? null
-
-  const titleParts: string[] = []
-  if (buildingName)                    titleParts.push(buildingName)
-  else if (track.building_address_text) titleParts.push(track.building_address_text)
-  if (track.unit_number) titleParts.push(`${track.unit_number}호`)
-  const title = titleParts.length > 0 ? titleParts.join(' ') : `방 ${track.order_index + 1}`
 
   return (
     <div style={{

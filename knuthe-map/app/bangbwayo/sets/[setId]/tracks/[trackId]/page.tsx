@@ -12,6 +12,7 @@ import { createServiceClient }  from '@/lib/supabase'
 import { PageWrapper }          from '@/components/shared/PageWrapper'
 import { DashboardHeader }      from '@/components/shared/DashboardHeader'
 import { getChecklistFor, type TimeOption } from '@/lib/bangbwayo-checklist'
+import { formatTrackLabel }     from '@/lib/bangbwayo-track-label'
 import TrackCardFlow            from './_components/TrackCardFlow'
 
 interface TrackRow {
@@ -99,8 +100,8 @@ export default async function TrackFlowPage({
     <PageWrapper tok={tok}>
       <DashboardHeader
         tok={tok}
-        title={`방 ${track.order_index + 1}`}
-        subtitle={track.unit_number ? `${track.unit_number}호` : '체크 중'}
+        title={formatTrackLabel(track, buildingRow)}
+        subtitle="체크 중"
         backHref={`/bangbwayo/sets/${setId}`}
       />
 
