@@ -377,10 +377,16 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
           </div>
         )}
 
-        {/* ── 룸메이트 모드 ────────────────────────────────────── */}
+        {/* ── 룸메이트 모드 ──────────────────────────────────────
+            클릭 시 viewMode 쿠키를 'roommate' 로 봉인한 뒤 /roommate 로
+            302 리다이렉트한다. 단순 페이지 이동이 아니라 보기 모드를
+            영구 전환하는 "자연스러운 모드 전환" 진입점.
+            JS 없이도 동작 — 라우트 핸들러가 쿠키를 set 하고 redirect.
+            세부: app/api/me/view-mode/enter-roommate/route.ts */}
         <Link
-          href="/roommate"
-          aria-label="룸메이트 구해요 — 룸메이트 매칭 시작하기"
+          href="/api/me/view-mode/enter-roommate"
+          prefetch={false}
+          aria-label="룸메이트 모드로 전환 — 룸메이트 매칭 시작하기"
           style={{
             display: 'block',
             marginBottom: 14,
