@@ -1,51 +1,32 @@
 // 마이페이지 — 방봐요로 본 방들 정리 섹션
 //
-// 셋 단위로 묶어서 시간순으로 보여준다. 셋 안의 트랙은 라벨(건물명/주소 + 호수)과
-// 종합 별점·체크리스트 응답 수를 한 줄로 요약. 각 행 클릭 시 트랙 페이지로 이동.
+// `/bangbwayo` 메인과 동일한 셋 카드 디자인 사용 — 시간 라벨, 썸네일,
+// 트랙 라벨 미리보기, 응답 분포 도트, 상태 칩 모두 한 번의 시각.
 
 import Link from 'next/link'
-import { format } from 'date-fns'
-import { ko } from 'date-fns/locale'
 import { createSupabaseServer } from '@/lib/supabase-server'
+import { createServiceClient } from '@/lib/supabase'
 import { Card } from '@/components/shared/Card'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { IconChevronRight } from '@/components/shared/icons'
-import { formatTrackLabel } from '@/lib/bangbwayo-track-label'
+import { SetCardRow } from '@/components/bangbwayo/SetCardRow'
+import { buildSetCards,
+         type SetCardInputSet,
+         type SetCardInputTrack,
+         type SetCardInputResponse,
+         type SetCardInputPhoto,
+         type SetCardInputBuilding } from '@/lib/bangbwayo-set-summary'
 import type { ThemeTokens } from '@/lib/theme-tokens'
-
-interface SetRow {
-  id:                  string
-  title:               string | null
-  status:              'active' | 'ended' | 'results_generated'
-  started_at:          string
-  result_generated_at: string | null
-}
-interface TrackRow {
-  id:                    string
-  set_id:                string
-  order_index:           number
-  building_id:           string | null
-  building_address_text: string | null
-  unit_number:           string | null
-  status:                'draft' | 'saved' | 'closed' | 'included'
-  visited_at:            string
-  overall_rating:        number | null
-}
-
-function setLabel(s: SetRow): string {
-  return s.title?.trim() || format(new Date(s.started_at), 'M월 d일 (eee)', { locale: ko })
-}
 
 export default async function BangbwayoSection({ tok }: { tok: ThemeTokens }) {
   const supabase = await createSupabaseServer()
 
-  // 본인 셋 + 트랙 — RLS 가 본인만 반환
+  // 본인 셋 — RLS 가 본인만 반환
   const { data: setsData } = await supabase
     .from('bangbwayo_sets')
     .select('id, title, status, started_at, result_generated_at')
     .order('started_at', { ascending: false })
 
-  const sets = (setsData ?? []) as SetRow[]
+  const sets = (setsData ?? []) as SetCardInputSet[]
   if (sets.length === 0) {
     return (
       <Card tok={tok} padding={20} style={{ marginBottom: 16 }}>
@@ -60,11 +41,13 @@ export default async function BangbwayoSection({ tok }: { tok: ThemeTokens }) {
           action={
             <Link
               href="/bangbwayo"
+              className="knu-press"
               style={{
                 marginTop: 4, padding: '8px 16px', borderRadius: 999,
                 background: tok.accentColor, color: '#fff',
                 textDecoration: 'none',
                 fontSize: 13, fontWeight: 700,
+                transition: 'transform .1s',
               }}
             >
               방봐요 시작하기
@@ -78,36 +61,45 @@ export default async function BangbwayoSection({ tok }: { tok: ThemeTokens }) {
   const setIds = sets.map((s) => s.id)
   const { data: tracksData } = await supabase
     .from('bangbwayo_tracks')
-    .select(`
-      id, set_id, order_index, building_id, building_address_text,
-      unit_number, status, visited_at, overall_rating
-    `)
+    .select('id, set_id, order_index, building_id, building_address_text, unit_number')
     .in('set_id', setIds)
-    .order('order_index', { ascending: true })
 
-  const tracks = (tracksData ?? []) as TrackRow[]
-  const trackCount = tracks.length
+  const tracks   = (tracksData ?? []) as SetCardInputTrack[]
+  const trackIds = tracks.map((t) => t.id)
 
-  // 매칭된 건물 일괄 조회
-  const buildingIds = tracks
-    .map((t) => t.building_id)
-    .filter((id): id is string => !!id)
-  const buildingMap: Record<string, { name: string | null; address: string | null }> = {}
+  const [respRes, photosRes] = await Promise.all([
+    trackIds.length > 0
+      ? supabase
+          .from('bangbwayo_responses')
+          .select('track_id, rating')
+          .in('track_id', trackIds)
+      : Promise.resolve({ data: [] }),
+    trackIds.length > 0
+      ? supabase
+          .from('bangbwayo_photos')
+          .select('track_id, storage_path, created_at')
+          .in('track_id', trackIds)
+      : Promise.resolve({ data: [] }),
+  ])
+  const responses = (respRes.data   ?? []) as SetCardInputResponse[]
+  const photos    = (photosRes.data ?? []) as SetCardInputPhoto[]
+
+  const buildingIds = Array.from(new Set(
+    tracks.map((t) => t.building_id).filter((id): id is string => !!id),
+  ))
+  let buildings: SetCardInputBuilding[] = []
   if (buildingIds.length > 0) {
-    const { data: bldgs } = await supabase
+    const { data: bData } = await supabase
       .from('buildings')
       .select('id, name, address')
       .in('id', buildingIds)
-    for (const b of (bldgs ?? []) as Array<{ id: string; name: string | null; address: string | null }>) {
-      if (b.id) buildingMap[b.id] = { name: b.name ?? null, address: b.address ?? null }
-    }
+    buildings = (bData ?? []) as SetCardInputBuilding[]
   }
 
-  // 셋별로 트랙 묶기
-  const tracksBySet: Record<string, TrackRow[]> = {}
-  for (const t of tracks) {
-    (tracksBySet[t.set_id] ??= []).push(t)
-  }
+  const service = createServiceClient()
+  const cards = await buildSetCards({
+    service, sets, tracks, responses, photos, buildings,
+  })
 
   return (
     <Card tok={tok} padding={0} overflow="hidden" style={{ marginBottom: 16 }}>
@@ -119,84 +111,17 @@ export default async function BangbwayoSection({ tok }: { tok: ThemeTokens }) {
           방봐요로 본 방들
         </h2>
         <span style={{ fontSize: 11, color: tok.textTertiary, fontWeight: 600 }}>
-          {sets.length}개 투어 · 방 {trackCount}개
+          {sets.length}개 투어 · 방 {tracks.length}개
         </span>
       </div>
 
-      {sets.map((s, i) => {
-        const setTracks = tracksBySet[s.id] ?? []
-        return (
-          <div
-            key={s.id}
-            style={{
-              borderTop: i === 0 ? `1px solid ${tok.cardBorder}` : `1px solid ${tok.cardBorder}`,
-              padding: '10px 20px 12px',
-            }}
-          >
-            <div style={{
-              display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
-              padding: '4px 0 6px',
-            }}>
-              <Link
-                href={`/bangbwayo/sets/${s.id}`}
-                style={{
-                  fontSize: 12, fontWeight: 700, color: tok.textSecondary,
-                  textDecoration: 'none', letterSpacing: '0.02em',
-                }}
-              >
-                {setLabel(s)}
-              </Link>
-              <span style={{ fontSize: 10, color: tok.textTertiary, fontWeight: 600 }}>
-                {s.status === 'active' ? '진행 중' :
-                 s.result_generated_at ? '결과물 완성' : '저장됨'}
-              </span>
-            </div>
-
-            {setTracks.length === 0 ? (
-              <p style={{ fontSize: 12, color: tok.textTertiary, margin: '4px 0 0' }}>
-                아직 트랙 없음
-              </p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {setTracks.map((t) => {
-                  const b = t.building_id ? (buildingMap[t.building_id] ?? null) : null
-                  const label = formatTrackLabel(t, b)
-                  return (
-                    <Link
-                      key={t.id}
-                      href={`/bangbwayo/sets/${s.id}/tracks/${t.id}`}
-                      style={{
-                        textDecoration: 'none',
-                        display: 'flex', alignItems: 'center', gap: 10,
-                        padding: '8px 10px',
-                        borderRadius: 10,
-                        background: tok.inputBg,
-                        border: `1px solid ${tok.inputBorder}`,
-                      }}
-                    >
-                      <span style={{ flex: 1, minWidth: 0,
-                        fontSize: 13, fontWeight: 600, color: tok.textPrimary,
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      }}>
-                        {label}
-                      </span>
-                      {t.overall_rating ? (
-                        <span style={{
-                          fontSize: 11, fontWeight: 700, color: tok.textSecondary,
-                          flexShrink: 0,
-                        }}>
-                          ★ {t.overall_rating}
-                        </span>
-                      ) : null}
-                      <IconChevronRight size={12} color={tok.textTertiary} />
-                    </Link>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        )
-      })}
+      {cards.map((c, i) => (
+        <div key={c.id} style={{
+          borderTop: i === 0 ? `1px solid ${tok.cardBorder}` : `1px solid ${tok.cardBorder}`,
+        }}>
+          <SetCardRow tok={tok} summary={c} href={`/bangbwayo/sets/${c.id}`} />
+        </div>
+      ))}
     </Card>
   )
 }
