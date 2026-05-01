@@ -535,7 +535,7 @@ export default function ContractForm({ renewal, onSaved, onCancel, theme = 'dark
         <div style={{ marginBottom: 4 }}>
           {sectionLabel('메모 (선택)')}
           <textarea
-            style={{ ...inputStyle, height: 88, resize: 'none', lineHeight: 1.5, fontSize: 14 }}
+            style={{ ...inputStyle, height: 88, resize: 'none', lineHeight: 1.5 }}
             placeholder="특이사항 등 자유롭게"
             value={memo}
             onChange={(e) => setMemo(e.target.value)}

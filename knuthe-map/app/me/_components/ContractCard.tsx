@@ -252,7 +252,7 @@ export default function ContractCard({ contract: c, onEdit, onEnd, onRenew, them
               <div style={{ minWidth: 0 }}>
                 <p style={{ fontSize: 10, color: tok.textTertiary, margin: '0 0 4px', fontWeight: 600 }}>계약 종료일</p>
                 <input
-                  style={{ ...inputStyle, fontSize: 14, padding: '10px 10px' }}
+                  style={{ ...inputStyle, padding: '10px 10px' }}
                   type="date"
                   value={contractEnd}
                   onChange={(e) => setContractEnd(e.target.value)}
