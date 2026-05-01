@@ -19,6 +19,7 @@ import { DashboardHeader }      from '@/components/shared/DashboardHeader'
 import { EmptyState }           from '@/components/shared/EmptyState'
 import { Card }                 from '@/components/shared/Card'
 import { getChecklistFor, type ChecklistItem, type Rating } from '@/lib/bangbwayo-checklist'
+import { formatTrackLabel }     from '@/lib/bangbwayo-track-label'
 import ResultsClient            from './_components/ResultsClient'
 
 interface SetRow {
@@ -50,7 +51,10 @@ export interface ResultPhoto { id: string; url: string | null; checklist_item_ke
 export interface ResultResponse { checklist_item_key: string; rating: Rating | null; memo: string | null }
 export interface ResultTrack {
   track:        TrackRow
-  buildingName: string | null
+  buildingName:    string | null
+  buildingAddress: string | null
+  /** 미리 계산된 표시 라벨 — 클라이언트에서도 일관 사용. */
+  label:        string
   responses:    ResultResponse[]
   photos:       ResultPhoto[]
   checklist:    readonly ChecklistItem[]
@@ -128,7 +132,7 @@ export default async function ResultsPage({
       .in('track_id', trackIds)
       .order('created_at', { ascending: true }),
     buildingIds.length > 0
-      ? supabase.from('buildings').select('id, name').in('id', buildingIds)
+      ? supabase.from('buildings').select('id, name, address').in('id', buildingIds)
       : Promise.resolve({ data: [] }),
   ])
 
@@ -146,31 +150,36 @@ export default async function ResultsPage({
     })
   }
 
-  const buildingMap: Record<string, string> = {}
-  for (const b of (bData ?? []) as Array<{ id: string; name: string | null }>) {
-    if (b.id && b.name) buildingMap[b.id] = b.name
+  const buildingMap: Record<string, { name: string | null; address: string | null }> = {}
+  for (const b of (bData ?? []) as Array<{ id: string; name: string | null; address: string | null }>) {
+    if (b.id) buildingMap[b.id] = { name: b.name ?? null, address: b.address ?? null }
   }
 
   // 트랙 단위로 묶기
-  const result: ResultTrack[] = tracks.map((t) => ({
-    track:        t,
-    buildingName: t.building_id ? (buildingMap[t.building_id] ?? null) : null,
-    responses:    (rData ?? [])
-      .filter((r) => (r as { track_id: string }).track_id === t.id)
-      .map((r) => ({
-        checklist_item_key: (r as { checklist_item_key: string }).checklist_item_key,
-        rating:             (r as { rating: Rating | null }).rating,
-        memo:               (r as { memo: string | null }).memo,
-      })),
-    photos:       allPhotos
-      .filter((p) => p.track_id === t.id)
-      .map((p) => ({
-        id:                 p.id,
-        checklist_item_key: p.checklist_item_key,
-        url:                signed[p.storage_path] ?? null,
-      })),
-    checklist:    getChecklistFor(t.time_option),
-  }))
+  const result: ResultTrack[] = tracks.map((t) => {
+    const b = t.building_id ? (buildingMap[t.building_id] ?? null) : null
+    return {
+      track:           t,
+      buildingName:    b?.name    ?? null,
+      buildingAddress: b?.address ?? null,
+      label:           formatTrackLabel(t, b),
+      responses:    (rData ?? [])
+        .filter((r) => (r as { track_id: string }).track_id === t.id)
+        .map((r) => ({
+          checklist_item_key: (r as { checklist_item_key: string }).checklist_item_key,
+          rating:             (r as { rating: Rating | null }).rating,
+          memo:               (r as { memo: string | null }).memo,
+        })),
+      photos:       allPhotos
+        .filter((p) => p.track_id === t.id)
+        .map((p) => ({
+          id:                 p.id,
+          checklist_item_key: p.checklist_item_key,
+          url:                signed[p.storage_path] ?? null,
+        })),
+      checklist:    getChecklistFor(t.time_option),
+    }
+  })
 
   return (
     <PageWrapper tok={tok}>

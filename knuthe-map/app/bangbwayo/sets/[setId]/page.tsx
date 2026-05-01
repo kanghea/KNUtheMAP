@@ -16,6 +16,7 @@ import { Card }                 from '@/components/shared/Card'
 import { EmptyState }           from '@/components/shared/EmptyState'
 import { IconChevronRight }     from '@/components/shared/icons'
 import { TIME_OPTIONS }         from '@/lib/bangbwayo-checklist'
+import { formatTrackLabel }     from '@/lib/bangbwayo-track-label'
 import StartTrackButton         from './_components/StartTrackButton'
 import EndSetButtons            from './_components/EndSetButtons'
 
@@ -44,14 +45,6 @@ function setLabel(s: SetRow): string {
   return s.title?.trim() || format(new Date(s.started_at), 'M월 d일 (eee) 투어', { locale: ko })
 }
 
-function trackLabel(t: TrackRow, buildingName: string | null): string {
-  const parts: string[] = []
-  if (buildingName) parts.push(buildingName)
-  else if (t.building_address_text) parts.push(t.building_address_text)
-  if (t.unit_number) parts.push(`${t.unit_number}호`)
-  if (parts.length === 0) return `방 ${t.order_index + 1}`
-  return parts.join(' ')
-}
 
 export default async function SetDetailPage({
   params,
@@ -88,14 +81,17 @@ export default async function SetDetailPage({
   const buildingIds = tracks
     .map((t) => t.building_id)
     .filter((id): id is string => !!id)
-  const buildingMap: Record<string, string> = {}
+  const buildingMap: Record<string, { name: string | null; address: string | null }> = {}
   if (buildingIds.length > 0) {
     const { data: bldgs } = await supabase
       .from('buildings')
-      .select('id, name')
+      .select('id, name, address')
       .in('id', buildingIds)
     for (const b of bldgs ?? []) {
-      if (b.id && b.name) buildingMap[b.id as string] = b.name as string
+      if (b.id) buildingMap[b.id as string] = {
+        name:    (b.name    ?? null) as string | null,
+        address: (b.address ?? null) as string | null,
+      }
     }
   }
 
@@ -118,7 +114,8 @@ export default async function SetDetailPage({
         {tracks.length > 0 ? (
           <Card tok={tok} padding={0} overflow="hidden" style={{ marginBottom: 14 }}>
             {tracks.map((t, i) => {
-              const bName = t.building_id ? (buildingMap[t.building_id] ?? null) : null
+              const b = t.building_id ? (buildingMap[t.building_id] ?? null) : null
+              const label = formatTrackLabel(t, b)
               return (
                 <Link
                   key={t.id}
@@ -144,7 +141,7 @@ export default async function SetDetailPage({
                       fontSize: 14, fontWeight: 600, color: tok.textPrimary, margin: 0,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
-                      {trackLabel(t, bName)}
+                      {label}
                     </p>
                     <p style={{ fontSize: 11, color: tok.textTertiary, margin: '2px 0 0' }}>
                       {t.status === 'closed' || t.status === 'included' ? '마무리됨' : '작성 중'}

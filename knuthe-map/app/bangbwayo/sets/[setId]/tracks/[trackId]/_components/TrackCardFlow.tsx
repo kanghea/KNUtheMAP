@@ -508,7 +508,8 @@ function ItemCard({
   onUploadPhoto: (file: File) => void
   uploading: boolean
 }) {
-  const fileRef = useRef<HTMLInputElement>(null)
+  const cameraRef = useRef<HTMLInputElement>(null)
+  const galleryRef = useRef<HTMLInputElement>(null)
 
   return (
     <div style={{
@@ -568,33 +569,82 @@ function ItemCard({
           </div>
         )}
 
+        {/* 입력 두 개 — 카메라 직접 호출 vs 갤러리 선택을 명확히 분리.
+            iOS Safari·Android Chrome 모두 capture 속성으로 카메라가 즉시 열림. */}
         <input
-          ref={fileRef}
+          ref={cameraRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/heic"
+          accept="image/*"
           capture="environment"
           style={{ display: 'none' }}
           onChange={(e) => {
             const f = e.target.files?.[0]
             if (f) onUploadPhoto(f)
-            if (fileRef.current) fileRef.current.value = ''
+            if (cameraRef.current) cameraRef.current.value = ''
           }}
         />
-        <button
-          type="button"
-          onClick={() => fileRef.current?.click()}
-          disabled={uploading}
-          style={{
-            width: '100%', padding: '10px 12px',
-            borderRadius: 10, border: 'none',
-            background: tok.accentBg, color: tok.accentColor,
-            fontSize: 13, fontWeight: 700,
-            cursor: uploading ? 'default' : 'pointer',
-            opacity: uploading ? 0.6 : 1,
+        <input
+          ref={galleryRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/heic"
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            const f = e.target.files?.[0]
+            if (f) onUploadPhoto(f)
+            if (galleryRef.current) galleryRef.current.value = ''
           }}
-        >
-          {uploading ? '올리는 중…' : photos.length > 0 ? '사진 더 찍기' : '사진 찍기'}
-        </button>
+        />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+          <button
+            type="button"
+            onClick={() => cameraRef.current?.click()}
+            disabled={uploading}
+            style={{
+              padding: '10px 12px',
+              borderRadius: 10, border: 'none',
+              background: tok.accentColor, color: '#fff',
+              fontSize: 13, fontWeight: 700,
+              cursor: uploading ? 'default' : 'pointer',
+              opacity: uploading ? 0.6 : 1,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+            카메라
+          </button>
+          <button
+            type="button"
+            onClick={() => galleryRef.current?.click()}
+            disabled={uploading}
+            style={{
+              padding: '10px 12px',
+              borderRadius: 10,
+              border: `1px solid ${tok.inputBorder}`,
+              background: tok.cardBg, color: tok.textPrimary,
+              fontSize: 13, fontWeight: 700,
+              cursor: uploading ? 'default' : 'pointer',
+              opacity: uploading ? 0.6 : 1,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            갤러리
+          </button>
+        </div>
+        {uploading && (
+          <p style={{ marginTop: 8, fontSize: 11, color: tok.textTertiary, textAlign: 'center' }}>
+            올리는 중…
+          </p>
+        )}
       </div>
 
       {/* 평가 */}
