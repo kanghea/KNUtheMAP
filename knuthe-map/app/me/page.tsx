@@ -113,12 +113,14 @@ export default async function MePage() {
           </Card>
         )}
 
-        {/* ── role별 섹션 ────────────────────────────────────────── */}
-        {role === 'tenant' && (
+        {/* ── 내 계약 관리 (학생만) ─────────────────────────────── */}
+        {(role === 'tenant' || role === 'roommate') && (
           <Card tok={tok} padding={20} style={{ marginBottom: 16 }}>
             <MyContractsManager theme={theme} />
           </Card>
         )}
+
+        {/* ── role별 섹션 ────────────────────────────────────────── */}
 
         {role === 'owner' && (
           <Card tok={tok} padding={20} style={{ marginBottom: 16 }}>
