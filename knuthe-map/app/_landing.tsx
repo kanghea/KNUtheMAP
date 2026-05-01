@@ -366,6 +366,57 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
           </div>
         )}
 
+        {/* ── 방봐요 ────────────────────────────────────────────
+            방 보러 갈 때 함께 가는 도구. 표준 체크리스트 + 사진 + 비교.
+            방보기 모드의 일등 시민으로 노출 — 룸메이트 모드 랜딩(_roommate-landing)
+            에는 노출하지 않는다 (확정된 결정). */}
+        <Link
+          href="/bangbwayo"
+          prefetch={false}
+          aria-label="방봐요 — 방 보러 갈 때 함께 가는 도구"
+          style={{
+            display:      'block',
+            marginBottom: 14,
+            borderRadius: 20,
+            overflow:     'hidden',
+            border:       `1px solid ${tok.cardBorder}`,
+            boxShadow:    deco.cardShadow,
+            background:   `linear-gradient(135deg, ${col.from} 0%, ${col.mid} 60%, ${col.to} 100%)`,
+            color:        '#fff',
+            textDecoration: 'none',
+            position:     'relative',
+            padding:      '20px 22px 22px',
+          }}
+        >
+          {/* 상단 유리 반사광 */}
+          <div aria-hidden style={{
+            position: 'absolute', top: 0, left: 0, right: 0, height: '50%',
+            background: 'linear-gradient(to bottom, rgba(255,255,255,0.16) 0%, transparent 100%)',
+            borderRadius: '20px 20px 0 0',
+            pointerEvents: 'none',
+          }} />
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.65)', margin: 0, letterSpacing: '0.06em' }}>
+            ✦ 방봐요
+          </p>
+          <h2 style={{ fontSize: 18, fontWeight: 800, margin: '4px 0 6px', letterSpacing: '-0.02em' }}>
+            방 보러 갈 때 함께 가요
+          </h2>
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.78)', margin: 0, lineHeight: 1.5 }}>
+            표준 체크리스트로 기록하고, 한 화면에서 비교해요.
+          </p>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            marginTop: 12,
+            fontSize: 12, fontWeight: 700, color: '#fff',
+            padding: '7px 12px',
+            borderRadius: 999,
+            background: 'rgba(255,255,255,0.18)',
+            border: '1px solid rgba(255,255,255,0.25)',
+          }}>
+            시작하기 →
+          </span>
+        </Link>
+
         {/* ── 룸메이트 모드 ──────────────────────────────────────
             클릭 시 viewMode 쿠키를 'roommate' 로 봉인한 뒤 /roommate 로
             302 리다이렉트한다. 단순 페이지 이동이 아니라 보기 모드를
