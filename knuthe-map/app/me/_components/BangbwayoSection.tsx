@@ -137,8 +137,11 @@ export default async function BangbwayoSection({ tok }: { tok: ThemeTokens }) {
               display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
               padding: '4px 0 6px',
             }}>
+              {/* 셋 라벨 — 활성이면 트랙 목록, 그 외엔 결과물 페이지로 */}
               <Link
-                href={`/bangbwayo/sets/${s.id}`}
+                href={s.status === 'active'
+                  ? `/bangbwayo/sets/${s.id}`
+                  : `/bangbwayo/sets/${s.id}/results`}
                 style={{
                   fontSize: 12, fontWeight: 700, color: tok.textSecondary,
                   textDecoration: 'none', letterSpacing: '0.02em',

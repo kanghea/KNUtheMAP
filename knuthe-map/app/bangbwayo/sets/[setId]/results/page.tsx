@@ -189,7 +189,7 @@ export default async function ResultsPage({
         subtitle={`${tracks.length}개 방 비교`}
         backHref={`/bangbwayo/sets/${set.id}`}
       />
-      <ResultsClient tok={tok} tracks={result} />
+      <ResultsClient tok={tok} setId={set.id} tracks={result} />
       <div style={{ maxWidth: 520, margin: '12px auto 0', padding: '0 16px' }}>
         <Link
           href={`/bangbwayo/sets/${set.id}`}
