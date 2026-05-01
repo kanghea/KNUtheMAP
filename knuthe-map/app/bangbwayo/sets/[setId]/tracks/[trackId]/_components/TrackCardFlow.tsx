@@ -89,6 +89,10 @@ export default function TrackCardFlow({
     memo:   track.overall_memo   ?? '',
   })
   const [matchedBuilding, setMatchedBuilding] = useState<BuildingRow | null>(building)
+  // 매칭은 실패했지만 역지오코딩으로 자동 입력된 도로명주소 (서버 응답)
+  const [geocodedAddress, setGeocodedAddress] = useState<string | null>(
+    track.building_address_text ?? null,
+  )
 
   // 자동 저장 인디케이터
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
@@ -291,11 +295,15 @@ export default function TrackCardFlow({
           address: json.matchedBuilding.address,
         })
       }
+      // 역지오코딩으로 자동 입력된 주소가 있으면 화면에 즉시 반영
+      if (json.geocodedAddress && !geocodedAddress) {
+        setGeocodedAddress(json.geocodedAddress as string)
+      }
       flashSaved()
     } finally {
       setUploading(false)
     }
-  }, [setId, track.id, matchedBuilding, flashSaved])
+  }, [setId, track.id, matchedBuilding, geocodedAddress, flashSaved])
 
   // ── 트랙 마무리 ────────────────────────────────────────────────────────
   const finishTrack = useCallback(async () => {
@@ -334,14 +342,15 @@ export default function TrackCardFlow({
         <SaveIndicator tok={tok} state={saveState} />
       </div>
 
-      {/* 매칭된 건물 안내 */}
-      {matchedBuilding?.name && (
+      {/* 매칭된 건물 또는 자동 입력된 주소 안내 — 사진 좌표에서 추출됨 */}
+      {(matchedBuilding?.name || geocodedAddress) && (
         <div style={{
           marginBottom: 12, padding: '8px 12px', borderRadius: 10,
-          background: tok.successBg, color: tok.successColor,
+          background: matchedBuilding?.name ? tok.successBg : tok.accentBg,
+          color:      matchedBuilding?.name ? tok.successColor : tok.accentColor,
           fontSize: 12, fontWeight: 600,
         }}>
-          📍 {matchedBuilding.name}
+          📍 {matchedBuilding?.name ?? geocodedAddress}
         </div>
       )}
 
