@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import type { ThemeTokens } from '@/lib/theme-tokens'
+import { tapHaptic } from '@/lib/hooks/useHaptic'
 
 interface Props { tok: ThemeTokens }
 
@@ -19,6 +20,7 @@ export default function StartSetButton({ tok }: Props) {
   const [error, setError] = useState<string | null>(null)
 
   const handleStart = () => {
+    tapHaptic()
     setError(null)
     startTransition(async () => {
       const res = await fetch('/api/bangbwayo/sets', {
@@ -46,6 +48,7 @@ export default function StartSetButton({ tok }: Props) {
         type="button"
         onClick={handleStart}
         disabled={isPending}
+        className="knu-press"
         style={{
           width: '100%',
           padding: '16px 20px',
@@ -58,7 +61,7 @@ export default function StartSetButton({ tok }: Props) {
           cursor: isPending ? 'default' : 'pointer',
           opacity: isPending ? 0.7 : 1,
           boxShadow: tok.shadow,
-          transition: 'opacity .15s',
+          transition: 'opacity .15s, transform .1s',
         }}
       >
         {isPending ? '시작하는 중…' : '오늘 새 셋 시작하기'}

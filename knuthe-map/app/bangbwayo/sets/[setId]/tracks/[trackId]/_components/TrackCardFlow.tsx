@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import type { ThemeTokens, ThemeMode } from '@/lib/theme-tokens'
 import type { ChecklistItem, Rating } from '@/lib/bangbwayo-checklist'
+import { tapHaptic, successHaptic } from '@/lib/hooks/useHaptic'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 타입
@@ -162,6 +163,7 @@ export default function TrackCardFlow({
 
   // ── 단계 이동 ──────────────────────────────────────────────────────────
   const goNext = useCallback(() => {
+    tapHaptic()
     flushAllPending()
     setStep((s) => {
       if (s.kind === 'unit')    return { kind: 'item', index: 0 }
@@ -177,6 +179,7 @@ export default function TrackCardFlow({
   }, [totalItems, flushAllPending])
 
   const goPrev = useCallback(() => {
+    tapHaptic()
     flushAllPending()
     setStep((s) => {
       if (s.kind === 'finish')   return { kind: 'contract' }
@@ -199,6 +202,7 @@ export default function TrackCardFlow({
 
   // ── 응답 변경 ──────────────────────────────────────────────────────────
   const setRating = (key: string, rating: Rating) => {
+    tapHaptic()
     setResponses((m) => ({ ...m, [key]: { rating, memo: m[key]?.memo ?? '' } }))
     scheduleSave(`r:${key}`, () => upsertResponse(key, rating, responses[key]?.memo ?? ''), 250)
   }
@@ -223,54 +227,79 @@ export default function TrackCardFlow({
     scheduleSave('overall_memo', () => patchTrack({ overall_memo: memo || null }))
   }
 
-  // ── 사진 업로드 ────────────────────────────────────────────────────────
+  // ── 사진 업로드 (낙관적 미리보기) ──────────────────────────────────────
+  // 클릭과 동시에 로컬 blob URL 로 미리보기를 띄우고, 서버 응답 도착 시 실제 row 로 교체.
+  // 사용자는 "올라가는 중" 빈 화면을 기다리지 않음.
   const [uploading, setUploading] = useState(false)
   const uploadPhoto = useCallback(async (file: File, itemKey: string | null) => {
+    tapHaptic()
     setUploading(true)
     setSaveState('saving')
 
-    // 위치 권한 — 받을 수 있으면 좌표 동봉. 거부/실패해도 업로드 진행.
-    const coord = await new Promise<{ lat: number; lng: number } | null>((resolve) => {
-      if (!('geolocation' in navigator)) return resolve(null)
-      navigator.geolocation.getCurrentPosition(
-        (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        ()    => resolve(null),
-        { enableHighAccuracy: true, timeout: 4000, maximumAge: 60_000 },
-      )
-    })
+    // 1) 즉시 로컬 미리보기 추가 (낙관적 UI)
+    const localId  = `local:${crypto.randomUUID()}`
+    const localUrl = URL.createObjectURL(file)
+    setPhotos((prev) => [
+      ...prev,
+      { id: localId, checklist_item_key: itemKey, storage_path: '', url: localUrl },
+    ])
 
-    const fd = new FormData()
-    fd.append('file', file)
-    if (itemKey)        fd.append('checklist_item_key', itemKey)
-    if (coord) {
-      fd.append('exif_lat', String(coord.lat))
-      fd.append('exif_lng', String(coord.lng))
-    }
-    fd.append('exif_taken_at', new Date().toISOString())
-
-    const res = await fetch(
-      `/api/bangbwayo/sets/${setId}/tracks/${track.id}/photos`,
-      { method: 'POST', body: fd },
-    )
-    setUploading(false)
-    if (!res.ok) {
-      setSaveState('error')
-      return
-    }
-    const json = await res.json()
-    setPhotos((prev) => [...prev, json.photo])
-    if (json.matchedBuilding && !matchedBuilding) {
-      setMatchedBuilding({
-        id:      json.matchedBuilding.id,
-        name:    json.matchedBuilding.name,
-        address: json.matchedBuilding.address,
+    try {
+      // 2) 위치 권한 — 받을 수 있으면 좌표 동봉. 거부/실패해도 업로드 진행.
+      const coord = await new Promise<{ lat: number; lng: number } | null>((resolve) => {
+        if (!('geolocation' in navigator)) return resolve(null)
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          ()    => resolve(null),
+          { enableHighAccuracy: true, timeout: 4000, maximumAge: 60_000 },
+        )
       })
+
+      const fd = new FormData()
+      fd.append('file', file)
+      if (itemKey) fd.append('checklist_item_key', itemKey)
+      if (coord) {
+        fd.append('exif_lat', String(coord.lat))
+        fd.append('exif_lng', String(coord.lng))
+      }
+      fd.append('exif_taken_at', new Date().toISOString())
+
+      const res = await fetch(
+        `/api/bangbwayo/sets/${setId}/tracks/${track.id}/photos`,
+        { method: 'POST', body: fd },
+      )
+      if (!res.ok) {
+        // 실패 — 로컬 미리보기 제거
+        setPhotos((prev) => prev.filter((p) => p.id !== localId))
+        URL.revokeObjectURL(localUrl)
+        setSaveState('error')
+        return
+      }
+      const json = await res.json()
+
+      // 3) 로컬 미리보기를 실제 photo 로 교체
+      setPhotos((prev) => prev.map((p) =>
+        p.id === localId ? { ...json.photo, url: json.photo.url ?? localUrl } : p,
+      ))
+      // blob URL 은 다음 틱에 해제 (Image 가 아직 잡고 있을 수 있음)
+      setTimeout(() => URL.revokeObjectURL(localUrl), 1000)
+
+      if (json.matchedBuilding && !matchedBuilding) {
+        setMatchedBuilding({
+          id:      json.matchedBuilding.id,
+          name:    json.matchedBuilding.name,
+          address: json.matchedBuilding.address,
+        })
+      }
+      flashSaved()
+    } finally {
+      setUploading(false)
     }
-    flashSaved()
   }, [setId, track.id, matchedBuilding, flashSaved])
 
   // ── 트랙 마무리 ────────────────────────────────────────────────────────
   const finishTrack = useCallback(async () => {
+    successHaptic()
     flushAllPending()
     await patchTrack({ status: 'closed' })
     router.push(`/bangbwayo/sets/${setId}`)
@@ -316,47 +345,56 @@ export default function TrackCardFlow({
         </div>
       )}
 
-      {/* 단계 본문 */}
-      {step.kind === 'unit' && (
-        <UnitStep
-          tok={tok}
-          unitNumber={unitNumber}
-          onUnitChange={onUnitChange}
-          buildingName={matchedBuilding?.name ?? null}
-          buildingAddress={matchedBuilding?.address ?? null}
-        />
-      )}
+      {/* 단계 본문 — `key` 가 단계마다 바뀌어 React 가 새 노드로 인식.
+          `knu-card-in` 이 매번 페이드+슬라이드 인 애니메이션 트리거. */}
+      <div
+        key={
+          step.kind === 'item' ? `item:${step.index}` :
+          step.kind                                    // unit / contract / finish
+        }
+        className="knu-card-in"
+      >
+        {step.kind === 'unit' && (
+          <UnitStep
+            tok={tok}
+            unitNumber={unitNumber}
+            onUnitChange={onUnitChange}
+            buildingName={matchedBuilding?.name ?? null}
+            buildingAddress={matchedBuilding?.address ?? null}
+          />
+        )}
 
-      {step.kind === 'item' && (
-        <ItemCard
-          tok={tok}
-          theme={theme}
-          item={checklist[step.index]}
-          response={responses[checklist[step.index].key] ?? { rating: null, memo: '' }}
-          photos={photosByKey[checklist[step.index].key] ?? []}
-          onRating={(r) => setRating(checklist[step.index].key, r)}
-          onMemo={(m)   => setMemo(checklist[step.index].key, m)}
-          onUploadPhoto={(file) => uploadPhoto(file, checklist[step.index].key)}
-          uploading={uploading}
-        />
-      )}
+        {step.kind === 'item' && (
+          <ItemCard
+            tok={tok}
+            theme={theme}
+            item={checklist[step.index]}
+            response={responses[checklist[step.index].key] ?? { rating: null, memo: '' }}
+            photos={photosByKey[checklist[step.index].key] ?? []}
+            onRating={(r) => setRating(checklist[step.index].key, r)}
+            onMemo={(m)   => setMemo(checklist[step.index].key, m)}
+            onUploadPhoto={(file) => uploadPhoto(file, checklist[step.index].key)}
+            uploading={uploading}
+          />
+        )}
 
-      {step.kind === 'contract' && (
-        <ContractStep
-          tok={tok}
-          contract={contract}
-          onChange={setContractField}
-        />
-      )}
+        {step.kind === 'contract' && (
+          <ContractStep
+            tok={tok}
+            contract={contract}
+            onChange={setContractField}
+          />
+        )}
 
-      {step.kind === 'finish' && (
-        <FinishStep
-          tok={tok}
-          overall={overall}
-          onRating={setOverallRating}
-          onMemo={setOverallMemo}
-        />
-      )}
+        {step.kind === 'finish' && (
+          <FinishStep
+            tok={tok}
+            overall={overall}
+            onRating={setOverallRating}
+            onMemo={setOverallMemo}
+          />
+        )}
+      </div>
 
       {/* 하단 네비 */}
       <div style={{
@@ -366,6 +404,7 @@ export default function TrackCardFlow({
           type="button"
           onClick={goPrev}
           disabled={step.kind === 'unit'}
+          className={step.kind === 'unit' ? undefined : 'knu-press'}
           style={{
             padding: '12px 16px', borderRadius: 12,
             background: tok.inputBg, color: tok.textSecondary,
@@ -373,6 +412,7 @@ export default function TrackCardFlow({
             fontSize: 13, fontWeight: 600,
             cursor: step.kind === 'unit' ? 'default' : 'pointer',
             opacity: step.kind === 'unit' ? 0.4 : 1,
+            transition: 'transform .1s',
           }}
         >
           이전
@@ -381,10 +421,12 @@ export default function TrackCardFlow({
           <button
             type="button"
             onClick={goNext}
+            className="knu-press"
             style={{
               flex: 1, padding: '12px 16px', borderRadius: 12,
               background: tok.accentColor, color: '#fff', border: 'none',
               fontSize: 14, fontWeight: 700, cursor: 'pointer',
+              transition: 'transform .1s',
             }}
           >
             {step.kind === 'item' ? '다음' :
@@ -395,10 +437,12 @@ export default function TrackCardFlow({
           <button
             type="button"
             onClick={finishTrack}
+            className="knu-press"
             style={{
               flex: 1, padding: '12px 16px', borderRadius: 12,
               background: tok.successColor, color: '#fff', border: 'none',
               fontSize: 14, fontWeight: 700, cursor: 'pointer',
+              transition: 'transform .1s',
             }}
           >
             이 방 다 봤어요
