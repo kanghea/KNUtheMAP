@@ -126,6 +126,20 @@ Supabase Auth 연동 사용자 테이블.
 
 ---
 
+### `saved_filters`
+사용자별 방 검색 필터 + 새 매물 알림 토글. 한 유저당 1행.
+
+| 컬럼 | 타입 | 설명 |
+|---|---|---|
+| `user_id` | uuid PK FK → users | 본인 행 (PK = FK) |
+| `filters` | jsonb | `MapFilters` 전체 (buildingType, rentRange, depositRange, ageRange, options, gate, gateMinutes) |
+| `notify` | boolean | 새 매물 알림 ON/OFF |
+| `created_at` / `updated_at` | timestamptz | |
+
+RLS: 본인 행만 select/insert/update/delete. `idx_saved_filters_notify_on` 부분 인덱스가 `notify = true` 만 잡아 알림 디스패처 스캔을 가속.
+
+---
+
 ## 테이블 관계
 
 ```

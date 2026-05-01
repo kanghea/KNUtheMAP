@@ -227,7 +227,10 @@ export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'dark' | 'l
   const [section,      setSection]      = useState<string | null>(null)
   const [notifOn,      setNotifOn]      = useState(false)
   const [showLogin,    setShowLogin]    = useState(false)
-  const [loggedIn,     setLoggedIn]     = useState(false)
+  // null = 세션 확인 중. false = 비로그인. true = 로그인.
+  // false로 초기화하면 getSession() 응답 전에 토글을 누른 사용자에게
+  // 항상 "로그인 필요" 패널이 잘못 뜨는 race가 발생함.
+  const [loggedIn,     setLoggedIn]     = useState<boolean | null>(null)
   const [loginLoading, setLoginLoading] = useState(false)
   const [expanded,     setExpanded]     = useState(false)
 
@@ -235,13 +238,50 @@ export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'dark' | 'l
 
   useEffect(() => {
     const supabase = createBrowserSupabase()
-    supabase.auth.getSession().then(({ data }) => setLoggedIn(!!data.session))
+    let cancelled = false
+    supabase.auth.getSession().then(({ data }) => {
+      if (cancelled) return
+      setLoggedIn(!!data.session)
+    })
     const { data: sub } = supabase.auth.onAuthStateChange((_, session) => {
       setLoggedIn(!!session)
-      if (session) setShowLogin(false)
     })
-    return () => sub.subscription.unsubscribe()
+    return () => {
+      cancelled = true
+      sub.subscription.unsubscribe()
+    }
   }, [])
+
+  // 세션이 늦게 도착해 loggedIn이 true가 되면 이미 열려 있던 로그인 패널을 닫는다.
+  useEffect(() => {
+    if (loggedIn === true) setShowLogin(false)
+  }, [loggedIn])
+
+  // 로그인 직후 서버에서 saved_filters 의 notify 상태를 hydrate.
+  // 비로그인이거나 응답이 비면 notifOn 은 false 로 둔다.
+  useEffect(() => {
+    if (loggedIn !== true) { setNotifOn(false); return }
+    let cancelled = false
+    fetch('/api/saved-filters', { cache: 'no-store' })
+      .then((r) => r.ok ? r.json() : null)
+      .then((j) => { if (!cancelled && j && typeof j.notify === 'boolean') setNotifOn(j.notify) })
+      .catch(() => { /* 네트워크 실패는 토글을 false 로 유지 */ })
+    return () => { cancelled = true }
+  }, [loggedIn])
+
+  // 알림이 ON 인 동안 사용자가 필터를 바꾸면 DB 의 filters JSONB 도 따라가도록 동기화.
+  // 800ms 디바운스로 슬라이더 드래그 중 PUT 폭주 방지.
+  useEffect(() => {
+    if (loggedIn !== true || !notifOn) return
+    const timer = setTimeout(() => {
+      fetch('/api/saved-filters', {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ filters: filter }),
+      }).catch(() => { /* 동기화 실패는 무시 — 다음 변경에서 재시도됨 */ })
+    }, 800)
+    return () => clearTimeout(timer)
+  }, [filter, notifOn, loggedIn])
 
   const set = <K extends keyof MapFilters>(key: K, val: MapFilters[K]) =>
     setFilters({ ...filter, [key]: val })
@@ -253,9 +293,23 @@ export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'dark' | 'l
 
   const toggleSection = (s: string) => setSection((prev) => prev === s ? null : s)
 
-  const handleNotifToggle = () => {
-    if (!loggedIn) { setShowLogin(true); return }
-    setNotifOn((v) => !v)
+  const handleNotifToggle = async () => {
+    if (loggedIn === null) return            // 세션 확인 중엔 무시
+    if (loggedIn === false) { setShowLogin(true); return }
+
+    // 낙관적 토글 + 현재 필터 동시 저장. 실패 시 이전 상태로 원복.
+    const next = !notifOn
+    setNotifOn(next)
+    try {
+      const res = await fetch('/api/saved-filters', {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ notify: next, filters: filter }),
+      })
+      if (!res.ok) throw new Error(await res.text())
+    } catch {
+      setNotifOn(!next)
+    }
   }
 
   const handleGoogleLogin = async () => {
@@ -308,7 +362,7 @@ export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'dark' | 'l
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {notifOn && loggedIn && (
+          {notifOn && loggedIn === true && (
             <span style={{
               fontSize: 10, fontWeight: 700, color: tok.badgeColor,
               background: tok.badgeBg, borderRadius: 999, padding: '3px 8px',
@@ -453,15 +507,19 @@ export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'dark' | 'l
               </div>
               <button
                 onClick={handleNotifToggle}
+                disabled={loggedIn === null}
+                aria-busy={loggedIn === null || undefined}
                 style={{
-                  width: 44, height: 26, borderRadius: 999, border: 'none', cursor: 'pointer',
-                  background: notifOn && loggedIn ? '#2563eb' : tok.notifOff,
-                  position: 'relative', flexShrink: 0, transition: 'background .2s',
+                  width: 44, height: 26, borderRadius: 999, border: 'none',
+                  cursor: loggedIn === null ? 'wait' : 'pointer',
+                  background: notifOn && loggedIn === true ? '#2563eb' : tok.notifOff,
+                  opacity: loggedIn === null ? 0.6 : 1,
+                  position: 'relative', flexShrink: 0, transition: 'background .2s, opacity .2s',
                 }}
               >
                 <span style={{
                   position: 'absolute', top: 3,
-                  left: notifOn && loggedIn ? 21 : 3,
+                  left: notifOn && loggedIn === true ? 21 : 3,
                   width: 20, height: 20, borderRadius: '50%',
                   background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
                   transition: 'left .2s',
@@ -469,7 +527,7 @@ export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'dark' | 'l
               </button>
             </div>
 
-            {showLogin && !loggedIn && (
+            {showLogin && loggedIn === false && (
               <div style={{ borderTop: `1px solid ${tok.notifBd}`, padding: '14px 16px', background: tok.loginPanelBg }}>
                 <p style={{ margin: '0 0 12px', fontSize: 13, color: tok.textSecond, lineHeight: 1.6 }}>
                   알림 설정은 <strong style={{ color: tok.textPrimary }}>로그인</strong>이 필요해요.

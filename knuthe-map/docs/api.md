@@ -23,6 +23,7 @@ Next.js App Router `route.ts` 기반 REST API. 역할(role) 기반 인가로 엔
 | `/api/buildings/[id]/reviews` | GET/POST | tenant | 리뷰 조회/작성 |
 | `/api/bookmarks/[buildingId]` | GET/POST/DELETE | tenant | 북마크 관리 |
 | `/api/user-contracts` | GET/POST | tenant | 임대 계약 관리 |
+| `/api/saved-filters` | GET/PUT/DELETE | 로그인 | 사용자별 방 검색 필터 + 새 매물 알림 토글 (1행/유저) |
 
 ### 건물주 (owner)
 
