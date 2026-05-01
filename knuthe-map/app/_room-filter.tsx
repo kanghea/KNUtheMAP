@@ -257,6 +257,32 @@ export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'dark' | 'l
     if (loggedIn === true) setShowLogin(false)
   }, [loggedIn])
 
+  // 로그인 직후 서버에서 saved_filters 의 notify 상태를 hydrate.
+  // 비로그인이거나 응답이 비면 notifOn 은 false 로 둔다.
+  useEffect(() => {
+    if (loggedIn !== true) { setNotifOn(false); return }
+    let cancelled = false
+    fetch('/api/saved-filters', { cache: 'no-store' })
+      .then((r) => r.ok ? r.json() : null)
+      .then((j) => { if (!cancelled && j && typeof j.notify === 'boolean') setNotifOn(j.notify) })
+      .catch(() => { /* 네트워크 실패는 토글을 false 로 유지 */ })
+    return () => { cancelled = true }
+  }, [loggedIn])
+
+  // 알림이 ON 인 동안 사용자가 필터를 바꾸면 DB 의 filters JSONB 도 따라가도록 동기화.
+  // 800ms 디바운스로 슬라이더 드래그 중 PUT 폭주 방지.
+  useEffect(() => {
+    if (loggedIn !== true || !notifOn) return
+    const timer = setTimeout(() => {
+      fetch('/api/saved-filters', {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ filters: filter }),
+      }).catch(() => { /* 동기화 실패는 무시 — 다음 변경에서 재시도됨 */ })
+    }, 800)
+    return () => clearTimeout(timer)
+  }, [filter, notifOn, loggedIn])
+
   const set = <K extends keyof MapFilters>(key: K, val: MapFilters[K]) =>
     setFilters({ ...filter, [key]: val })
 
@@ -267,10 +293,23 @@ export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'dark' | 'l
 
   const toggleSection = (s: string) => setSection((prev) => prev === s ? null : s)
 
-  const handleNotifToggle = () => {
+  const handleNotifToggle = async () => {
     if (loggedIn === null) return            // 세션 확인 중엔 무시
     if (loggedIn === false) { setShowLogin(true); return }
-    setNotifOn((v) => !v)
+
+    // 낙관적 토글 + 현재 필터 동시 저장. 실패 시 이전 상태로 원복.
+    const next = !notifOn
+    setNotifOn(next)
+    try {
+      const res = await fetch('/api/saved-filters', {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ notify: next, filters: filter }),
+      })
+      if (!res.ok) throw new Error(await res.text())
+    } catch {
+      setNotifOn(!next)
+    }
   }
 
   const handleGoogleLogin = async () => {
