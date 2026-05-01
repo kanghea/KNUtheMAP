@@ -44,6 +44,18 @@ interface Props {
   building:   BuildingRow | null
 }
 
+// input[type=file] 을 화면에 안 보이게 하면서도 DOM 에 정상 존재하게.
+// `display: none` 은 일부 iOS·인앱 브라우저에서 `capture` 속성을 무시하게 만듦.
+const visuallyHidden: React.CSSProperties = {
+  position: 'absolute',
+  width: 1, height: 1,
+  padding: 0, margin: -1,
+  overflow: 'hidden',
+  clip: 'rect(0,0,0,0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+}
+
 // 카드 흐름 단계: 호수 → 항목 카드 N개 → 계약 → 마무리
 // 호수 입력은 0번째 슬롯, 항목 카드는 1..N, 계약은 N+1, 마무리는 N+2
 type StepKind =
@@ -623,13 +635,18 @@ function ItemCard({
         )}
 
         {/* 입력 두 개 — 카메라 직접 호출 vs 갤러리 선택을 명확히 분리.
-            iOS Safari·Android Chrome 모두 capture 속성으로 카메라가 즉시 열림. */}
+            iOS Safari 호환:
+              · `display: none` 은 일부 iOS·인앱 브라우저에서 capture 속성을 무시하게 함
+                → visually hidden 스타일(DOM 에는 살아있고 화면에만 안 보임)로 대체
+              · `capture="environment"` 보다 boolean `capture` 가 더 호환성 좋음
+                (iOS 가 후면 카메라 기본 선택)
+              · 갤러리 input 의 accept 를 `image/*` 로 통일 — heic/heif 모두 자연 처리 */}
         <input
           ref={cameraRef}
           type="file"
           accept="image/*"
-          capture="environment"
-          style={{ display: 'none' }}
+          capture
+          style={visuallyHidden}
           onChange={(e) => {
             const f = e.target.files?.[0]
             if (f) onUploadPhoto(f)
@@ -639,8 +656,8 @@ function ItemCard({
         <input
           ref={galleryRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/heic"
-          style={{ display: 'none' }}
+          accept="image/*"
+          style={visuallyHidden}
           onChange={(e) => {
             const f = e.target.files?.[0]
             if (f) onUploadPhoto(f)
