@@ -93,6 +93,8 @@ export default function OnboardingClient() {
     setRmWeights(weights)
     // 임시 저장
     saveRoommateDraft(rmProfile, weights)
+    // 온보딩 완료 표시 — 비로그인으로 종료해도 다음 방문 시 온보딩으로 되돌아가지 않도록 prefs 쿠키 저장
+    savePrefs({ grade: null, dept: null, zone: null, priorities: [], gate: null, theme })
     setPhase('roommate-login')
   }
 
@@ -177,7 +179,11 @@ export default function OnboardingClient() {
       >
         <StepRoleRequest
           role={userRole as 'owner' | 'agent'}
-          onSubmitted={() => setPhase('role-pending')}
+          onSubmitted={() => {
+            // 신청 완료도 온보딩 완료로 간주 — 승인 대기 화면을 떠나도 다시 온보딩으로 돌아가지 않게 prefs 쿠키 저장
+            savePrefs({ grade: null, dept: null, zone: null, priorities: [], gate: null, theme })
+            setPhase('role-pending')
+          }}
           onBack={() => setPhase('role')}
           tok={tok}
         />

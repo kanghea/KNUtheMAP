@@ -15,6 +15,7 @@ import {
   type SwipeWeights,
   saveRoommateDraft,
 } from '@/lib/roommate-constants'
+import { savePrefs } from '@/lib/prefs'
 import { createBrowserSupabase } from '@/lib/supabase-browser'
 
 const ROOMMATE_SECTIONS = [
@@ -71,6 +72,8 @@ export default function RoommateOnboardingClient({
     // /roommate 페이지가 save_draft 쿼리로 draft 를 picks-up 한다.
     if (!isLoggedIn) {
       saveRoommateDraft(profile, w)
+      // 온보딩 완료 표시 — 비로그인으로 종료해도 다음 방문 시 온보딩으로 되돌아가지 않도록 prefs 쿠키 저장
+      savePrefs({ grade: null, dept: null, zone: null, priorities: [], gate: null, theme: initialTheme })
       setPhase('login-required')
       return
     }
