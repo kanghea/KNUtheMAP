@@ -1,8 +1,18 @@
 @import "tailwindcss";
 
+/* ── 테마 변수 ───────────────────────────────────────────────
+   소스 오브 트루스는 `knu_prefs.theme` 쿠키이고, 서버에서 `<html data-theme="...">`
+   로 부착된다 (app/layout.tsx). CSS 변수와 JS 토큰(`lib/theme-tokens.ts`) 가
+   동일한 쿠키를 따르므로 hydration 직후·overscroll·safe-area 영역에서도
+   배경/전경이 어긋나지 않는다. 쿠키 미설정 시 다크가 기본값(layout 폴백). */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+}
+
+[data-theme="dark"] {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 @theme inline {
@@ -12,17 +22,12 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR",
+    "Helvetica Neue", Arial, sans-serif;
 }
 
 /* iOS Safari: input font-size < 16px이면 포커스 시 자동 확대됨 */
@@ -33,6 +38,9 @@ input, textarea, select {
 /* 드럼 피커 스크롤바 숨김 */
 .drum-picker::-webkit-scrollbar { display: none; }
 .drum-picker { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* 가로 스크롤 칩 — Webkit 스크롤바 숨김 (firefox/edge 는 인라인 scrollbarWidth 처리) */
+.zone-shortcut-scroller::-webkit-scrollbar { display: none; }
 
 /* ── 공용 스켈레톤/로딩 애니메이션 ──────────────────────────
    loading.tsx 들이 각자 정의하던 keyframes를 한 곳에 모은다.
@@ -173,14 +181,25 @@ input, textarea, select {
   stroke: #4f46e5;
 }
 
-/* Mapbox 팝업 커스텀 스타일 */
+/* Mapbox 팝업 커스텀 스타일 — `<html data-theme>` 에 맞춰 자동 전환 */
 .building-popup .mapboxgl-popup-content {
   border-radius: 10px;
   padding: 10px 14px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #0f172a;
+}
+.building-popup .mapboxgl-popup-tip {
+  border-top-color: #ffffff;
 }
 
-.building-popup .mapboxgl-popup-tip {
-  border-top-color: #fff;
+[data-theme="dark"] .building-popup .mapboxgl-popup-content {
+  background: #111111;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+[data-theme="dark"] .building-popup .mapboxgl-popup-tip {
+  border-top-color: #111111;
 }
