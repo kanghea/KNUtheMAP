@@ -8,7 +8,7 @@
 
 import { notFound, redirect } from 'next/navigation'
 import Link                   from 'next/link'
-import { format }             from 'date-fns'
+import { formatInTimeZone }   from 'date-fns-tz'
 import { ko }                 from 'date-fns/locale'
 import { getServerThemeTokens } from '@/lib/theme-server'
 import { getServerUser }        from '@/lib/auth-server'
@@ -61,7 +61,10 @@ export interface ResultTrack {
 }
 
 function setLabel(s: SetRow): string {
-  return s.title?.trim() || format(new Date(s.started_at), 'M월 d일 (eee) 결과물', { locale: ko })
+  // started_at 은 timestamptz(UTC). 서버 런타임 UTC 에서 format 하면
+  // 한국 사용자에게 9시간/하루 어긋난 날짜가 보이므로 KST 로 변환.
+  return s.title?.trim()
+    || formatInTimeZone(new Date(s.started_at), 'Asia/Seoul', 'M월 d일 (eee) 결과물', { locale: ko })
 }
 
 export default async function ResultsPage({
