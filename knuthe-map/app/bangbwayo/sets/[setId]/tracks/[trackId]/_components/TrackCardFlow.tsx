@@ -10,8 +10,17 @@ import MoneyDrumPicker, {
   DEPOSIT_VALUES, MONTHLY_VALUES, MAINTENANCE_VALUES,
 } from '@/components/shared/MoneyDrumPicker'
 
-// 호수 드럼 값 — 0(없음) + 1~999. iOS picker 결.
-const UNIT_VALUES: number[] = [0, ...Array.from({ length: 999 }, (_, i) => i + 1)]
+// 호수 드럼 값 — ContractForm 과 동일한 패턴.
+// 한 층당 8개 슬롯(N01~N08), 1~50층 → [101..108, 201..208, …, 5001..5008].
+// 한국 빌라/원룸의 가장 흔한 명명 규칙. format: "${v}호" → "101호", "1004호" 등.
+const SLOTS_PER_FLOOR = 8
+const UNIT_VALUES: number[] = (() => {
+  const arr: number[] = []
+  for (let f = 1; f <= 50; f++) {
+    for (let s = 1; s <= SLOTS_PER_FLOOR; s++) arr.push(f * 100 + s)
+  }
+  return arr
+})()
 function formatUnit(v: number): string {
   return v === 0 ? '없음' : `${v}호`
 }
@@ -554,10 +563,20 @@ function UnitStep({
   buildingAddress: string | null
 }) {
   // string 으로 저장된 호수를 드럼이 받는 number 로 변환.
-  // 정수가 아닌 호수("304A" 등) 가 저장돼 있으면 0(없음)으로 시작 — 사용자가 다시 선택.
+  // 정수가 아닌 호수("304A" 등) 또는 패턴(101~108, 201~208, …) 밖 값이면
+  // UNIT_VALUES 의 가장 가까운 값으로. 없으면 첫 값(101).
   const numeric = (() => {
     const n = parseInt(unitNumber, 10)
-    return Number.isFinite(n) && n >= 0 && n <= 999 ? n : 0
+    if (!Number.isFinite(n)) return UNIT_VALUES[0]
+    if (UNIT_VALUES.includes(n)) return n
+    // 정수지만 패턴 밖이면 가장 가까운 값
+    let best = UNIT_VALUES[0]
+    let diff = Math.abs(best - n)
+    for (const v of UNIT_VALUES) {
+      const d = Math.abs(v - n)
+      if (d < diff) { diff = d; best = v }
+    }
+    return best
   })()
 
   return (
@@ -583,7 +602,7 @@ function UnitStep({
         tok={tok}
         values={UNIT_VALUES}
         value={numeric}
-        onChange={(v) => onUnitChange(v === 0 ? '' : String(v))}
+        onChange={(v) => onUnitChange(String(v))}
         format={formatUnit}
       />
 
@@ -669,7 +688,6 @@ function ItemCard({
                     fill
                     sizes="80px"
                     style={{ objectFit: 'cover' }}
-                    unoptimized
                   />
                 )}
               </div>

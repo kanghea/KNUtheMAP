@@ -117,8 +117,18 @@ export default async function BangbwayoPage() {
   const activeCard = cards.find((c) => c.status === 'active') ?? null
   const pastCards  = cards.filter((c) => c.status !== 'active')
 
+  // Prefetch hint — 사용자가 결과물 페이지 등 다음 화면으로 이동하기 전,
+  // 가장 위 카드들의 썸네일을 미리 받아둠. App Router 가 자동으로 <head> 로 옮김.
+  const prefetchUrls = cards
+    .slice(0, 6)
+    .map((c) => c.thumbnailUrl)
+    .filter((u): u is string => !!u)
+
   return (
     <PageWrapper tok={tok}>
+      {prefetchUrls.map((url) => (
+        <link key={url} rel="prefetch" as="image" href={url} />
+      ))}
       <DashboardHeader
         tok={tok}
         title="방봐요"

@@ -153,7 +153,7 @@ export async function POST(
   // 응답 — signed URL 도 같이 (즉시 미리보기용)
   const { data: signed } = await service.storage
     .from('bangbwayo-photos')
-    .createSignedUrl(path, 60 * 60)
+    .createSignedUrl(path, 60 * 60 * 24)
 
   return NextResponse.json({
     photo: {

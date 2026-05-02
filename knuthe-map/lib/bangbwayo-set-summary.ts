@@ -162,7 +162,7 @@ async function signFirstPhotos(
   if (paths.length === 0) return {}
   const { data } = await service.storage
     .from('bangbwayo-photos')
-    .createSignedUrls(paths, 60 * 60)
+    .createSignedUrls(paths, 60 * 60 * 24)
 
   const pathToUrl: Record<string, string> = {}
   paths.forEach((p, i) => {

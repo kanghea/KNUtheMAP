@@ -69,7 +69,7 @@ export async function GET(
     const paths = photos.map((p) => p.storage_path)
     const { data: signedList } = await service.storage
       .from('bangbwayo-photos')
-      .createSignedUrls(paths, 60 * 60)  // 1시간
+      .createSignedUrls(paths, 60 * 60 * 24)
     for (let i = 0; i < paths.length; i++) {
       const url = signedList?.[i]?.signedUrl
       if (url) signed[paths[i]] = url
