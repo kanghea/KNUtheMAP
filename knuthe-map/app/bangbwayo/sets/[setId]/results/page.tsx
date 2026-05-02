@@ -14,6 +14,7 @@ import { getServerThemeTokens } from '@/lib/theme-server'
 import { getServerUser }        from '@/lib/auth-server'
 import { createSupabaseServer } from '@/lib/supabase-server'
 import { createServiceClient }  from '@/lib/supabase'
+import { signPathsCached }      from '@/lib/storage-signed-url-cache'
 import { PageWrapper }          from '@/components/shared/PageWrapper'
 import { DashboardHeader }      from '@/components/shared/DashboardHeader'
 import { EmptyState }           from '@/components/shared/EmptyState'
@@ -73,31 +74,34 @@ export default async function ResultsPage({
   params: Promise<{ setId: string }>
 }) {
   const { setId } = await params
-  const user = await getServerUser()
+  // 인증·테마·DB 클라이언트 + set/tracks 까지 한 번에 발사.
+  const [user, themeRes, supabase] = await Promise.all([
+    getServerUser(),
+    getServerThemeTokens(),
+    createSupabaseServer(),
+  ])
   if (!user) redirect(`/login?next=${encodeURIComponent(`/bangbwayo/sets/${setId}/results`)}`)
+  const { tok } = themeRes
 
-  const { tok } = await getServerThemeTokens()
-  const supabase = await createSupabaseServer()
-
-  const { data: setData } = await supabase
-    .from('bangbwayo_sets')
-    .select('id, title, status, started_at, result_generated_at')
-    .eq('id', setId)
-    .maybeSingle()
-  if (!setData) notFound()
-  const set = setData as SetRow
-
-  const { data: tracksData } = await supabase
-    .from('bangbwayo_tracks')
-    .select(`
-      id, order_index, building_id, building_address_text, unit_number,
-      time_option, deposit, monthly_rent, maintenance, floor, contract_type,
-      overall_rating, overall_memo, status
-    `)
-    .eq('set_id', setId)
-    .order('order_index', { ascending: true })
-
-  const tracks = (tracksData ?? []) as TrackRow[]
+  const [setRes, tracksRes] = await Promise.all([
+    supabase
+      .from('bangbwayo_sets')
+      .select('id, title, status, started_at, result_generated_at')
+      .eq('id', setId)
+      .maybeSingle(),
+    supabase
+      .from('bangbwayo_tracks')
+      .select(`
+        id, order_index, building_id, building_address_text, unit_number,
+        time_option, deposit, monthly_rent, maintenance, floor, contract_type,
+        overall_rating, overall_memo, status
+      `)
+      .eq('set_id', setId)
+      .order('order_index', { ascending: true }),
+  ])
+  if (!setRes.data) notFound()
+  const set    = setRes.data    as SetRow
+  const tracks = (tracksRes.data ?? []) as TrackRow[]
 
   if (tracks.length === 0) {
     return (
@@ -139,19 +143,15 @@ export default async function ResultsPage({
       : Promise.resolve({ data: [] }),
   ])
 
-  // signed URL
+  // signed URL — Lambda 메모리 LRU 캐시 활용. 같은 paths 재진입 시 0 왕복.
   const allPhotos = (pData ?? []) as Array<{ id: string; track_id: string; checklist_item_key: string | null; storage_path: string }>
-  const signed: Record<string, string> = {}
-  if (allPhotos.length > 0) {
-    const service = createServiceClient()
-    const { data: list } = await service.storage
-      .from('bangbwayo-photos')
-      .createSignedUrls(allPhotos.map((p) => p.storage_path), 60 * 60 * 24)
-    allPhotos.forEach((p, i) => {
-      const url = list?.[i]?.signedUrl
-      if (url) signed[p.storage_path] = url
-    })
-  }
+  const signed = allPhotos.length > 0
+    ? await signPathsCached(
+        createServiceClient(),
+        'bangbwayo-photos',
+        allPhotos.map((p) => p.storage_path),
+      )
+    : {}
 
   const buildingMap: Record<string, { name: string | null; address: string | null }> = {}
   for (const b of (bData ?? []) as Array<{ id: string; name: string | null; address: string | null }>) {
