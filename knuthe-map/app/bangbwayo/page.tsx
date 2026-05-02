@@ -4,8 +4,11 @@
 // 라우팅:
 //   · 활성 셋     → 트랙 목록(/bangbwayo/sets/{id}) — 이어서 작성
 //   · 그 외 셋    → 결과물 페이지(/bangbwayo/sets/{id}/results)
+//
+// 비로그인 사용 — Supabase Anonymous Auth 로 자동 익명 세션 부여.
+// `<EnsureAnonymousSession />` 이 사용자 없으면 signInAnonymously() 호출 후
+// router.refresh() 로 서버가 다시 페치. 첫 진입 시 1초 정도 빈 상태.
 
-import { redirect }            from 'next/navigation'
 import { getServerThemeTokens } from '@/lib/theme-server'
 import { getServerUser }        from '@/lib/auth-server'
 import { createSupabaseServer } from '@/lib/supabase-server'
@@ -15,6 +18,7 @@ import { DashboardHeader }      from '@/components/shared/DashboardHeader'
 import { Card }                 from '@/components/shared/Card'
 import { EmptyState }           from '@/components/shared/EmptyState'
 import { SetCardRow }           from '@/components/bangbwayo/SetCardRow'
+import EnsureAnonymousSession   from '@/components/bangbwayo/EnsureAnonymousSession'
 import { buildSetCards,
          type SetCardInputSet,
          type SetCardInputTrack,
@@ -31,8 +35,8 @@ function hrefFor(status: 'active' | 'ended' | 'results_generated', setId: string
 }
 
 export default async function BangbwayoPage() {
+  // 사용자 없으면 redirect 하지 않음 — `<EnsureAnonymousSession>` 이 익명 사인업 후 refresh.
   const user = await getServerUser()
-  if (!user) redirect('/auth/sign-in?redirect=/bangbwayo')
 
   const { tok } = await getServerThemeTokens()
   const supabase = await createSupabaseServer()
@@ -48,6 +52,7 @@ export default async function BangbwayoPage() {
   if (sets.length === 0) {
     return (
       <PageWrapper tok={tok}>
+        {!user && <EnsureAnonymousSession />}
         <DashboardHeader
           tok={tok}
           title="방봐요"
@@ -61,8 +66,10 @@ export default async function BangbwayoPage() {
           <Card tok={tok}>
             <EmptyState
               tok={tok}
-              title="아직 본 방이 없어요"
-              description="방을 보러 갈 때 새 셋을 시작해 보세요. 본 방마다 트랙으로 기록돼요."
+              title={user ? '아직 본 방이 없어요' : '준비 중…'}
+              description={user
+                ? '방을 보러 갈 때 새 셋을 시작해 보세요. 본 방마다 트랙으로 기록돼요.'
+                : '비로그인 사용을 위한 익명 세션을 만드는 중이에요.'}
             />
           </Card>
         </div>
