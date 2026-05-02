@@ -9,6 +9,7 @@ import { getServerThemeTokens } from '@/lib/theme-server'
 import { getServerUser }        from '@/lib/auth-server'
 import { createSupabaseServer } from '@/lib/supabase-server'
 import { createServiceClient }  from '@/lib/supabase'
+import { signPathsCached }      from '@/lib/storage-signed-url-cache'
 import { PageWrapper }          from '@/components/shared/PageWrapper'
 import { DashboardHeader }      from '@/components/shared/DashboardHeader'
 import { getChecklistFor, type TimeOption } from '@/lib/bangbwayo-checklist'
@@ -40,31 +41,27 @@ export default async function TrackFlowPage({
   params: Promise<{ setId: string; trackId: string }>
 }) {
   const { setId, trackId } = await params
-  const user = await getServerUser()
+  // 인증·테마·DB 클라이언트 + track/responses/photos 까지 한 번에 발사.
+  // track/responses/photos 는 모두 trackId 만 알면 되므로 직렬 대기 불필요.
+  const [user, themeRes, supabase] = await Promise.all([
+    getServerUser(),
+    getServerThemeTokens(),
+    createSupabaseServer(),
+  ])
   if (!user) redirect(`/login?next=${encodeURIComponent(`/bangbwayo/sets/${setId}/tracks/${trackId}`)}`)
+  const { tok, theme } = themeRes
 
-  const { tok, theme } = await getServerThemeTokens()
-  const supabase = await createSupabaseServer()
-
-  const { data: trackData } = await supabase
-    .from('bangbwayo_tracks')
-    .select(`
-      id, set_id, order_index, building_id, building_address_text, unit_number,
-      time_option, deposit, monthly_rent, maintenance, floor, contract_type,
-      overall_rating, overall_memo, status, visited_at
-    `)
-    .eq('id', trackId)
-    .eq('set_id', setId)
-    .maybeSingle()
-  if (!trackData) notFound()
-  const track = trackData as TrackRow
-
-  // 마스터 체크리스트
-  const checklist = getChecklistFor(track.time_option)
-
-  // 응답 + 사진 한 번에. 사진은 EXIF 좌표까지 가져와 주소 확인 단계의
-  // 위성 미리보기에 폴백 좌표로 사용.
-  const [{ data: rData }, { data: pData }, buildingRow] = await Promise.all([
+  const [trackRes, responsesRes, photosRes] = await Promise.all([
+    supabase
+      .from('bangbwayo_tracks')
+      .select(`
+        id, set_id, order_index, building_id, building_address_text, unit_number,
+        time_option, deposit, monthly_rent, maintenance, floor, contract_type,
+        overall_rating, overall_memo, status, visited_at
+      `)
+      .eq('id', trackId)
+      .eq('set_id', setId)
+      .maybeSingle(),
     supabase
       .from('bangbwayo_responses')
       .select('checklist_item_key, rating, memo')
@@ -74,6 +71,24 @@ export default async function TrackFlowPage({
       .select('id, checklist_item_key, storage_path, exif_lat, exif_lng')
       .eq('track_id', trackId)
       .order('created_at', { ascending: true }),
+  ])
+  if (!trackRes.data) notFound()
+  const track = trackRes.data as TrackRow
+
+  // 마스터 체크리스트
+  const checklist = getChecklistFor(track.time_option)
+
+  // 사진 signed URL 과 building 조회는 photos/track 결과를 알아야 시작 가능 →
+  // 다시 한 번 병렬로 묶음.
+  const photos = (photosRes.data ?? []) as Array<{
+    id: string; checklist_item_key: string | null; storage_path: string;
+    exif_lat: number | null; exif_lng: number | null;
+  }>
+  const service = createServiceClient()
+  const [signed, buildingRow] = await Promise.all([
+    photos.length > 0
+      ? signPathsCached(service, 'bangbwayo-photos', photos.map((p) => p.storage_path))
+      : Promise.resolve({} as Record<string, string>),
     track.building_id
       ? supabase.from('buildings')
           .select('id, name, address, lat, lng')
@@ -85,23 +100,7 @@ export default async function TrackFlowPage({
           } | null)
       : Promise.resolve(null),
   ])
-
-  // 사진 signed URL — 비공개 버킷이라 매 요청 새로 발급
-  const photos = (pData ?? []) as Array<{
-    id: string; checklist_item_key: string | null; storage_path: string;
-    exif_lat: number | null; exif_lng: number | null;
-  }>
-  const signed: Record<string, string> = {}
-  if (photos.length > 0) {
-    const service = createServiceClient()
-    const { data: list } = await service.storage
-      .from('bangbwayo-photos')
-      .createSignedUrls(photos.map((p) => p.storage_path), 60 * 60 * 24)
-    photos.forEach((p, i) => {
-      const url = list?.[i]?.signedUrl
-      if (url) signed[p.storage_path] = url
-    })
-  }
+  const rData = responsesRes.data
 
   return (
     <PageWrapper tok={tok}>

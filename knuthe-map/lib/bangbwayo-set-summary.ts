@@ -12,7 +12,8 @@
 import { formatInTimeZone } from 'date-fns-tz'
 import { ko }               from 'date-fns/locale'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { formatTrackLabel } from './bangbwayo-track-label'
+import { formatTrackLabel }    from './bangbwayo-track-label'
+import { signPathsCached }     from './storage-signed-url-cache'
 
 type SetStatus = 'active' | 'ended' | 'results_generated'
 
@@ -162,15 +163,10 @@ async function signFirstPhotos(
 ): Promise<Record<string, string>> {
   const paths = Object.values(firstPhotoPaths)
   if (paths.length === 0) return {}
-  const { data } = await service.storage
-    .from('bangbwayo-photos')
-    .createSignedUrls(paths, 60 * 60 * 24)
 
-  const pathToUrl: Record<string, string> = {}
-  paths.forEach((p, i) => {
-    const url = data?.[i]?.signedUrl
-    if (url) pathToUrl[p] = url
-  })
+  // Lambda 인스턴스 메모리 LRU 캐시 — 같은 path 가 만료 전이면 storage
+  // 왕복 없이 즉시 반환. 메인 페이지를 재방문할수록 비용이 0 에 가까워짐.
+  const pathToUrl = await signPathsCached(service, 'bangbwayo-photos', paths)
 
   const setIdToUrl: Record<string, string> = {}
   for (const [setId, path] of Object.entries(firstPhotoPaths)) {

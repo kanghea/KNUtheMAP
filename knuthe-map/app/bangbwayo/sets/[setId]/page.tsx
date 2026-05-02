@@ -55,30 +55,34 @@ export default async function SetDetailPage({
   params: Promise<{ setId: string }>
 }) {
   const { setId } = await params
-  const user = await getServerUser()
+  // 인증·테마·DB 클라이언트 동시 발사.
+  const [user, themeRes, supabase] = await Promise.all([
+    getServerUser(),
+    getServerThemeTokens(),
+    createSupabaseServer(),
+  ])
   if (!user) redirect(`/login?next=${encodeURIComponent(`/bangbwayo/sets/${setId}`)}`)
+  const { tok } = themeRes
 
-  const { tok } = await getServerThemeTokens()
-  const supabase = await createSupabaseServer()
-
-  const { data: setData } = await supabase
-    .from('bangbwayo_sets')
-    .select('id, title, status, started_at, ended_at, result_generated_at')
-    .eq('id', setId)
-    .maybeSingle()
-  if (!setData) notFound()
-  const set = setData as SetRow
-
-  const { data: tracksData } = await supabase
-    .from('bangbwayo_tracks')
-    .select(`
-      id, order_index, building_id, building_address_text, unit_number,
-      time_option, status, visited_at, overall_rating
-    `)
-    .eq('set_id', setId)
-    .order('order_index', { ascending: true })
-
-  const tracks = (tracksData ?? []) as TrackRow[]
+  // set 과 tracks 는 둘 다 setId 만 알면 되므로 동시 발사.
+  const [setRes, tracksRes] = await Promise.all([
+    supabase
+      .from('bangbwayo_sets')
+      .select('id, title, status, started_at, ended_at, result_generated_at')
+      .eq('id', setId)
+      .maybeSingle(),
+    supabase
+      .from('bangbwayo_tracks')
+      .select(`
+        id, order_index, building_id, building_address_text, unit_number,
+        time_option, status, visited_at, overall_rating
+      `)
+      .eq('set_id', setId)
+      .order('order_index', { ascending: true }),
+  ])
+  if (!setRes.data) notFound()
+  const set    = setRes.data    as SetRow
+  const tracks = (tracksRes.data ?? []) as TrackRow[]
 
   // 트랙들의 building_id 모음 → 한 번에 buildings 조회
   const buildingIds = tracks
