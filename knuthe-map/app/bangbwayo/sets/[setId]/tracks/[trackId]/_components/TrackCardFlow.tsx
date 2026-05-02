@@ -418,6 +418,17 @@ export default function TrackCardFlow({
       building_address_text: nextText.trim() || null,
     }))
   }
+  // 사용자가 추천 결과에서 건물을 선택했을 때 — 사진 자동매칭과 동일한 결과를
+  // 만든다 (building_id 연결 + 입력 텍스트 폴백 비움).
+  const onPickBuildingSuggestion = (b: BuildingRow) => {
+    tapHaptic()
+    setMatchedBuilding(b)
+    setAddressText('')
+    scheduleSave('address', () => patchTrack({
+      building_id:           b.id,
+      building_address_text: null,
+    }))
+  }
 
   // ── 사진 업로드 (낙관적 미리보기) ──────────────────────────────────────
   // 클릭과 동시에 로컬 blob URL 로 미리보기를 띄우고, 서버 응답 도착 시 실제 row 로 교체.
@@ -596,6 +607,7 @@ export default function TrackCardFlow({
             onAddressChange={onAddressTextChange}
             matchedBuilding={matchedBuilding}
             onClearMatchedBuilding={onClearMatchedBuilding}
+            onPickBuildingSuggestion={onPickBuildingSuggestion}
             hasPhotos={photos.length > 0}
             previewCoord={
               // 1순위: 매칭된 건물 좌표 (지도 중심)
@@ -1208,12 +1220,25 @@ function SatellitePreview({
   )
 }
 
+/**
+ * 추천 건물 — `/api/buildings/search` 응답 한 행. 우리가 BuildingRow 로
+ * 매핑할 수 있는 형태(id, name, address, lat, lng) 그대로.
+ */
+interface BuildingSuggestion {
+  id:      string
+  name:    string | null
+  address: string | null
+  lat:     number | null
+  lng:     number | null
+}
+
 function AddressStep({
   tok,
   addressText,
   onAddressChange,
   matchedBuilding,
   onClearMatchedBuilding,
+  onPickBuildingSuggestion,
   hasPhotos,
   previewCoord,
 }: {
@@ -1222,12 +1247,64 @@ function AddressStep({
   onAddressChange: (v: string) => void
   matchedBuilding: BuildingRow | null
   onClearMatchedBuilding: () => void
+  onPickBuildingSuggestion: (b: BuildingRow) => void
   hasPhotos: boolean
   previewCoord: { lat: number; lng: number } | null
 }) {
   const cardStyle: React.CSSProperties = {
     background: tok.cardBg, border: `1px solid ${tok.cardBorder}`,
     borderRadius: 18, padding: 22, boxShadow: tok.shadow,
+  }
+
+  // ── 추천 건물 검색 (입력 모드에서만) ─────────────────────────────────────
+  // ContractForm 의 `/api/buildings/search` 패턴을 그대로 재사용 — 같은
+  // buildings 테이블에서 이름/주소 ilike 매칭. 인증 없이 호출 가능.
+  const [suggestions, setSuggestions] = useState<BuildingSuggestion[]>([])
+  const [searching,   setSearching]   = useState(false)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // 매칭된 건물이 없는 입력 모드에서만 자동완성 동작.
+  const inputMode = !matchedBuilding
+  const trimmedQuery = addressText.trim()
+
+  useEffect(() => {
+    if (!inputMode || trimmedQuery.length < 2) {
+      setSuggestions([])
+      setSearching(false)
+      return
+    }
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(async () => {
+      setSearching(true)
+      try {
+        const res = await fetch(`/api/buildings/search?q=${encodeURIComponent(trimmedQuery)}&limit=6`)
+        if (res.ok) {
+          const data = await res.json()
+          const arr: BuildingSuggestion[] = Array.isArray(data)
+            ? data
+            : (data?.buildings ?? [])
+          setSuggestions(arr.slice(0, 6))
+        } else {
+          setSuggestions([])
+        }
+      } catch {
+        setSuggestions([])
+      } finally {
+        setSearching(false)
+      }
+    }, 280)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [trimmedQuery, inputMode])
+
+  const handlePickSuggestion = (s: BuildingSuggestion) => {
+    setSuggestions([])
+    onPickBuildingSuggestion({
+      id:      s.id,
+      name:    s.name,
+      address: s.address,
+      lat:     s.lat,
+      lng:     s.lng,
+    })
   }
 
   if (matchedBuilding) {
@@ -1312,8 +1389,8 @@ function AddressStep({
         type="text"
         value={addressText}
         onChange={(e) => onAddressChange(e.target.value)}
-        placeholder="예) 산격로 12 또는 ○○동 123-4"
-        autoComplete="street-address"
+        placeholder="건물명 또는 도로명/지번 주소"
+        autoComplete="off"
         inputMode="text"
         style={{
           width: '100%',
@@ -1325,6 +1402,58 @@ function AddressStep({
           fontFamily: 'inherit', boxSizing: 'border-box',
         }}
       />
+
+      {/* ── 추천 건물 ───────────────────────────────────────────
+          타이핑 후 280ms 디바운스 — buildings 테이블 ilike 매칭 결과.
+          탭하면 building_id 까지 연결되어 매칭 카드로 전환된다. */}
+      {searching && trimmedQuery.length >= 2 && suggestions.length === 0 && (
+        <p style={{ fontSize: 12, color: tok.textTertiary, margin: '8px 0 0' }}>
+          검색 중…
+        </p>
+      )}
+      {suggestions.length > 0 && (
+        <div style={{
+          marginTop: 8,
+          border: `1px solid ${tok.cardBorder}`,
+          borderRadius: 12,
+          overflow: 'hidden',
+          background: tok.inputBg,
+        }}>
+          {suggestions.map((s, i) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => handlePickSuggestion(s)}
+              className="knu-press"
+              style={{
+                width: '100%', textAlign: 'left',
+                padding: '12px 14px',
+                background: 'none', border: 'none',
+                borderBottom: i < suggestions.length - 1 ? `1px solid ${tok.cardBorder}` : 'none',
+                cursor: 'pointer', display: 'block',
+                transition: 'transform .1s',
+              }}
+            >
+              <div style={{
+                fontSize: 14, fontWeight: 600, color: tok.textPrimary,
+                lineHeight: 1.3,
+              }}>
+                {s.name?.trim() || '(이름 없음)'}
+              </div>
+              {s.address && (
+                <div style={{
+                  fontSize: 12, color: tok.textTertiary,
+                  marginTop: 2, lineHeight: 1.4,
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}>
+                  {s.address}
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
       <p style={{ fontSize: 11, color: tok.textTertiary, margin: '10px 0 0', lineHeight: 1.5 }}>
         주소는 결과물 카드에 함께 보여요. 비워둬도 괜찮아요.
       </p>
