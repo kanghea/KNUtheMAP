@@ -6,7 +6,6 @@ import Image from 'next/image'
 import type { ThemeTokens, ThemeMode } from '@/lib/theme-tokens'
 import type { ChecklistItem, Rating } from '@/lib/bangbwayo-checklist'
 import { tapHaptic, successHaptic } from '@/lib/hooks/useHaptic'
-import { MAPBOX_TOKEN } from '@/lib/mapbox'
 import MoneyDrumPicker, {
   MAINTENANCE_VALUES,
 } from '@/components/shared/MoneyDrumPicker'
@@ -1150,16 +1149,19 @@ function ContractStep({
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Mapbox Static Images API — 위성+도로 라벨 스타일에 흰색 마커 한 점.
- * `unoptimized` 로 직링크 통과 (Mapbox CDN 자체 캐시 활용).
+ * Naver Cloud Static Map 프록시 URL — 위성 + 빨간 핀 한 점.
+ * 인증 키가 서버에서만 붙어야 하므로 `/api/bangbwayo/static-map` 라우트가
+ * 대신 Naver 를 호출하고 PNG 만 흘려준다. 같은 좌표·사이즈면 무한 캐시.
  */
-function satelliteUrl(lat: number, lng: number, w = 600, h = 280, zoom = 18): string | null {
-  if (!MAPBOX_TOKEN) return null
-  return (
-    `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/` +
-    `pin-l-building+ffffff(${lng},${lat})/` +
-    `${lng},${lat},${zoom},0/${w}x${h}@2x?access_token=${MAPBOX_TOKEN}`
-  )
+function satelliteUrl(lat: number, lng: number, w = 600, h = 280, level = 17): string {
+  const qs = new URLSearchParams({
+    lat:   String(lat),
+    lng:   String(lng),
+    w:     String(w),
+    h:     String(h),
+    level: String(level),
+  })
+  return `/api/bangbwayo/static-map?${qs.toString()}`
 }
 
 function SatellitePreview({
@@ -1171,7 +1173,6 @@ function SatellitePreview({
   caption?: string
 }) {
   const url = satelliteUrl(lat, lng)
-  if (!url) return null
   return (
     <div style={{
       position: 'relative',
