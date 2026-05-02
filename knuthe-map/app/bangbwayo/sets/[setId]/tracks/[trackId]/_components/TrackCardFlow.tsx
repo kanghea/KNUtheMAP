@@ -81,17 +81,29 @@ interface Track {
 
 interface ResponseRow { checklist_item_key: string; rating: string | null; memo: string | null }
 interface PhotoRow    { id: string; checklist_item_key: string | null; storage_path: string; url: string | null }
-interface BuildingRow { id: string; name: string | null; address: string | null }
+interface BuildingRow {
+  id:      string
+  name:    string | null
+  address: string | null
+  lat:     number | null
+  lng:     number | null
+}
+interface Coord { lat: number; lng: number }
 
 interface Props {
-  tok:        ThemeTokens
-  theme:      ThemeMode
-  setId:      string
-  track:      Track
-  checklist:  readonly ChecklistItem[]
-  responses:  ResponseRow[]
-  photos:     PhotoRow[]
-  building:   BuildingRow | null
+  tok:              ThemeTokens
+  theme:            ThemeMode
+  setId:            string
+  track:            Track
+  checklist:        readonly ChecklistItem[]
+  responses:        ResponseRow[]
+  photos:           PhotoRow[]
+  building:         BuildingRow | null
+  /**
+   * 매칭이 실패/해제된 경우의 폴백 좌표 — 사용자가 첫 사진을 찍은 위치.
+   * 주소 확인 단계의 위성 미리보기를 그릴 때 매칭된 건물 좌표가 없으면 사용.
+   */
+  firstPhotoCoord:  Coord | null
 }
 
 // input[type=file] 을 화면에 안 보이게 하면서도 DOM 에 정상 존재하게.
@@ -106,12 +118,13 @@ const visuallyHidden: React.CSSProperties = {
   border: 0,
 }
 
-// 카드 흐름 단계: 호수 → 항목 카드 N개 → 계약 → 마무리
-// 호수 입력은 0번째 슬롯, 항목 카드는 1..N, 계약은 N+1, 마무리는 N+2
+// 카드 흐름 단계: 호수 → 항목 카드 N개 → 계약 → 주소 확인 → 마무리
+// 진행률 매핑은 totalSlots/currentSlot 계산 참고.
 type StepKind =
   | { kind: 'unit' }
   | { kind: 'item'; index: number }
   | { kind: 'contract' }
+  | { kind: 'address' }
   | { kind: 'finish' }
 
 const RATING_ORDER: readonly Rating[] = ['good', 'fair', 'bad', 'unknown']
@@ -123,6 +136,7 @@ const RATING_ORDER: readonly Rating[] = ['good', 'fair', 'bad', 'unknown']
 export default function TrackCardFlow({
   tok, theme, setId, track,
   checklist, responses: initialResponses, photos: initialPhotos, building,
+  firstPhotoCoord,
 }: Props) {
   const router = useRouter()
 
@@ -151,10 +165,11 @@ export default function TrackCardFlow({
     memo:   track.overall_memo   ?? '',
   })
   const [matchedBuilding, setMatchedBuilding] = useState<BuildingRow | null>(building)
-  // 매칭은 실패했지만 역지오코딩으로 자동 입력된 도로명주소 (서버 응답)
-  const [geocodedAddress, setGeocodedAddress] = useState<string | null>(
-    track.building_address_text ?? null,
-  )
+  // 트랙의 도로명주소 텍스트 — 초기엔 서버가 채운 값(역지오코딩 결과 또는 사용자
+  // 직접 입력 결과). 사진 업로드 후 역지오코딩이 새로 도착하거나 사용자가 주소
+  // 단계에서 수정하면 갱신된다. 매칭된 건물(matchedBuilding) 이 있으면 라벨은
+  // 그쪽이 우선 — 이 텍스트는 매칭 실패/사용자 수정 시의 폴백.
+  const [addressText, setAddressText] = useState<string>(track.building_address_text ?? '')
 
   // 자동 저장 인디케이터
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
@@ -178,7 +193,7 @@ export default function TrackCardFlow({
   }, [])
 
   // 단계 — 우선순위:
-  //   1. `?step=unit` 쿼리 파라미터가 있으면 무조건 unit 단계 (결과물 카드에서 진입한 경우)
+  //   1. `?step=...` 쿼리 파라미터가 있으면 그 단계로 진입 (결과물 카드에서 진입한 경우)
   //   2. 호수 미입력이면 unit 단계
   //   3. 그 외는 첫 항목 카드부터
   const searchParams = useSearchParams()
@@ -186,6 +201,7 @@ export default function TrackCardFlow({
   const initialStep: StepKind =
     forcedStepParam === 'unit'     ? { kind: 'unit' } :
     forcedStepParam === 'contract' ? { kind: 'contract' } :
+    forcedStepParam === 'address'  ? { kind: 'address' } :
     forcedStepParam === 'finish'   ? { kind: 'finish' } :
     track.unit_number              ? { kind: 'item', index: 0 } :
                                      { kind: 'unit' }
@@ -193,13 +209,14 @@ export default function TrackCardFlow({
 
   const totalItems = checklist.length
 
-  // 진행률 계산 — 호수=0, 항목=1..N, 계약=N+1, 마무리=N+2
-  const totalSlots  = 1 + totalItems + 1 + 1
+  // 진행률 계산 — 호수=1, 항목=2..N+1, 계약=N+2, 주소=N+3, 마무리=N+4
+  const totalSlots  = 1 + totalItems + 1 + 1 + 1
   const currentSlot =
     step.kind === 'unit'     ? 1 :
     step.kind === 'item'     ? 2 + step.index :
     step.kind === 'contract' ? 2 + totalItems :
-                               2 + totalItems + 1
+    step.kind === 'address'  ? 3 + totalItems :
+                               4 + totalItems
   const progress = currentSlot / totalSlots
 
   // ── 자동 저장 헬퍼 ─────────────────────────────────────────────────────
@@ -292,6 +309,7 @@ export default function TrackCardFlow({
   }, [flushAllPending])
 
   // ── 단계 이동 ──────────────────────────────────────────────────────────
+  // 흐름: unit → item[0..N-1] → contract → address → finish
   const goNext = useCallback(() => {
     tapHaptic()
     flushAllPending()
@@ -303,7 +321,8 @@ export default function TrackCardFlow({
           ? { kind: 'item', index: next }
           : { kind: 'contract' }
       }
-      if (s.kind === 'contract') return { kind: 'finish' }
+      if (s.kind === 'contract') return { kind: 'address' }
+      if (s.kind === 'address')  return { kind: 'finish' }
       return s
     })
   }, [totalItems, flushAllPending])
@@ -312,7 +331,8 @@ export default function TrackCardFlow({
     tapHaptic()
     flushAllPending()
     setStep((s) => {
-      if (s.kind === 'finish')   return { kind: 'contract' }
+      if (s.kind === 'finish')   return { kind: 'address' }
+      if (s.kind === 'address')  return { kind: 'contract' }
       if (s.kind === 'contract') return { kind: 'item', index: totalItems - 1 }
       if (s.kind === 'item') {
         const prev = s.index - 1
@@ -379,6 +399,26 @@ export default function TrackCardFlow({
     scheduleSave('overall_memo', () => patchTrack({ overall_memo: memo || null }))
   }
 
+  // ── 주소 확인 ──────────────────────────────────────────────────────────
+  // 사용자가 주소 단계에서 직접 입력/수정. 디바운스 저장으로 background.
+  const onAddressTextChange = (v: string) => {
+    setAddressText(v)
+    scheduleSave('address', () => patchTrack({ building_address_text: v.trim() || null }))
+  }
+  // 자동 매칭된 건물이 다른 곳일 때 — building_id 를 지우고, 매칭이 알려준
+  // 도로명주소를 입력 시드로 넘겨 사용자가 거기서부터 수정하도록.
+  const onClearMatchedBuilding = () => {
+    tapHaptic()
+    const seed = matchedBuilding?.address?.trim() || ''
+    const nextText = addressText.trim() || seed
+    setMatchedBuilding(null)
+    setAddressText(nextText)
+    scheduleSave('address', () => patchTrack({
+      building_id:           null,
+      building_address_text: nextText.trim() || null,
+    }))
+  }
+
   // ── 사진 업로드 (낙관적 미리보기) ──────────────────────────────────────
   // 클릭과 동시에 로컬 blob URL 로 미리보기를 띄우고, 서버 응답 도착 시 실제 row 로 교체.
   // 사용자는 "올라가는 중" 빈 화면을 기다리지 않음.
@@ -441,17 +481,20 @@ export default function TrackCardFlow({
           id:      json.matchedBuilding.id,
           name:    json.matchedBuilding.name,
           address: json.matchedBuilding.address,
+          lat:     typeof json.matchedBuilding.lat === 'number' ? json.matchedBuilding.lat : null,
+          lng:     typeof json.matchedBuilding.lng === 'number' ? json.matchedBuilding.lng : null,
         })
       }
-      // 역지오코딩으로 자동 입력된 주소가 있으면 화면에 즉시 반영
-      if (json.geocodedAddress && !geocodedAddress) {
-        setGeocodedAddress(json.geocodedAddress as string)
+      // 역지오코딩으로 자동 입력된 주소가 있으면 즉시 반영. 사용자가 이미 주소
+      // 단계에서 직접 입력해 둔 값이 있으면 덮지 않음.
+      if (json.geocodedAddress) {
+        setAddressText((cur) => cur.trim() ? cur : (json.geocodedAddress as string))
       }
       flashSaved()
     } finally {
       setUploading(false)
     }
-  }, [setId, track.id, matchedBuilding, geocodedAddress, flashSaved])
+  }, [setId, track.id, matchedBuilding, flashSaved])
 
   // ── 트랙 마무리 ────────────────────────────────────────────────────────
   // 보류된 응답·메모·계약 저장이 *모두 끝난 뒤* status 를 closed 로 바꿔야
@@ -493,14 +536,14 @@ export default function TrackCardFlow({
       </div>
 
       {/* 매칭된 건물 또는 자동 입력된 주소 안내 — 사진 좌표에서 추출됨 */}
-      {(matchedBuilding?.name || geocodedAddress) && (
+      {(matchedBuilding?.name || addressText.trim()) && (
         <div style={{
           marginBottom: 12, padding: '8px 12px', borderRadius: 10,
           background: matchedBuilding?.name ? tok.successBg : tok.accentBg,
           color:      matchedBuilding?.name ? tok.successColor : tok.accentColor,
           fontSize: 12, fontWeight: 600,
         }}>
-          📍 {matchedBuilding?.name ?? geocodedAddress}
+          📍 {matchedBuilding?.name ?? addressText}
         </div>
       )}
 
@@ -509,7 +552,7 @@ export default function TrackCardFlow({
       <div
         key={
           step.kind === 'item' ? `item:${step.index}` :
-          step.kind                                    // unit / contract / finish
+          step.kind                                    // unit / contract / address / finish
         }
         className="knu-card-in"
       >
@@ -543,6 +586,24 @@ export default function TrackCardFlow({
             contract={contract}
             onChange={setContractField}
             unitNumber={unitNumber}
+          />
+        )}
+
+        {step.kind === 'address' && (
+          <AddressStep
+            tok={tok}
+            addressText={addressText}
+            onAddressChange={onAddressTextChange}
+            matchedBuilding={matchedBuilding}
+            onClearMatchedBuilding={onClearMatchedBuilding}
+            hasPhotos={photos.length > 0}
+            previewCoord={
+              // 1순위: 매칭된 건물 좌표 (지도 중심)
+              // 2순위: 첫 사진의 EXIF 좌표 (매칭 실패/해제 시)
+              matchedBuilding?.lat != null && matchedBuilding.lng != null
+                ? { lat: matchedBuilding.lat, lng: matchedBuilding.lng }
+                : firstPhotoCoord
+            }
           />
         )}
 
@@ -589,9 +650,10 @@ export default function TrackCardFlow({
               transition: 'transform .1s',
             }}
           >
-            {step.kind === 'item' ? '다음' :
-             step.kind === 'unit' ? '다음 — 첫 카드' :
-             '계약 정보 다음 — 마무리'}
+            {step.kind === 'item'     ? '다음' :
+             step.kind === 'unit'     ? '다음 — 첫 카드' :
+             step.kind === 'contract' ? '다음 — 주소 확인' :
+                                        '다음 — 마무리'}
           </button>
         ) : (
           <button
@@ -913,7 +975,8 @@ function ItemCard({
             border: `1px solid ${tok.inputBorder}`,
             background: tok.inputBg,
             color: tok.inputColor,
-            fontSize: 13,
+            // iOS Safari 가 16px 미만 textarea 포커스 시 자동 확대 — 16px 로 차단.
+            fontSize: 16,
             outline: 'none',
             resize: 'vertical',
             fontFamily: 'inherit',
@@ -1079,6 +1142,197 @@ function ContractStep({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// 주소 확인 — 사진 좌표 기반 자동 매칭/역지오코딩 결과를 사용자에게 검증받는 단계
+//   · 매칭된 건물이 있으면 카드로 보여주고 "다른 건물이에요" 로 빠져나갈 길 제공.
+//   · 그렇지 않으면 (역지오코딩 결과 또는 빈 값으로) 직접 입력 가능.
+//   · 사진이 없는 경우에도 이 단계가 항상 흐름의 끝에 등장 — 마무리 직전 마지막 검증.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Naver Cloud Static Map 프록시 URL — 위성 + 빨간 핀 한 점.
+ * 인증 키가 서버에서만 붙어야 하므로 `/api/bangbwayo/static-map` 라우트가
+ * 대신 Naver 를 호출하고 PNG 만 흘려준다. 같은 좌표·사이즈면 무한 캐시.
+ */
+function satelliteUrl(lat: number, lng: number, w = 600, h = 280, level = 17): string {
+  const qs = new URLSearchParams({
+    lat:   String(lat),
+    lng:   String(lng),
+    w:     String(w),
+    h:     String(h),
+    level: String(level),
+  })
+  return `/api/bangbwayo/static-map?${qs.toString()}`
+}
+
+function SatellitePreview({
+  tok, lat, lng, caption,
+}: {
+  tok: ThemeTokens
+  lat: number
+  lng: number
+  caption?: string
+}) {
+  const url = satelliteUrl(lat, lng)
+  return (
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      aspectRatio: '600 / 280',
+      background: tok.inputBg,
+      borderRadius: 14,
+      overflow: 'hidden',
+      border: `1px solid ${tok.cardBorder}`,
+      marginBottom: 14,
+    }}>
+      <Image
+        src={url}
+        alt="현재 위치의 위성 사진"
+        fill
+        sizes="(max-width: 520px) 100vw, 520px"
+        unoptimized
+        style={{ objectFit: 'cover' }}
+      />
+      {caption && (
+        <div style={{
+          position: 'absolute', left: 10, bottom: 10,
+          padding: '4px 10px', borderRadius: 999,
+          background: 'rgba(0,0,0,0.55)', color: '#fff',
+          fontSize: 11, fontWeight: 600,
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+        }}>
+          {caption}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function AddressStep({
+  tok,
+  addressText,
+  onAddressChange,
+  matchedBuilding,
+  onClearMatchedBuilding,
+  hasPhotos,
+  previewCoord,
+}: {
+  tok: ThemeTokens
+  addressText: string
+  onAddressChange: (v: string) => void
+  matchedBuilding: BuildingRow | null
+  onClearMatchedBuilding: () => void
+  hasPhotos: boolean
+  previewCoord: { lat: number; lng: number } | null
+}) {
+  const cardStyle: React.CSSProperties = {
+    background: tok.cardBg, border: `1px solid ${tok.cardBorder}`,
+    borderRadius: 18, padding: 22, boxShadow: tok.shadow,
+  }
+
+  if (matchedBuilding) {
+    return (
+      <div style={cardStyle}>
+        {previewCoord && (
+          <SatellitePreview
+            tok={tok}
+            lat={previewCoord.lat}
+            lng={previewCoord.lng}
+            caption="사진 위치 기준"
+          />
+        )}
+        <p style={{ fontSize: 11, fontWeight: 700, color: tok.accentColor, margin: 0, letterSpacing: '0.06em' }}>
+          주소 확인
+        </p>
+        <h2 style={{ fontSize: 19, fontWeight: 800, color: tok.textPrimary, margin: '4px 0 12px' }}>
+          이 건물이 맞나요?
+        </h2>
+        <div style={{
+          padding: '12px 14px', borderRadius: 12,
+          background: tok.successBg, color: tok.successColor,
+          marginBottom: 12,
+        }}>
+          <p style={{ fontSize: 16, fontWeight: 700, margin: '0 0 4px' }}>
+            📍 {matchedBuilding.name ?? '이름 미상'}
+          </p>
+          {matchedBuilding.address && (
+            <p style={{ fontSize: 12, opacity: 0.85, margin: 0, lineHeight: 1.5 }}>
+              {matchedBuilding.address}
+            </p>
+          )}
+        </div>
+        <p style={{ fontSize: 13, color: tok.textSecondary, margin: '0 0 12px', lineHeight: 1.6 }}>
+          사진 좌표로 자동 매칭된 건물이에요. 위성 사진과 비교해 맞으면 그대로 다음으로.
+        </p>
+        <button
+          type="button"
+          onClick={onClearMatchedBuilding}
+          className="knu-press"
+          style={{
+            display: 'block', width: '100%',
+            padding: '11px 12px', borderRadius: 10,
+            border: `1px solid ${tok.inputBorder}`,
+            background: tok.inputBg, color: tok.textPrimary,
+            fontSize: 13, fontWeight: 600, cursor: 'pointer',
+            transition: 'transform .1s',
+          }}
+        >
+          이 건물이 아니에요 — 직접 입력
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div style={cardStyle}>
+      {previewCoord && (
+        <SatellitePreview
+          tok={tok}
+          lat={previewCoord.lat}
+          lng={previewCoord.lng}
+          caption="사진 위치 기준"
+        />
+      )}
+      <p style={{ fontSize: 11, fontWeight: 700, color: tok.accentColor, margin: 0, letterSpacing: '0.06em' }}>
+        주소 확인
+      </p>
+      <h2 style={{ fontSize: 19, fontWeight: 800, color: tok.textPrimary, margin: '4px 0 12px' }}>
+        이 주소가 맞나요?
+      </h2>
+      <p style={{ fontSize: 13, color: tok.textSecondary, margin: '0 0 12px', lineHeight: 1.6 }}>
+        {addressText.trim()
+          ? previewCoord
+            ? '사진 위치로 추정한 주소예요. 위성 사진과 비교해 다르면 수정해 주세요.'
+            : '추정한 주소예요. 다르면 수정해 주세요.'
+          : hasPhotos
+            ? '사진에서 위치를 찾지 못했어요. 도로명주소를 직접 입력해 주세요.'
+            : '사진이 없어 자동으로 채울 수 없어요. 도로명주소를 직접 입력해 주세요.'}
+      </p>
+      <input
+        type="text"
+        value={addressText}
+        onChange={(e) => onAddressChange(e.target.value)}
+        placeholder="예) 산격로 12 또는 ○○동 123-4"
+        autoComplete="street-address"
+        inputMode="text"
+        style={{
+          width: '100%',
+          padding: '12px 14px', borderRadius: 10,
+          border: `1px solid ${tok.inputBorder}`,
+          background: tok.inputBg, color: tok.inputColor,
+          // iOS Safari 가 16px 미만 input 포커스 시 자동 확대 — 16px 로 차단.
+          fontSize: 16, outline: 'none',
+          fontFamily: 'inherit', boxSizing: 'border-box',
+        }}
+      />
+      <p style={{ fontSize: 11, color: tok.textTertiary, margin: '10px 0 0', lineHeight: 1.5 }}>
+        주소는 결과물 카드에 함께 보여요. 비워둬도 괜찮아요.
+      </p>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // 마무리 — 종합 인상 (선택)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1137,7 +1391,8 @@ function FinishStep({
           border: `1px solid ${tok.inputBorder}`,
           background: tok.inputBg,
           color: tok.inputColor,
-          fontSize: 13,
+          // iOS Safari 가 16px 미만 textarea 포커스 시 자동 확대 — 16px 로 차단.
+          fontSize: 16,
           outline: 'none',
           resize: 'vertical',
           fontFamily: 'inherit',
