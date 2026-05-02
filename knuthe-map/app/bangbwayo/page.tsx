@@ -52,7 +52,6 @@ export default async function BangbwayoPage() {
   if (sets.length === 0) {
     return (
       <PageWrapper tok={tok}>
-        {!user && <EnsureAnonymousSession />}
         <DashboardHeader
           tok={tok}
           title="방봐요"
@@ -60,9 +59,18 @@ export default async function BangbwayoPage() {
           backHref="/"
         />
         <div style={{ maxWidth: 520, margin: '0 auto', padding: '20px 16px' }}>
-          <div style={{ marginBottom: 14 }}>
-            <StartSetButton tok={tok} />
-          </div>
+          {/* 사용자 있을 때만 새 셋 시작 노출 — 익명 세션 만들어진 다음. */}
+          {user && (
+            <div style={{ marginBottom: 14 }}>
+              <StartSetButton tok={tok} />
+            </div>
+          )}
+          {!user && (
+            <>
+              {/* 익명 사인업 트리거 + 실패 시 화면 에러 표시 */}
+              <EnsureAnonymousSession tok={tok} />
+            </>
+          )}
           <Card tok={tok}>
             <EmptyState
               tok={tok}
