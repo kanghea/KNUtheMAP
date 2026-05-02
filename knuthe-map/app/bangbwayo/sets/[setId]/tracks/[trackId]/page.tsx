@@ -41,7 +41,7 @@ export default async function TrackFlowPage({
 }) {
   const { setId, trackId } = await params
   const user = await getServerUser()
-  if (!user) redirect(`/auth/sign-in?redirect=/bangbwayo/sets/${setId}/tracks/${trackId}`)
+  if (!user) redirect(`/login?next=${encodeURIComponent(`/bangbwayo/sets/${setId}/tracks/${trackId}`)}`)
 
   const { tok, theme } = await getServerThemeTokens()
   const supabase = await createSupabaseServer()

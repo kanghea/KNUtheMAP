@@ -71,7 +71,7 @@ export default async function ResultsPage({
 }) {
   const { setId } = await params
   const user = await getServerUser()
-  if (!user) redirect(`/auth/sign-in?redirect=/bangbwayo/sets/${setId}/results`)
+  if (!user) redirect(`/login?next=${encodeURIComponent(`/bangbwayo/sets/${setId}/results`)}`)
 
   const { tok } = await getServerThemeTokens()
   const supabase = await createSupabaseServer()

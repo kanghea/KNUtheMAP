@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { Suspense } from "react";
 import "./globals.css";
 import PrefsIsland from "@/components/map/PrefsIsland";
 import Providers from "./providers";
@@ -65,7 +66,11 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <Providers>
           {children}
-          <PrefsIsland initialRole={role} initialTheme={theme} initialViewMode={initialViewMode} />
+          {/* PrefsIsland 가 useSearchParams() 를 쓰므로 Suspense 경계 필수 —
+              없으면 정적 prerender 시 빌드가 실패한다. */}
+          <Suspense fallback={null}>
+            <PrefsIsland initialRole={role} initialTheme={theme} initialViewMode={initialViewMode} />
+          </Suspense>
         </Providers>
       </body>
     </html>

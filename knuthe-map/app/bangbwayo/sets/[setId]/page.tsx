@@ -53,7 +53,7 @@ export default async function SetDetailPage({
 }) {
   const { setId } = await params
   const user = await getServerUser()
-  if (!user) redirect(`/auth/sign-in?redirect=/bangbwayo/sets/${setId}`)
+  if (!user) redirect(`/login?next=${encodeURIComponent(`/bangbwayo/sets/${setId}`)}`)
 
   const { tok } = await getServerThemeTokens()
   const supabase = await createSupabaseServer()

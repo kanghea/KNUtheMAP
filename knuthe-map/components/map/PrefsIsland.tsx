@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { useRole, type Role } from '@/lib/useRole'
@@ -137,8 +137,14 @@ function navItems(role: Role, viewMode: ViewMode): NavItem[] {
     me,
   ]
 
-  // tenant / roommate는 viewMode 쿠키로 nav 분기 (사용자가 /me에서 토글).
-  if (viewMode === 'roommate') return [
+  // 룸메이트 nav 는 role==='roommate' 이고 viewMode 도 'roommate' 일 때만 노출.
+  // viewMode 쿠키만 보면 안 되는 이유:
+  //   랜딩의 `/api/me/view-mode/enter-roommate` 는 role 검증 없이 쿠키만 봉인하므로,
+  //   tenant 사용자가 룸메이트 CTA 만 누르고 온보딩을 끝까지 안 하면 쿠키만 남아
+  //   "방보기 모드 화면 + 룸메이트 nav" 부정합이 생긴다.
+  //   `/me` 토글은 hasRoommateProfile 가드가 있지만 랜딩 CTA 에는 없어
+  //   role 을 nav 분기의 권위적 출처로 둔다.
+  if (role === 'roommate' && viewMode === 'roommate') return [
     { href: '/',          label: '홈',       icon: (c) => <IconHome color={c} />,     match: (p) => p === '/' },
     { href: '/roommate',  label: '룸메이트', icon: (c) => <IconRoommate color={c} />, match: (p) => p.startsWith('/roommate') },
     me,
@@ -173,6 +179,7 @@ function tapHaptic() {
 
 export default function PrefsIsland({ initialRole = 'tenant', initialTheme = 'dark', initialViewMode = 'rooms' }: Props) {
   const pathname          = usePathname()
+  const searchParams      = useSearchParams()
   const router            = useRouter()
   const clientRole        = useRole()
   const role              = clientRole ?? initialRole  // 클라이언트 role 우선, 로딩 중엔 서버값 사용
@@ -264,8 +271,9 @@ export default function PrefsIsland({ initialRole = 'tenant', initialTheme = 'da
   }), [tok.accentColor, tok.textTertiary])
 
   // 온보딩 중(`/?reset=1`)에는 숨김 — 모든 hooks 선언 이후에 분기.
-  const isOnboarding = pathname === '/' &&
-    typeof window !== 'undefined' && window.location.search.includes('reset=1')
+  // useSearchParams() 를 써야 SSR/CSR 결과가 동일하고(hydration mismatch 방지),
+  // 같은 pathname 안에서 쿼리만 바뀌는 클라이언트 네비게이션에도 반응한다.
+  const isOnboarding = pathname === '/' && searchParams.get('reset') === '1'
   if (isOnboarding) return null
 
   return (
