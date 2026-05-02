@@ -137,8 +137,14 @@ function navItems(role: Role, viewMode: ViewMode): NavItem[] {
     me,
   ]
 
-  // tenant / roommate는 viewMode 쿠키로 nav 분기 (사용자가 /me에서 토글).
-  if (viewMode === 'roommate') return [
+  // 룸메이트 nav 는 role==='roommate' 이고 viewMode 도 'roommate' 일 때만 노출.
+  // viewMode 쿠키만 보면 안 되는 이유:
+  //   랜딩의 `/api/me/view-mode/enter-roommate` 는 role 검증 없이 쿠키만 봉인하므로,
+  //   tenant 사용자가 룸메이트 CTA 만 누르고 온보딩을 끝까지 안 하면 쿠키만 남아
+  //   "방보기 모드 화면 + 룸메이트 nav" 부정합이 생긴다.
+  //   `/me` 토글은 hasRoommateProfile 가드가 있지만 랜딩 CTA 에는 없어
+  //   role 을 nav 분기의 권위적 출처로 둔다.
+  if (role === 'roommate' && viewMode === 'roommate') return [
     { href: '/',          label: '홈',       icon: (c) => <IconHome color={c} />,     match: (p) => p === '/' },
     { href: '/roommate',  label: '룸메이트', icon: (c) => <IconRoommate color={c} />, match: (p) => p.startsWith('/roommate') },
     me,
