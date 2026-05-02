@@ -8,6 +8,7 @@ import { unsealViewMode, VIEW_MODE_COOKIE_NAME } from '@/lib/view-mode-cookie'
 import { PageWrapper } from '@/components/shared/PageWrapper'
 import { DashboardHeader } from '@/components/shared/DashboardHeader'
 import { Card } from '@/components/shared/Card'
+import { MenuItem } from '@/components/shared/MenuItem'
 import ProfileEditor      from './_components/ProfileEditor'
 import LogoutButton       from './_components/LogoutButton'
 import ModeToggle         from './_components/ModeToggle'
@@ -27,7 +28,7 @@ const ROLE_LABELS: Record<string, string> = {
 }
 
 function readTheme(prefsRaw: string | undefined): ThemeMode {
-  return prefsRaw ? (parsePrefs(prefsRaw)?.theme ?? 'dark') : 'dark'
+  return prefsRaw ? (parsePrefs(prefsRaw)?.theme ?? 'light') : 'light'
 }
 
 export default async function MePage() {
@@ -218,6 +219,18 @@ export default async function MePage() {
             />
           </Card>
         )}
+
+        {/* ── 설정 메뉴 ─────────────────────────────────────────── */}
+        <Card tok={tok} padding={0} overflow="hidden" style={{ marginBottom: 16 }}>
+          <MenuItem
+            tok={tok}
+            href="/settings/theme"
+            icon="🎨"
+            label="테마 설정"
+            description="다크 / 라이트 전환"
+            divider={false}
+          />
+        </Card>
 
         {/* ── 로그아웃 ──────────────────────────────────────────── */}
         <LogoutButton theme={theme} />

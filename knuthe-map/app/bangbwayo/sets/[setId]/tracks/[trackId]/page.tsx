@@ -14,6 +14,7 @@ import { PageWrapper }          from '@/components/shared/PageWrapper'
 import { DashboardHeader }      from '@/components/shared/DashboardHeader'
 import { getChecklistFor, type TimeOption } from '@/lib/bangbwayo-checklist'
 import { formatTrackLabel }     from '@/lib/bangbwayo-track-label'
+import GateDistanceBadge        from '@/components/bangbwayo/GateDistanceBadge'
 import TrackCardFlow            from './_components/TrackCardFlow'
 
 interface TrackRow {
@@ -109,6 +110,14 @@ export default async function TrackFlowPage({
         title={formatTrackLabel(track, buildingRow)}
         subtitle="체크 중"
         backHref={`/bangbwayo/sets/${setId}`}
+        right={
+          <GateDistanceBadge
+            tok={tok}
+            lat={buildingRow?.lat ?? null}
+            lng={buildingRow?.lng ?? null}
+            compact
+          />
+        }
       />
 
       <TrackCardFlow

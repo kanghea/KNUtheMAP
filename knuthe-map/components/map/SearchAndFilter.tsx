@@ -220,7 +220,7 @@ function buildingIcon(purps: string | null) {
 
 // ── 메인 컴포넌트 ─────────────────────────────────────────────────
 
-export default function SearchAndFilter({ filters, onChange, onSelect, theme = 'dark' }: Props) {
+export default function SearchAndFilter({ filters, onChange, onSelect, theme = 'light' }: Props) {
   const [query,      setQuery]      = useState('')
   const [results,    setResults]    = useState<SearchResult[]>([])
   const [focused,    setFocused]    = useState(false)

@@ -2,7 +2,7 @@
 
 import { THEME_TOKENS, type ThemeMode } from '@/lib/theme-tokens'
 
-export default function LogoutButton({ theme = 'dark' as ThemeMode }: { theme?: ThemeMode }) {
+export default function LogoutButton({ theme = 'light' as ThemeMode }: { theme?: ThemeMode }) {
   const tok = THEME_TOKENS[theme]
   return (
     <div style={{ marginTop: 8, textAlign: 'center' }}>

@@ -83,7 +83,7 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
   const gradeLabel  = prefs.grade ? `${prefs.grade}` : null
   const heroLabel   = [gradeLabel, prefs.dept].filter(Boolean).join(' · ') || null
 
-  const theme = prefs.theme ?? 'dark'
+  const theme = prefs.theme ?? 'light'
   const tok   = THEME_TOKENS[theme]
   const deco  = LANDING_DECO[theme]
 
@@ -119,7 +119,8 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
           </span>
         </div>
         <Link
-          href="/?reset=1"
+          href="/settings/theme"
+          aria-label="테마 설정"
           style={{
             display: 'flex', alignItems: 'center', gap: 5,
             fontSize: 12, fontWeight: 600, color: tok.textSecondary, textDecoration: 'none',

@@ -78,7 +78,7 @@ function formatDeposit(v: number): string {
 const formatUnit  = (v: number) => `${v}호`
 const formatFloor = (v: number) => v < 0 ? `지하 ${-v}층` : `${v}층`
 
-export default function ContractForm({ renewal, onSaved, onCancel, theme = 'dark' as ThemeMode }: Props) {
+export default function ContractForm({ renewal, onSaved, onCancel, theme = 'light' as ThemeMode }: Props) {
   const tok = THEME_TOKENS[theme]
 
   // 건물 검색

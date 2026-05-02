@@ -15,6 +15,10 @@ import { DashboardHeader }      from '@/components/shared/DashboardHeader'
 import { Card }                 from '@/components/shared/Card'
 import { EmptyState }           from '@/components/shared/EmptyState'
 import { IconChevronRight }     from '@/components/shared/icons'
+import { cookies }              from 'next/headers'
+import { parsePrefs }           from '@/lib/prefs'
+import { getGatesByDept }       from '@/lib/department-zones'
+import { GATES, gateDistances } from '@/lib/gate-utils'
 import { TIME_OPTIONS }         from '@/lib/bangbwayo-checklist'
 import { formatTrackLabel }     from '@/lib/bangbwayo-track-label'
 import StartTrackButton         from './_components/StartTrackButton'
@@ -88,16 +92,18 @@ export default async function SetDetailPage({
   const buildingIds = tracks
     .map((t) => t.building_id)
     .filter((id): id is string => !!id)
-  const buildingMap: Record<string, { name: string | null; address: string | null }> = {}
+  const buildingMap: Record<string, { name: string | null; address: string | null; lat: number | null; lng: number | null }> = {}
   if (buildingIds.length > 0) {
     const { data: bldgs } = await supabase
       .from('buildings')
-      .select('id, name, address')
+      .select('id, name, address, lat, lng')
       .in('id', buildingIds)
     for (const b of bldgs ?? []) {
       if (b.id) buildingMap[b.id as string] = {
         name:    (b.name    ?? null) as string | null,
         address: (b.address ?? null) as string | null,
+        lat:     (b.lat     ?? null) as number | null,
+        lng:     (b.lng     ?? null) as number | null,
       }
     }
   }
@@ -105,6 +111,25 @@ export default async function SetDetailPage({
   const isActive = set.status === 'active'
   const allClosed = tracks.length > 0 && tracks.every((t) => t.status === 'closed' || t.status === 'included')
   const hasResults = !!set.result_generated_at
+
+  // 학과 주문 ↔ 건물 거리 자동 계산 — 한 번에 prefs 읽고 사용자 학과의 주문 좌표
+  // 를 구해두면 트랙별 계산이 가벼워진다 (게이트 좌표 1번 lookup).
+  const jar    = await cookies()
+  const prefsRaw = jar.get('knu_prefs')?.value
+  const prefs  = prefsRaw ? parsePrefs(prefsRaw) : null
+  const userDept = prefs?.dept ?? null
+  const gateName = userDept ? (getGatesByDept(userDept)[0] ?? null) : null
+  const targetGate = gateName ? GATES.find((g) => g.name === gateName) ?? null : null
+
+  function distanceLabelFor(b: { lat: number | null; lng: number | null } | null): string | null {
+    if (!b || b.lat == null || b.lng == null) return null
+    const sorted = gateDistances(b.lat, b.lng)
+    const used = targetGate
+      ? (sorted.find((s) => s.gate.name === targetGate.name) ?? sorted[0])
+      : sorted[0]
+    if (!used) return null
+    return `${used.gate.name} ${used.minutes}분`
+  }
 
   return (
     <PageWrapper tok={tok}>
@@ -153,6 +178,10 @@ export default async function SetDetailPage({
                     <p style={{ fontSize: 11, color: tok.textTertiary, margin: '2px 0 0' }}>
                       {t.status === 'closed' || t.status === 'included' ? '마무리됨' : '작성 중'}
                       {t.overall_rating ? ` · 별 ${t.overall_rating}` : ''}
+                      {(() => {
+                        const dl = distanceLabelFor(b)
+                        return dl ? ` · 🚶 ${dl}` : ''
+                      })()}
                     </p>
                   </div>
                   <IconChevronRight size={14} color={tok.textTertiary} />

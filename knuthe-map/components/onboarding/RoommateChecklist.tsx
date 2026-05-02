@@ -19,6 +19,9 @@ interface Props {
   profile: Partial<RoommateProfile>
   onChange: (updates: Partial<RoommateProfile>) => void
   tok: Tok
+  /** 공통 온보딩에서 이미 받은 필드는 입력칸을 보여주되 잠가서 중복 질문 방지.
+   *  prefill 된 값은 prop 으로 들어오는 profile 에 이미 들어 있다고 가정한다. */
+  lockedFields?: { dept?: boolean; student_id?: boolean; gender?: boolean }
 }
 
 // ── 공통 위젯 ──
@@ -528,43 +531,69 @@ function ScrollChips({ options, value, onChange, tok }: {
 
 // ── 섹션 렌더링 ──
 
-export default function RoommateChecklist({ section, profile, onChange, tok }: Props) {
-  // 섹션 0: 기본 정보 (학과·생년·학번·성별·거주 유형)
+export default function RoommateChecklist({ section, profile, onChange, tok, lockedFields }: Props) {
+  // 섹션 0: 기본 정보 (학과·생년·학번·성별·거주 유형).
+  // lockedFields 로 표시된 필드는 공통 온보딩에서 받았으므로 잠긴 카드 1개로 요약 표시.
   if (section === 0) {
+    const lockedSummary: string[] = []
+    if (lockedFields?.dept       && profile.dept)       lockedSummary.push(profile.dept)
+    if (lockedFields?.student_id && profile.student_id) lockedSummary.push(`${profile.student_id}학번`)
+    if (lockedFields?.gender     && profile.gender)     lockedSummary.push(profile.gender === 'male' ? '남성' : '여성')
+
     return (
       <div>
-        <FieldGroup tok={tok}>
-          <FieldLabel text="학과" tok={tok} />
-          {/* 방구하기 온보딩에서 쓰는 StepDepartment 와 동일한 컴포넌트 — 단과대 →
-              학과 2단계 + 선배 팁. 룸메이트 매칭에서도 같은 dept 정보가 필요해
-              users.dept 로 동기화한다 (/api/roommate POST). */}
-          <StepDepartment
-            selected={profile.dept ?? null}
-            onSelect={v => onChange({ dept: v })}
-            tok={tok}
-          />
-        </FieldGroup>
+        {lockedSummary.length > 0 && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '12px 14px', borderRadius: 12,
+            background: tok.surface, border: `1px solid ${tok.border}`,
+            marginBottom: 18,
+          }}>
+            <span aria-hidden style={{ fontSize: 14 }}>✓</span>
+            <span style={{ fontSize: 12, color: tok.textSecondary, lineHeight: 1.5 }}>
+              <strong style={{ color: tok.textPrimary, fontWeight: 700 }}>
+                {lockedSummary.join(' · ')}
+              </strong>
+              <span style={{ marginLeft: 6 }}>— 이미 입력했어요</span>
+            </span>
+          </div>
+        )}
+
+        {!lockedFields?.dept && (
+          <FieldGroup tok={tok}>
+            <FieldLabel text="학과" tok={tok} />
+            <StepDepartment
+              selected={profile.dept ?? null}
+              onSelect={v => onChange({ dept: v })}
+              tok={tok}
+            />
+          </FieldGroup>
+        )}
 
         <FieldGroup tok={tok}>
           <FieldLabel text="몇 년생이에요?" tok={tok} />
           <BirthYearPicker value={profile.birth_year ?? null} onChange={v => onChange({ birth_year: v })} tok={tok} />
         </FieldGroup>
 
-        <FieldGroup tok={tok}>
-          <FieldLabel text="학번" tok={tok} />
-          <ScrollChips options={STUDENT_IDS.map(n => `${n}학번`)} value={profile.student_id ? `${profile.student_id}학번` : null}
-            onChange={v => onChange({ student_id: parseInt(v) })} tok={tok} />
-        </FieldGroup>
+        {!lockedFields?.student_id && (
+          <FieldGroup tok={tok}>
+            <FieldLabel text="학번" tok={tok} />
+            <ScrollChips options={STUDENT_IDS.map(n => `${n}학번`)} value={profile.student_id ? `${profile.student_id}학번` : null}
+              onChange={v => onChange({ student_id: parseInt(v) })} tok={tok} />
+          </FieldGroup>
+        )}
 
-        <FieldGroup tok={tok}>
-          <FieldLabel text="성별" tok={tok} />
-          <ChipGroup
-            options={[...GENDER_OPTIONS]}
-            value={profile.gender ?? ''}
-            onChange={v => onChange({ gender: v as 'male' | 'female' })}
-            tok={tok}
-          />
-        </FieldGroup>
+        {!lockedFields?.gender && (
+          <FieldGroup tok={tok}>
+            <FieldLabel text="성별" tok={tok} />
+            <ChipGroup
+              options={[...GENDER_OPTIONS]}
+              value={profile.gender ?? ''}
+              onChange={v => onChange({ gender: v as 'male' | 'female' })}
+              tok={tok}
+            />
+          </FieldGroup>
+        )}
 
         <FieldGroup tok={tok}>
           <FieldLabel text="거주 유형" tok={tok} />

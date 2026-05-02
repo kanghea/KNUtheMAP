@@ -33,7 +33,7 @@ export default async function RoommateOnboardingPage() {
   // SSR에서 테마 결정 — 학생 온보딩과 동일한 테마 토큰 적용
   const jar      = await cookies()
   const prefsRaw = jar.get('knu_prefs')?.value
-  const theme    = prefsRaw ? (parsePrefs(prefsRaw)?.theme ?? 'dark') : 'dark'
+  const theme    = prefsRaw ? (parsePrefs(prefsRaw)?.theme ?? 'light') : 'light'
 
   return <RoommateOnboardingClient initialTheme={theme} isLoggedIn={!!user} />
 }

@@ -6,7 +6,7 @@ interface Props {
   theme?:       ThemeMode
 }
 
-export default function AgentSection({ myRoomsCount, theme = 'dark' }: Props) {
+export default function AgentSection({ myRoomsCount, theme = 'light' }: Props) {
   const tok = THEME_TOKENS[theme]
 
   const menuItems = [

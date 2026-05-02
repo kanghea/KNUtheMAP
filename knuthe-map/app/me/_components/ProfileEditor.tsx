@@ -77,7 +77,7 @@ function InfoRow({ label, value, tok }: { label: string; value: string | null; t
   )
 }
 
-export default function ProfileEditor({ profile, showStudentFields = true, theme = 'dark' as ThemeMode }: { profile: Profile; showStudentFields?: boolean; theme?: ThemeMode }) {
+export default function ProfileEditor({ profile, showStudentFields = true, theme = 'light' as ThemeMode }: { profile: Profile; showStudentFields?: boolean; theme?: ThemeMode }) {
   const tok = THEME_TOKENS[theme]
   const [editing,     setEditing]     = useState(false)
   const [nickname,    setNickname]    = useState(profile.nickname ?? '')

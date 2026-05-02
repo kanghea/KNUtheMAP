@@ -1,5 +1,7 @@
 // 사용자 온보딩 설정 — 쿠키 저장/읽기
 
+export type OnboardingMode = 'rooms' | 'bangbwayo' | 'roommate'
+
 export interface UserPrefs {
   grade:      string | null   // e.g. '27학번'
   dept:       string | null   // e.g. '경영학부'
@@ -7,6 +9,11 @@ export interface UserPrefs {
   priorities: string[]        // e.g. ['security','dist','size']
   gate:       string | null   // e.g. '쪽문'
   theme:      'dark' | 'light' // UI 테마
+  /** 성별 — 공통 온보딩에서 받음. 룸메이트 매칭 동성 우선 정책에도 사용. */
+  gender:     'male' | 'female' | null
+  /** 온보딩에서 선택한 주 모드 — 진입 후 어디로 보낼지 결정. 메인 랜딩의 CTA
+   *  자체는 모드와 무관하게 모두 노출. */
+  mode:       OnboardingMode | null
 }
 
 // 우선순위 차원 메타데이터 (StepPriority와 공유)
@@ -30,8 +37,8 @@ export function encodePrefs(p: UserPrefs): string {
 export function parsePrefs(raw: string): UserPrefs | null {
   try {
     const parsed = JSON.parse(decodeURIComponent(raw))
-    // 이전 버전 쿠키 호환: theme 없으면 dark 기본값
-    return { theme: 'dark', ...parsed } as UserPrefs
+    // 이전 버전 쿠키 호환: 신규 필드(theme/gender/mode) 가 없으면 안전한 기본값.
+    return { theme: 'light', gender: null, mode: null, ...parsed } as UserPrefs
   } catch {
     return null
   }

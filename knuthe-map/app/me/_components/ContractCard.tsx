@@ -107,7 +107,7 @@ function HistoryTimeline({ history, tok }: { history: HistoryEntry[]; tok: Theme
   )
 }
 
-export default function ContractCard({ contract: c, onEdit, onEnd, onRenew, theme = 'dark' }: Props) {
+export default function ContractCard({ contract: c, onEdit, onEnd, onRenew, theme = 'light' }: Props) {
   const tok = THEME_TOKENS[theme]
   const [showHistory, setShowHistory] = useState(false)
   const [editing,     setEditing]     = useState(false)
