@@ -119,7 +119,8 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
           </span>
         </div>
         <Link
-          href="/?reset=1"
+          href="/settings/theme"
+          aria-label="테마 설정"
           style={{
             display: 'flex', alignItems: 'center', gap: 5,
             fontSize: 12, fontWeight: 600, color: tok.textSecondary, textDecoration: 'none',
