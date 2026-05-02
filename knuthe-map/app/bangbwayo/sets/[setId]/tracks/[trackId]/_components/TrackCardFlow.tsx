@@ -6,6 +6,14 @@ import Image from 'next/image'
 import type { ThemeTokens, ThemeMode } from '@/lib/theme-tokens'
 import type { ChecklistItem, Rating } from '@/lib/bangbwayo-checklist'
 import { tapHaptic, successHaptic } from '@/lib/hooks/useHaptic'
+import MoneyDrumPicker from '@/components/shared/MoneyDrumPicker'
+
+// 호수 드럼 값 — 0(없음) + 1~999. iOS picker 결.
+// 실제 호수는 보통 1~999 안에 들어가고, 0 은 "선택 안 함" 으로 사용.
+const UNIT_VALUES: number[] = [0, ...Array.from({ length: 999 }, (_, i) => i + 1)]
+function formatUnit(v: number): string {
+  return v === 0 ? '없음' : `${v}호`
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 타입
@@ -517,6 +525,13 @@ function UnitStep({
   buildingName: string | null
   buildingAddress: string | null
 }) {
+  // string 으로 저장된 호수를 드럼이 받는 number 로 변환.
+  // 정수가 아닌 호수("304A" 등) 가 저장돼 있으면 0(없음)으로 시작 — 사용자가 다시 선택.
+  const numeric = (() => {
+    const n = parseInt(unitNumber, 10)
+    return Number.isFinite(n) && n >= 0 && n <= 999 ? n : 0
+  })()
+
   return (
     <div style={{
       background: tok.cardBg, border: `1px solid ${tok.cardBorder}`,
@@ -532,32 +547,24 @@ function UnitStep({
         몇 호인지 알려주세요
       </h2>
       <p style={{ fontSize: 13, color: tok.textSecondary, margin: '0 0 16px', lineHeight: 1.5 }}>
-        건물은 사진 좌표로 자동 매칭하지만, 호수는 헷갈리지 않게 직접 적어주세요.
+        건물은 사진 좌표로 자동 매칭하지만, 호수는 헷갈리지 않게 직접 골라주세요.
       </p>
-      <input
-        value={unitNumber}
-        onChange={(e) => onUnitChange(e.target.value)}
-        placeholder="예: 304"
-        inputMode="text"
-        autoFocus
-        style={{
-          width: '100%',
-          padding: '14px 16px',
-          borderRadius: 12,
-          border: `1px solid ${tok.inputBorder}`,
-          background: tok.inputBg,
-          color: tok.inputColor,
-          fontSize: 16, fontWeight: 600,
-          outline: 'none',
-          boxSizing: 'border-box',
-        }}
+
+      {/* 계약 입력의 보증금·월세와 같은 드럼 픽커. 1~999 호 + '없음'. */}
+      <MoneyDrumPicker
+        tok={tok}
+        values={UNIT_VALUES}
+        value={numeric}
+        onChange={(v) => onUnitChange(v === 0 ? '' : String(v))}
+        format={formatUnit}
       />
+
       {(buildingName || buildingAddress) && (
-        <p style={{ fontSize: 12, color: tok.textTertiary, margin: '10px 0 0' }}>
-          {buildingName ?? buildingAddress}
+        <p style={{ fontSize: 12, color: tok.textTertiary, margin: '12px 0 0' }}>
+          📍 {buildingName ?? buildingAddress}
         </p>
       )}
-      <p style={{ fontSize: 11, color: tok.textTertiary, margin: '14px 0 0' }}>
+      <p style={{ fontSize: 11, color: tok.textTertiary, margin: '12px 0 0' }}>
         나중에 채워도 돼요. &lsquo;다음&rsquo;을 누르면 카드 흐름으로 넘어가요.
       </p>
     </div>
