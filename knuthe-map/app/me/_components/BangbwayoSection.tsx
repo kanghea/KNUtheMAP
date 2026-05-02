@@ -107,8 +107,17 @@ export default async function BangbwayoSection({ tok }: { tok: ThemeTokens }) {
     service, sets, tracks, responses, photos, buildings,
   })
 
+  // Prefetch hint — 가장 위 카드의 썸네일을 미리 받아둠. App Router 가 head 로 옮김.
+  const prefetchUrls = cards
+    .slice(0, 6)
+    .map((c) => c.thumbnailUrl)
+    .filter((u): u is string => !!u)
+
   return (
     <Card tok={tok} padding={0} overflow="hidden" style={{ marginBottom: 16 }}>
+      {prefetchUrls.map((url) => (
+        <link key={url} rel="prefetch" as="image" href={url} />
+      ))}
       <div style={{
         padding: '18px 20px 8px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',

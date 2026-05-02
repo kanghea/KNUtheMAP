@@ -73,7 +73,6 @@ export function SetCardRow({ tok, summary, href }: Props) {
             fill
             sizes="56px"
             style={{ objectFit: 'cover' }}
-            unoptimized
           />
         ) : (
           // 사진 없을 때 — 카메라 아이콘 폴백

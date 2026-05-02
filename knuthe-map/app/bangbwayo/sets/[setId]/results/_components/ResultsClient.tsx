@@ -139,7 +139,6 @@ function TrackResultCard({ tok, rt }: { tok: ThemeTokens; rt: ResultTrack }) {
             fill
             sizes="(max-width: 520px) 88vw, 420px"
             style={{ objectFit: 'cover' }}
-            unoptimized
           />
         ) : (
           <div style={{

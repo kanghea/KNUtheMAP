@@ -143,7 +143,7 @@ export default async function ResultsPage({
     const service = createServiceClient()
     const { data: list } = await service.storage
       .from('bangbwayo-photos')
-      .createSignedUrls(allPhotos.map((p) => p.storage_path), 60 * 60)
+      .createSignedUrls(allPhotos.map((p) => p.storage_path), 60 * 60 * 24)
     allPhotos.forEach((p, i) => {
       const url = list?.[i]?.signedUrl
       if (url) signed[p.storage_path] = url
