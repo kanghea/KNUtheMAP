@@ -41,13 +41,17 @@ export async function GET(request: Request) {
           .eq('id', data.user.id)
       }
 
-      // 온보딩 prefs(학번·학과)를 users 테이블에 동기화
-      if (prefs?.grade || prefs?.dept) {
+      // 온보딩 prefs(학번·학과·성별)를 users 테이블에 동기화 (023 migration).
+      // 성별은 별도 SQL CHECK 제약(male/female 만 허용)을 두어 잘못된 값이
+      // 들어오지 않도록 한다 — prefs.gender 가 'male'|'female'|null 타입이라
+      // 추가 검증은 불필요.
+      if (prefs?.grade || prefs?.dept || prefs?.gender) {
         await supabase
           .from('users')
           .update({
-            ...(prefs.grade ? { grade: prefs.grade } : {}),
-            ...(prefs.dept  ? { dept:  prefs.dept  } : {}),
+            ...(prefs.grade  ? { grade:  prefs.grade  } : {}),
+            ...(prefs.dept   ? { dept:   prefs.dept   } : {}),
+            ...(prefs.gender ? { gender: prefs.gender } : {}),
           })
           .eq('id', data.user.id)
       }
