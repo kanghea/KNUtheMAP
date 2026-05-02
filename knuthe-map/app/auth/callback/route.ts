@@ -21,6 +21,26 @@ export async function GET(request: Request) {
       const raw   = jar.get('knu_prefs')?.value
       const prefs = raw ? parsePrefs(raw) : null
 
+      // 익명 사용자가 OAuth 로 정식 로그인 시 (Supabase 자동 linkIdentity 처리됨):
+      //   · auth.users 의 email·user_metadata 가 OAuth 정보로 갱신됨
+      //   · 그러나 public.users 의 email/nickname/avatar_url 은 트리거가 INSERT only 라
+      //     초기 NULL/'손님' 그대로 → 여기서 명시적으로 동기화
+      const userMeta = data.user.user_metadata as { full_name?: string; name?: string; avatar_url?: string; picture?: string } | null
+      const oauthEmail    = data.user.email ?? null
+      const oauthNickname = userMeta?.full_name ?? userMeta?.name ?? null
+      const oauthAvatar   = userMeta?.avatar_url ?? userMeta?.picture ?? null
+
+      const profileUpdate: Record<string, string> = {}
+      if (oauthEmail)    profileUpdate.email      = oauthEmail
+      if (oauthNickname) profileUpdate.nickname   = oauthNickname
+      if (oauthAvatar)   profileUpdate.avatar_url = oauthAvatar
+      if (Object.keys(profileUpdate).length > 0) {
+        await supabase
+          .from('users')
+          .update(profileUpdate)
+          .eq('id', data.user.id)
+      }
+
       // 온보딩 prefs(학번·학과)를 users 테이블에 동기화
       if (prefs?.grade || prefs?.dept) {
         await supabase

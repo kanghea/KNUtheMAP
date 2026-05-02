@@ -19,6 +19,7 @@ import { Card }                 from '@/components/shared/Card'
 import { EmptyState }           from '@/components/shared/EmptyState'
 import { SetCardRow }           from '@/components/bangbwayo/SetCardRow'
 import EnsureAnonymousSession   from '@/components/bangbwayo/EnsureAnonymousSession'
+import AnonymousNotice          from '@/components/bangbwayo/AnonymousNotice'
 import { buildSetCards,
          type SetCardInputSet,
          type SetCardInputTrack,
@@ -37,6 +38,7 @@ function hrefFor(status: 'active' | 'ended' | 'results_generated', setId: string
 export default async function BangbwayoPage() {
   // 사용자 없으면 redirect 하지 않음 — `<EnsureAnonymousSession>` 이 익명 사인업 후 refresh.
   const user = await getServerUser()
+  const isAnonymous = user?.is_anonymous === true
 
   const { tok } = await getServerThemeTokens()
   const supabase = await createSupabaseServer()
@@ -152,6 +154,9 @@ export default async function BangbwayoPage() {
       />
 
       <div style={{ maxWidth: 520, margin: '0 auto', padding: '20px 16px' }}>
+
+        {/* ── 익명 사용자 안내 ───────────────────────────────────── */}
+        {isAnonymous && <AnonymousNotice tok={tok} redirectAfter="/bangbwayo" />}
 
         {/* ── 활성 셋 ─────────────────────────────────────────────── */}
         {activeCard && (

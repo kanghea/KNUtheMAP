@@ -16,6 +16,7 @@ import BangbwayoSection   from './_components/BangbwayoSection'
 import OwnerSection       from './_components/OwnerSection'
 import AgentSection       from './_components/AgentSection'
 import AdminSection       from './_components/AdminSection'
+import AnonymousNotice    from '@/components/bangbwayo/AnonymousNotice'
 
 const ROLE_LABELS: Record<string, string> = {
   tenant:   '학생',
@@ -29,6 +30,9 @@ export default async function MePage() {
   const supabase = await createSupabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  // 익명 사용자도 /me 진입 허용 — 자기 방봐요 데이터 + 로그인 권유 표시.
+  const isAnonymous = user.is_anonymous === true
 
   const { data: profile } = await supabase
     .from('users')
@@ -73,7 +77,7 @@ export default async function MePage() {
   const viewMode   = (sealedView ? unsealViewMode(sealedView) : null)
     ?? (role === 'roommate' ? 'roommate' : 'rooms')
 
-  const roleLabel = ROLE_LABELS[role] ?? role
+  const roleLabel = isAnonymous ? '비로그인' : (ROLE_LABELS[role] ?? role)
 
   return (
     <PageWrapper tok={tok}>
@@ -87,24 +91,29 @@ export default async function MePage() {
 
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '20px 16px' }}>
 
-        {/* ── 프로필 카드 ────────────────────────────────────────── */}
-        <Card tok={tok} padding={20} style={{ marginBottom: 16 }}>
-          <h2 style={{ fontSize: 14, fontWeight: 700, color: tok.textPrimary, margin: '0 0 18px' }}>
-            내 정보
-          </h2>
-          {profile ? (
-            <ProfileEditor
-              profile={profile}
-              showStudentFields={role === 'tenant' || role === 'roommate'}
-              theme={theme}
-            />
-          ) : (
-            <p style={{ fontSize: 13, color: tok.textTertiary }}>프로필 정보를 불러올 수 없어요.</p>
-          )}
-        </Card>
+        {/* ── 익명 사용자 안내 — 자기 방봐요 데이터만 보임 ──────── */}
+        {isAnonymous && <AnonymousNotice tok={tok} redirectAfter="/me" />}
 
-        {/* ── 보기 모드 토글 (학생만) ───────────────────────────── */}
-        {(role === 'tenant' || role === 'roommate') && (
+        {/* ── 프로필 카드 — 정식 로그인만 ─────────────────────── */}
+        {!isAnonymous && (
+          <Card tok={tok} padding={20} style={{ marginBottom: 16 }}>
+            <h2 style={{ fontSize: 14, fontWeight: 700, color: tok.textPrimary, margin: '0 0 18px' }}>
+              내 정보
+            </h2>
+            {profile ? (
+              <ProfileEditor
+                profile={profile}
+                showStudentFields={role === 'tenant' || role === 'roommate'}
+                theme={theme}
+              />
+            ) : (
+              <p style={{ fontSize: 13, color: tok.textTertiary }}>프로필 정보를 불러올 수 없어요.</p>
+            )}
+          </Card>
+        )}
+
+        {/* ── 보기 모드 토글 (정식 학생만) ──────────────────────── */}
+        {!isAnonymous && (role === 'tenant' || role === 'roommate') && (
           <Card tok={tok} padding={20} style={{ marginBottom: 16 }}>
             <ModeToggle
               initialViewMode={viewMode}
@@ -114,21 +123,21 @@ export default async function MePage() {
           </Card>
         )}
 
-        {/* ── 내 계약 관리 (학생만) ─────────────────────────────── */}
-        {(role === 'tenant' || role === 'roommate') && (
+        {/* ── 내 계약 관리 (정식 학생만) ──────────────────────── */}
+        {!isAnonymous && (role === 'tenant' || role === 'roommate') && (
           <Card tok={tok} padding={20} style={{ marginBottom: 16 }}>
             <MyContractsManager theme={theme} />
           </Card>
         )}
 
-        {/* ── 방봐요로 본 방들 (학생만) ────────────────────────── */}
-        {(role === 'tenant' || role === 'roommate') && (
+        {/* ── 방봐요로 본 방들 (익명 포함 학생) ────────────────── */}
+        {(isAnonymous || role === 'tenant' || role === 'roommate') && (
           <BangbwayoSection tok={tok} />
         )}
 
         {/* ── role별 섹션 ────────────────────────────────────────── */}
 
-        {role === 'owner' && (
+        {!isAnonymous && role === 'owner' && (
           <Card tok={tok} padding={20} style={{ marginBottom: 16 }}>
             <h2 style={{ fontSize: 14, fontWeight: 700, color: tok.textPrimary, margin: '0 0 16px' }}>
               건물주 메뉴
@@ -137,7 +146,7 @@ export default async function MePage() {
           </Card>
         )}
 
-        {role === 'agent' && (
+        {!isAnonymous && role === 'agent' && (
           <Card tok={tok} padding={20} style={{ marginBottom: 16 }}>
             <h2 style={{ fontSize: 14, fontWeight: 700, color: tok.textPrimary, margin: '0 0 16px' }}>
               중개사 메뉴
@@ -146,7 +155,7 @@ export default async function MePage() {
           </Card>
         )}
 
-        {role === 'admin' && (
+        {!isAnonymous && role === 'admin' && (
           <Card tok={tok} padding={20} style={{ marginBottom: 16 }}>
             <h2 style={{ fontSize: 14, fontWeight: 700, color: tok.textPrimary, margin: '0 0 16px' }}>
               관리자 메뉴
