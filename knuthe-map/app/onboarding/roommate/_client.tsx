@@ -19,7 +19,7 @@ import { savePrefs } from '@/lib/prefs'
 import { createBrowserSupabase } from '@/lib/supabase-browser'
 
 const ROOMMATE_SECTIONS = [
-  { title: '기본 정보를 알려주세요',     sub: '생년·학번·거주 유형을 선택해 주세요' },
+  { title: '기본 정보를 알려주세요',     sub: '학과·학번·성별·거주 유형을 알려주세요' },
   { title: '수면 패턴은 어떤가요?',      sub: '잠드는 시간, 잠버릇 등을 알려주세요' },
   { title: '위생·청결 습관이에요',       sub: '샤워·청소 습관을 알려주세요' },
   { title: '생활 환경 선호가 궁금해요',  sub: '온도, 소리, 흡연 습관을 알려주세요' },
@@ -72,8 +72,14 @@ export default function RoommateOnboardingClient({
     // /roommate 페이지가 save_draft 쿼리로 draft 를 picks-up 한다.
     if (!isLoggedIn) {
       saveRoommateDraft(profile, w)
-      // 온보딩 완료 표시 — 비로그인으로 종료해도 다음 방문 시 온보딩으로 되돌아가지 않도록 prefs 쿠키 저장
-      savePrefs({ grade: null, dept: null, zone: null, priorities: [], gate: null, theme: initialTheme })
+      // 온보딩 완료 표시 — 비로그인으로 종료해도 다음 방문 시 온보딩으로 되돌아가지 않도록 prefs 쿠키 저장.
+      // 학과·학번도 같이 저장: OAuth callback 의 prefs 동기화 분기가 users.dept/grade 를
+      // 채워주는 백업 경로로 동작 (메인 동기화는 /api/roommate POST 에서 한다).
+      savePrefs({
+        grade: profile.student_id ? `${profile.student_id}학번` : null,
+        dept:  profile.dept ?? null,
+        zone:  null, priorities: [], gate: null, theme: initialTheme,
+      })
       setPhase('login-required')
       return
     }

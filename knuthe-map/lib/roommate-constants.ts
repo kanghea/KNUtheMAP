@@ -4,6 +4,13 @@ export interface RoommateProfile {
   // 섹션 1: 기본 정보
   birth_year: number
   student_id: number
+  /** 학과 — DB 상으로는 users.dept 에 저장(roommate_profiles 컬럼 아님).
+   *  온보딩 입력값 보관용으로 인터페이스에는 둔다. /api/roommate POST 가
+   *  분리해 users.dept 로 동기화한다. */
+  dept: string
+  /** 성별 — roommate_profiles.gender (022 migration). 매칭 필터·동성 우선
+   *  정책에 사용. */
+  gender: 'male' | 'female'
   living_type: 'dormitory' | 'offcampus'
   dormitory: string | null
 
@@ -76,6 +83,11 @@ export const DORMITORIES = [
 
 export const BIRTH_YEARS = Array.from({ length: 10 }, (_, i) => 1999 + i) // 1999~2008
 export const STUDENT_IDS = Array.from({ length: 10 }, (_, i) => 17 + i) // 17~26
+
+export const GENDER_OPTIONS = [
+  { value: 'male',   label: '남성' },
+  { value: 'female', label: '여성' },
+] as const
 
 export const BEDTIMES = ['9시', '10시', '11시', '12시', '1시', '2시', '3시', '4시', '그 이후'] as const
 export const WAKEUP_TIMES = ['4시', '5시', '6시', '7시', '8시', '9시', '10시', '11시', '그 이후'] as const
