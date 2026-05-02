@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { createSupabaseServer } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
@@ -26,10 +26,66 @@ const ROLE_LABELS: Record<string, string> = {
   admin:    '관리자',
 }
 
+function readTheme(prefsRaw: string | undefined): ThemeMode {
+  return prefsRaw ? (parsePrefs(prefsRaw)?.theme ?? 'dark') : 'dark'
+}
+
 export default async function MePage() {
   const supabase = await createSupabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+
+  const jar      = await cookies()
+  const prefsRaw = jar.get('knu_prefs')?.value
+  const theme    = readTheme(prefsRaw)
+  const tok      = THEME_TOKENS[theme]
+
+  // 비로그인 사용자도 마이페이지 진입 허용 — 로그인 권유 화면을 보여준다.
+  // 종전엔 redirect('/login') 으로 화면이 갑자기 점프했지만, 하단 nav 의 "마이"
+  // 탭이 항상 같은 페이지로 이어지도록 일관성 확보 + ?next=/me 로 로그인 후
+  // 자연스럽게 복귀.
+  if (!user) {
+    return (
+      <PageWrapper tok={tok}>
+        <DashboardHeader tok={tok} title="마이페이지" backHref="/" backLabel="홈으로" />
+        <div style={{ maxWidth: 480, margin: '0 auto', padding: '20px 16px' }}>
+          <Card tok={tok} padding={28} style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
+            textAlign: 'center',
+          }}>
+            <div style={{
+              width: 64, height: 64, borderRadius: 999,
+              background: tok.accentBg,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 28,
+            }}>
+              👤
+            </div>
+            <div>
+              <h2 style={{ fontSize: 16, fontWeight: 800, color: tok.textPrimary, margin: '0 0 6px' }}>
+                로그인하고 내 정보를 관리해요
+              </h2>
+              <p style={{ fontSize: 12, color: tok.textTertiary, margin: 0, lineHeight: 1.6 }}>
+                계약·룸메이트·방봐요 기록을 한 곳에서 보고
+                <br />
+                다른 기기에서도 같은 데이터를 이어 쓸 수 있어요.
+              </p>
+            </div>
+            <Link
+              href={`/login?next=${encodeURIComponent('/me')}`}
+              style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                width: '100%', padding: '12px 16px', borderRadius: 12,
+                background: tok.accentColor, color: '#fff',
+                fontSize: 14, fontWeight: 700, textDecoration: 'none',
+              }}
+            >
+              로그인
+            </Link>
+          </Card>
+        </div>
+      </PageWrapper>
+    )
+  }
 
   // 익명 사용자도 /me 진입 허용 — 자기 방봐요 데이터 + 로그인 권유 표시.
   const isAnonymous = user.is_anonymous === true
@@ -66,12 +122,6 @@ export default async function MePage() {
   const roomsCount         = rRes.count ?? 0
   const usersCount         = uRes.count ?? 0
   const hasRoommateProfile = (rmProfileRes.count ?? 0) > 0
-
-  // 테마·viewMode 쿠키 읽기
-  const jar      = await cookies()
-  const prefsRaw = jar.get('knu_prefs')?.value
-  const theme: ThemeMode = prefsRaw ? (parsePrefs(prefsRaw)?.theme ?? 'dark') : 'dark'
-  const tok = THEME_TOKENS[theme]
 
   const sealedView = jar.get(VIEW_MODE_COOKIE_NAME)?.value
   const viewMode   = (sealedView ? unsealViewMode(sealedView) : null)
