@@ -123,7 +123,7 @@ export async function POST(
   // 우선순위:
   //   1. buildings 테이블 매칭 → building_id 설정 (formatTrackLabel 이 buildings.address 사용)
   //   2. 매칭 실패 + building_address_text 비어있음 → 네이버 역지오코딩으로 도로명주소 자동 입력
-  let matchedBuilding: { id: string; name: string | null; address: string | null; distanceM: number } | null = null
+  let matchedBuilding: { id: string; name: string | null; address: string | null; lat: number; lng: number; distanceM: number } | null = null
   let geocodedAddress: string | null = null
   if (!track.building_id && Number.isFinite(exifLat) && Number.isFinite(exifLng)) {
     const m = await matchBuildingByCoord(supabase, exifLat as number, exifLng as number)
@@ -136,6 +136,8 @@ export async function POST(
         id:        m.buildingId,
         name:      m.name,
         address:   m.address,
+        lat:       m.lat,
+        lng:       m.lng,
         distanceM: Math.round(m.distanceM),
       }
     } else if (!track.building_address_text?.trim()) {

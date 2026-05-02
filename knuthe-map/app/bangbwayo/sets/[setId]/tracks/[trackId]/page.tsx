@@ -62,7 +62,8 @@ export default async function TrackFlowPage({
   // 마스터 체크리스트
   const checklist = getChecklistFor(track.time_option)
 
-  // 응답 + 사진 한 번에
+  // 응답 + 사진 한 번에. 사진은 EXIF 좌표까지 가져와 주소 확인 단계의
+  // 위성 미리보기에 폴백 좌표로 사용.
   const [{ data: rData }, { data: pData }, buildingRow] = await Promise.all([
     supabase
       .from('bangbwayo_responses')
@@ -70,20 +71,26 @@ export default async function TrackFlowPage({
       .eq('track_id', trackId),
     supabase
       .from('bangbwayo_photos')
-      .select('id, checklist_item_key, storage_path')
+      .select('id, checklist_item_key, storage_path, exif_lat, exif_lng')
       .eq('track_id', trackId)
       .order('created_at', { ascending: true }),
     track.building_id
       ? supabase.from('buildings')
-          .select('id, name, address')
+          .select('id, name, address, lat, lng')
           .eq('id', track.building_id)
           .maybeSingle()
-          .then(({ data }) => data as { id: string; name: string | null; address: string | null } | null)
+          .then(({ data }) => data as {
+            id: string; name: string | null; address: string | null;
+            lat: number | null; lng: number | null;
+          } | null)
       : Promise.resolve(null),
   ])
 
   // 사진 signed URL — 비공개 버킷이라 매 요청 새로 발급
-  const photos = (pData ?? []) as Array<{ id: string; checklist_item_key: string | null; storage_path: string }>
+  const photos = (pData ?? []) as Array<{
+    id: string; checklist_item_key: string | null; storage_path: string;
+    exif_lat: number | null; exif_lng: number | null;
+  }>
   const signed: Record<string, string> = {}
   if (photos.length > 0) {
     const service = createServiceClient()
@@ -112,8 +119,18 @@ export default async function TrackFlowPage({
         track={track}
         checklist={checklist}
         responses={(rData ?? []) as Array<{ checklist_item_key: string; rating: string | null; memo: string | null }>}
-        photos={photos.map((p) => ({ ...p, url: signed[p.storage_path] ?? null }))}
+        photos={photos.map((p) => ({
+          id:                  p.id,
+          checklist_item_key:  p.checklist_item_key,
+          storage_path:        p.storage_path,
+          url:                 signed[p.storage_path] ?? null,
+        }))}
         building={buildingRow}
+        firstPhotoCoord={(() => {
+          // 매칭 실패/지움 시의 폴백 — 사용자가 사진 찍은 위치 한 점.
+          const p = photos.find((x) => x.exif_lat !== null && x.exif_lng !== null)
+          return p ? { lat: p.exif_lat as number, lng: p.exif_lng as number } : null
+        })()}
       />
     </PageWrapper>
   )

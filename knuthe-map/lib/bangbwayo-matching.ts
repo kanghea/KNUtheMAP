@@ -20,6 +20,9 @@ export interface MatchedBuilding {
   buildingId: string
   name:       string | null
   address:    string | null
+  /** 건물 중심 좌표 — 주소 확인 단계의 위성 미리보기용 */
+  lat:        number
+  lng:        number
   distanceM:  number
 }
 
@@ -51,6 +54,8 @@ export async function matchBuildingByCoord(
       buildingId: b.id as string,
       name:       (b.name    ?? null) as string | null,
       address:    (b.address ?? null) as string | null,
+      lat:        b.lat as number,
+      lng:        b.lng as number,
       distanceM:  haversineM(lat, lng, b.lat as number, b.lng as number),
     }))
     .sort((a, b) => a.distanceM - b.distanceM)

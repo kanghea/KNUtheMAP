@@ -6,6 +6,7 @@ import Image from 'next/image'
 import type { ThemeTokens, ThemeMode } from '@/lib/theme-tokens'
 import type { ChecklistItem, Rating } from '@/lib/bangbwayo-checklist'
 import { tapHaptic, successHaptic } from '@/lib/hooks/useHaptic'
+import { MAPBOX_TOKEN } from '@/lib/mapbox'
 import MoneyDrumPicker, {
   MAINTENANCE_VALUES,
 } from '@/components/shared/MoneyDrumPicker'
@@ -81,17 +82,29 @@ interface Track {
 
 interface ResponseRow { checklist_item_key: string; rating: string | null; memo: string | null }
 interface PhotoRow    { id: string; checklist_item_key: string | null; storage_path: string; url: string | null }
-interface BuildingRow { id: string; name: string | null; address: string | null }
+interface BuildingRow {
+  id:      string
+  name:    string | null
+  address: string | null
+  lat:     number | null
+  lng:     number | null
+}
+interface Coord { lat: number; lng: number }
 
 interface Props {
-  tok:        ThemeTokens
-  theme:      ThemeMode
-  setId:      string
-  track:      Track
-  checklist:  readonly ChecklistItem[]
-  responses:  ResponseRow[]
-  photos:     PhotoRow[]
-  building:   BuildingRow | null
+  tok:              ThemeTokens
+  theme:            ThemeMode
+  setId:            string
+  track:            Track
+  checklist:        readonly ChecklistItem[]
+  responses:        ResponseRow[]
+  photos:           PhotoRow[]
+  building:         BuildingRow | null
+  /**
+   * 매칭이 실패/해제된 경우의 폴백 좌표 — 사용자가 첫 사진을 찍은 위치.
+   * 주소 확인 단계의 위성 미리보기를 그릴 때 매칭된 건물 좌표가 없으면 사용.
+   */
+  firstPhotoCoord:  Coord | null
 }
 
 // input[type=file] 을 화면에 안 보이게 하면서도 DOM 에 정상 존재하게.
@@ -124,6 +137,7 @@ const RATING_ORDER: readonly Rating[] = ['good', 'fair', 'bad', 'unknown']
 export default function TrackCardFlow({
   tok, theme, setId, track,
   checklist, responses: initialResponses, photos: initialPhotos, building,
+  firstPhotoCoord,
 }: Props) {
   const router = useRouter()
 
@@ -468,6 +482,8 @@ export default function TrackCardFlow({
           id:      json.matchedBuilding.id,
           name:    json.matchedBuilding.name,
           address: json.matchedBuilding.address,
+          lat:     typeof json.matchedBuilding.lat === 'number' ? json.matchedBuilding.lat : null,
+          lng:     typeof json.matchedBuilding.lng === 'number' ? json.matchedBuilding.lng : null,
         })
       }
       // 역지오코딩으로 자동 입력된 주소가 있으면 즉시 반영. 사용자가 이미 주소
@@ -582,6 +598,13 @@ export default function TrackCardFlow({
             matchedBuilding={matchedBuilding}
             onClearMatchedBuilding={onClearMatchedBuilding}
             hasPhotos={photos.length > 0}
+            previewCoord={
+              // 1순위: 매칭된 건물 좌표 (지도 중심)
+              // 2순위: 첫 사진의 EXIF 좌표 (매칭 실패/해제 시)
+              matchedBuilding?.lat != null && matchedBuilding.lng != null
+                ? { lat: matchedBuilding.lat, lng: matchedBuilding.lng }
+                : firstPhotoCoord
+            }
           />
         )}
 
@@ -953,7 +976,8 @@ function ItemCard({
             border: `1px solid ${tok.inputBorder}`,
             background: tok.inputBg,
             color: tok.inputColor,
-            fontSize: 13,
+            // iOS Safari 가 16px 미만 textarea 포커스 시 자동 확대 — 16px 로 차단.
+            fontSize: 16,
             outline: 'none',
             resize: 'vertical',
             fontFamily: 'inherit',
@@ -1125,6 +1149,64 @@ function ContractStep({
 //   · 사진이 없는 경우에도 이 단계가 항상 흐름의 끝에 등장 — 마무리 직전 마지막 검증.
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Mapbox Static Images API — 위성+도로 라벨 스타일에 흰색 마커 한 점.
+ * `unoptimized` 로 직링크 통과 (Mapbox CDN 자체 캐시 활용).
+ */
+function satelliteUrl(lat: number, lng: number, w = 600, h = 280, zoom = 18): string | null {
+  if (!MAPBOX_TOKEN) return null
+  return (
+    `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/` +
+    `pin-l-building+ffffff(${lng},${lat})/` +
+    `${lng},${lat},${zoom},0/${w}x${h}@2x?access_token=${MAPBOX_TOKEN}`
+  )
+}
+
+function SatellitePreview({
+  tok, lat, lng, caption,
+}: {
+  tok: ThemeTokens
+  lat: number
+  lng: number
+  caption?: string
+}) {
+  const url = satelliteUrl(lat, lng)
+  if (!url) return null
+  return (
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      aspectRatio: '600 / 280',
+      background: tok.inputBg,
+      borderRadius: 14,
+      overflow: 'hidden',
+      border: `1px solid ${tok.cardBorder}`,
+      marginBottom: 14,
+    }}>
+      <Image
+        src={url}
+        alt="현재 위치의 위성 사진"
+        fill
+        sizes="(max-width: 520px) 100vw, 520px"
+        unoptimized
+        style={{ objectFit: 'cover' }}
+      />
+      {caption && (
+        <div style={{
+          position: 'absolute', left: 10, bottom: 10,
+          padding: '4px 10px', borderRadius: 999,
+          background: 'rgba(0,0,0,0.55)', color: '#fff',
+          fontSize: 11, fontWeight: 600,
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+        }}>
+          {caption}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function AddressStep({
   tok,
   addressText,
@@ -1132,6 +1214,7 @@ function AddressStep({
   matchedBuilding,
   onClearMatchedBuilding,
   hasPhotos,
+  previewCoord,
 }: {
   tok: ThemeTokens
   addressText: string
@@ -1139,6 +1222,7 @@ function AddressStep({
   matchedBuilding: BuildingRow | null
   onClearMatchedBuilding: () => void
   hasPhotos: boolean
+  previewCoord: { lat: number; lng: number } | null
 }) {
   const cardStyle: React.CSSProperties = {
     background: tok.cardBg, border: `1px solid ${tok.cardBorder}`,
@@ -1148,6 +1232,14 @@ function AddressStep({
   if (matchedBuilding) {
     return (
       <div style={cardStyle}>
+        {previewCoord && (
+          <SatellitePreview
+            tok={tok}
+            lat={previewCoord.lat}
+            lng={previewCoord.lng}
+            caption="사진 위치 기준"
+          />
+        )}
         <p style={{ fontSize: 11, fontWeight: 700, color: tok.accentColor, margin: 0, letterSpacing: '0.06em' }}>
           주소 확인
         </p>
@@ -1155,7 +1247,7 @@ function AddressStep({
           이 건물이 맞나요?
         </h2>
         <div style={{
-          padding: '14px 16px', borderRadius: 12,
+          padding: '12px 14px', borderRadius: 12,
           background: tok.successBg, color: tok.successColor,
           marginBottom: 12,
         }}>
@@ -1163,13 +1255,13 @@ function AddressStep({
             📍 {matchedBuilding.name ?? '이름 미상'}
           </p>
           {matchedBuilding.address && (
-            <p style={{ fontSize: 12, opacity: 0.85, margin: 0 }}>
+            <p style={{ fontSize: 12, opacity: 0.85, margin: 0, lineHeight: 1.5 }}>
               {matchedBuilding.address}
             </p>
           )}
         </div>
         <p style={{ fontSize: 13, color: tok.textSecondary, margin: '0 0 12px', lineHeight: 1.6 }}>
-          사진 좌표로 자동 매칭된 건물이에요. 맞으면 그대로 다음으로 넘어가세요.
+          사진 좌표로 자동 매칭된 건물이에요. 위성 사진과 비교해 맞으면 그대로 다음으로.
         </p>
         <button
           type="button"
@@ -1177,7 +1269,7 @@ function AddressStep({
           className="knu-press"
           style={{
             display: 'block', width: '100%',
-            padding: '10px 12px', borderRadius: 10,
+            padding: '11px 12px', borderRadius: 10,
             border: `1px solid ${tok.inputBorder}`,
             background: tok.inputBg, color: tok.textPrimary,
             fontSize: 13, fontWeight: 600, cursor: 'pointer',
@@ -1192,6 +1284,14 @@ function AddressStep({
 
   return (
     <div style={cardStyle}>
+      {previewCoord && (
+        <SatellitePreview
+          tok={tok}
+          lat={previewCoord.lat}
+          lng={previewCoord.lng}
+          caption="사진 위치 기준"
+        />
+      )}
       <p style={{ fontSize: 11, fontWeight: 700, color: tok.accentColor, margin: 0, letterSpacing: '0.06em' }}>
         주소 확인
       </p>
@@ -1200,7 +1300,9 @@ function AddressStep({
       </h2>
       <p style={{ fontSize: 13, color: tok.textSecondary, margin: '0 0 12px', lineHeight: 1.6 }}>
         {addressText.trim()
-          ? '사진 위치로 추정한 주소예요. 다르면 수정해 주세요.'
+          ? previewCoord
+            ? '사진 위치로 추정한 주소예요. 위성 사진과 비교해 다르면 수정해 주세요.'
+            : '추정한 주소예요. 다르면 수정해 주세요.'
           : hasPhotos
             ? '사진에서 위치를 찾지 못했어요. 도로명주소를 직접 입력해 주세요.'
             : '사진이 없어 자동으로 채울 수 없어요. 도로명주소를 직접 입력해 주세요.'}
@@ -1217,7 +1319,8 @@ function AddressStep({
           padding: '12px 14px', borderRadius: 10,
           border: `1px solid ${tok.inputBorder}`,
           background: tok.inputBg, color: tok.inputColor,
-          fontSize: 14, outline: 'none',
+          // iOS Safari 가 16px 미만 input 포커스 시 자동 확대 — 16px 로 차단.
+          fontSize: 16, outline: 'none',
           fontFamily: 'inherit', boxSizing: 'border-box',
         }}
       />
@@ -1287,7 +1390,8 @@ function FinishStep({
           border: `1px solid ${tok.inputBorder}`,
           background: tok.inputBg,
           color: tok.inputColor,
-          fontSize: 13,
+          // iOS Safari 가 16px 미만 textarea 포커스 시 자동 확대 — 16px 로 차단.
+          fontSize: 16,
           outline: 'none',
           resize: 'vertical',
           fontFamily: 'inherit',
