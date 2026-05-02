@@ -159,14 +159,23 @@ export default function TrackCardFlow({
   // 자동 저장 인디케이터
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // 언마운트 후 setSaveState 호출을 막기 위한 가드 — keepalive fetch 는
+  // 페이지가 닫혀도 완료될 수 있어 응답 시점에 컴포넌트가 사라져 있을 수 있음.
+  const mountedRef = useRef(true)
+  // 디바운스 저장 콜백이 실행될 때 가장 최신 응답 상태를 읽기 위한 미러.
+  // 평가/메모는 같은 row 의 두 컬럼이라, 한쪽이 트리거한 저장이 다른 쪽의
+  // 최신 입력을 함께 보내야 upsert 시 컬럼이 stale 값으로 덮여 사라지지 않음.
+  const responsesRef = useRef(responses)
+  useEffect(() => { responsesRef.current = responses }, [responses])
 
   const flashSaved = useCallback(() => {
+    if (!mountedRef.current) return
     setSaveState('saved')
     if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
-    savedTimerRef.current = setTimeout(() => setSaveState('idle'), 1500)
+    savedTimerRef.current = setTimeout(() => {
+      if (mountedRef.current) setSaveState('idle')
+    }, 1500)
   }, [])
-
-  useEffect(() => () => { if (savedTimerRef.current) clearTimeout(savedTimerRef.current) }, [])
 
   // 단계 — 우선순위:
   //   1. `?step=unit` 쿼리 파라미터가 있으면 무조건 unit 단계 (결과물 카드에서 진입한 경우)
@@ -194,46 +203,93 @@ export default function TrackCardFlow({
   const progress = currentSlot / totalSlots
 
   // ── 자동 저장 헬퍼 ─────────────────────────────────────────────────────
+  // `keepalive: true` — 페이지 가시성 변경/언로드 시 flush 한 fetch 가 페이지가
+  // 사라진 뒤에도 완료되도록. 본문은 작아 64KB 한도에 걸리지 않음.
   const patchTrack = useCallback(async (update: Record<string, unknown>) => {
-    setSaveState('saving')
-    const res = await fetch(`/api/bangbwayo/sets/${setId}/tracks/${track.id}`, {
-      method:  'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(update),
-    })
-    if (!res.ok) { setSaveState('error'); return }
+    if (mountedRef.current) setSaveState('saving')
+    let ok = false
+    try {
+      const res = await fetch(`/api/bangbwayo/sets/${setId}/tracks/${track.id}`, {
+        method:    'PATCH',
+        headers:   { 'Content-Type': 'application/json' },
+        body:      JSON.stringify(update),
+        keepalive: true,
+      })
+      ok = res.ok
+    } catch { ok = false }
+    if (!mountedRef.current) return
+    if (!ok) { setSaveState('error'); return }
     flashSaved()
   }, [setId, track.id, flashSaved])
 
   const upsertResponse = useCallback(async (
     key: string, rating: Rating | null, memo: string,
   ) => {
-    setSaveState('saving')
-    const res = await fetch(`/api/bangbwayo/sets/${setId}/tracks/${track.id}/responses`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ checklist_item_key: key, rating, memo: memo || null }),
-    })
-    if (!res.ok) { setSaveState('error'); return }
+    if (mountedRef.current) setSaveState('saving')
+    let ok = false
+    try {
+      const res = await fetch(`/api/bangbwayo/sets/${setId}/tracks/${track.id}/responses`, {
+        method:    'POST',
+        headers:   { 'Content-Type': 'application/json' },
+        body:      JSON.stringify({ checklist_item_key: key, rating, memo: memo || null }),
+        keepalive: true,
+      })
+      ok = res.ok
+    } catch { ok = false }
+    if (!mountedRef.current) return
+    if (!ok) { setSaveState('error'); return }
     flashSaved()
   }, [setId, track.id, flashSaved])
 
   // ── 디바운스 자동 저장 — 단계가 바뀔 때 즉시 flush ──────────────────────
   // 마지막 응답·계약·호수 변경을 추적하고 일정 지연 후 PATCH/upsert.
-  const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
-  const scheduleSave = useCallback((key: string, fn: () => void, delayMs = 700) => {
-    if (debounceTimers.current[key]) clearTimeout(debounceTimers.current[key])
-    debounceTimers.current[key] = setTimeout(() => {
+  // flush 시 콜백을 *실행*해야 하므로 timer 와 fn 을 함께 보관한다.
+  // (이전 구현은 clearTimeout 만 하고 콜백을 실행하지 않아 단계 이동 직전의
+  // 입력이 영구 손실됐다.)
+  const debouncedSaves = useRef<Record<string, {
+    timer: ReturnType<typeof setTimeout>
+    fn:    () => unknown
+  }>>({})
+  const scheduleSave = useCallback((key: string, fn: () => unknown, delayMs = 700) => {
+    const existing = debouncedSaves.current[key]
+    if (existing) clearTimeout(existing.timer)
+    const timer = setTimeout(() => {
+      delete debouncedSaves.current[key]
       fn()
-      delete debounceTimers.current[key]
     }, delayMs)
+    debouncedSaves.current[key] = { timer, fn }
   }, [])
-  const flushAllPending = useCallback(() => {
-    for (const k of Object.keys(debounceTimers.current)) {
-      clearTimeout(debounceTimers.current[k])
-      delete debounceTimers.current[k]
+  const flushAllPending = useCallback((): Promise<unknown> => {
+    const entries = Object.values(debouncedSaves.current)
+    debouncedSaves.current = {}
+    const promises: Promise<unknown>[] = []
+    for (const { timer, fn } of entries) {
+      clearTimeout(timer)
+      const result = fn()
+      if (result && typeof (result as { then?: unknown }).then === 'function') {
+        promises.push(result as Promise<unknown>)
+      }
     }
+    return Promise.all(promises)
   }, [])
+
+  // 탭 숨김·페이지 언로드 시 진행 중인 입력을 즉시 서버로 보냄 (keepalive).
+  // 언마운트 시에도 flush 하지만, 그 이후 setSaveState 는 mountedRef 가드로 차단.
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') flushAllPending()
+    }
+    const onPageHide = () => { flushAllPending() }
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('pagehide', onPageHide)
+    return () => {
+      mountedRef.current = false
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('pagehide', onPageHide)
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
+      flushAllPending()
+    }
+  }, [flushAllPending])
 
   // ── 단계 이동 ──────────────────────────────────────────────────────────
   const goNext = useCallback(() => {
@@ -282,14 +338,29 @@ export default function TrackCardFlow({
   }
 
   // ── 응답 변경 ──────────────────────────────────────────────────────────
+  // 평가·메모는 같은 row 의 두 컬럼이라 한 쪽 액션이 다른 쪽의 최신값을 함께
+  // 보내야 한다. 저장 콜백은 closure 가 아닌 `responsesRef` 에서 발사 시점의
+  // 최신값을 읽어 stale 값으로 컬럼이 덮여 사라지는 사고를 방지.
   const setRating = (key: string, rating: Rating) => {
     tapHaptic()
-    setResponses((m) => ({ ...m, [key]: { rating, memo: m[key]?.memo ?? '' } }))
-    scheduleSave(`r:${key}`, () => upsertResponse(key, rating, responses[key]?.memo ?? ''), 250)
+    setResponses((m) => ({
+      ...m,
+      [key]: { rating, memo: m[key]?.memo ?? '' },
+    }))
+    scheduleSave(`r:${key}`, () => {
+      const cur = responsesRef.current[key] ?? { rating: null, memo: '' }
+      return upsertResponse(key, cur.rating, cur.memo)
+    }, 250)
   }
   const setMemo = (key: string, memo: string) => {
-    setResponses((m) => ({ ...m, [key]: { rating: m[key]?.rating ?? null, memo } }))
-    scheduleSave(`r:${key}`, () => upsertResponse(key, responses[key]?.rating ?? null, memo))
+    setResponses((m) => ({
+      ...m,
+      [key]: { rating: m[key]?.rating ?? null, memo },
+    }))
+    scheduleSave(`r:${key}`, () => {
+      const cur = responsesRef.current[key] ?? { rating: null, memo: '' }
+      return upsertResponse(key, cur.rating, cur.memo)
+    })
   }
 
   // ── 계약 변경 ──────────────────────────────────────────────────────────
@@ -383,9 +454,11 @@ export default function TrackCardFlow({
   }, [setId, track.id, matchedBuilding, geocodedAddress, flashSaved])
 
   // ── 트랙 마무리 ────────────────────────────────────────────────────────
+  // 보류된 응답·메모·계약 저장이 *모두 끝난 뒤* status 를 closed 로 바꿔야
+  // 결과물 페이지가 사용자가 마지막에 입력한 값을 그대로 본다.
   const finishTrack = useCallback(async () => {
     successHaptic()
-    flushAllPending()
+    await flushAllPending()
     await patchTrack({ status: 'closed' })
     router.push(`/bangbwayo/sets/${setId}`)
     router.refresh()
