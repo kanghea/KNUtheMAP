@@ -1,12 +1,17 @@
 'use client'
 
-import { type RoommateProfile, DORMITORIES, BIRTH_YEARS, STUDENT_IDS, BEDTIMES, WAKEUP_TIMES, SLEEP_HABITS_OPTIONS, SLEEP_LIGHT_OPTIONS, SHOWER_DURATIONS, TIME_OF_DAY, CLEANING_FREQ_OPTIONS, PERFUME_OPTIONS, SCENT_OPTIONS, SOUND_OPTIONS, SMOKING_OPTIONS, DRINKING_FREQ_OPTIONS, DRINKING_AMOUNT_OPTIONS, FREQUENCY_OPTIONS, INDOOR_CALL_OPTIONS, INDOOR_EATING_OPTIONS, BUG_OPTIONS, SHARING_OPTIONS, GUEST_OPTIONS, ALARM_USAGE_OPTIONS, ALARM_FREQ_OPTIONS, HOMETOWN_FREQ_OPTIONS, STUDY_PLACE_OPTIONS, WANTS_TO_LEAVE_OPTIONS, MBTI_LETTERS, SCALE_LABELS } from '@/lib/roommate-constants'
+import { type RoommateProfile, DORMITORIES, BIRTH_YEARS, STUDENT_IDS, BEDTIMES, WAKEUP_TIMES, SLEEP_HABITS_OPTIONS, SLEEP_LIGHT_OPTIONS, SHOWER_DURATIONS, TIME_OF_DAY, CLEANING_FREQ_OPTIONS, PERFUME_OPTIONS, SCENT_OPTIONS, SOUND_OPTIONS, SMOKING_OPTIONS, DRINKING_FREQ_OPTIONS, DRINKING_AMOUNT_OPTIONS, FREQUENCY_OPTIONS, INDOOR_CALL_OPTIONS, INDOOR_EATING_OPTIONS, BUG_OPTIONS, SHARING_OPTIONS, GUEST_OPTIONS, ALARM_USAGE_OPTIONS, ALARM_FREQ_OPTIONS, HOMETOWN_FREQ_OPTIONS, STUDY_PLACE_OPTIONS, WANTS_TO_LEAVE_OPTIONS, MBTI_LETTERS, SCALE_LABELS, GENDER_OPTIONS } from '@/lib/roommate-constants'
+import StepDepartment from './StepDepartment'
 import { useState, useRef, useEffect, useCallback } from 'react'
 
+// 호출자(전체 온보딩·룸메이트 전용 온보딩) 모두 ONBOARDING_TOKENS 를 넘기므로
+// 그 객체의 모든 키를 직접 받는다. StepDepartment 등 다른 온보딩 스텝과 키
+// 셰어를 위해서도 필요.
 interface Tok {
   bg: string; surface: string; textPrimary: string; textSecondary: string; textTertiary: string
   border: string; accent: string; cardBg: string; cardBorder: string
   cardActiveBg: string; cardActiveBorder: string; cardActiveGlow: string
+  btnPrimary: string; btnPrimaryText: string; progressFill: string
 }
 
 interface Props {
@@ -524,10 +529,22 @@ function ScrollChips({ options, value, onChange, tok }: {
 // ── 섹션 렌더링 ──
 
 export default function RoommateChecklist({ section, profile, onChange, tok }: Props) {
-  // 섹션 0: 기본 정보
+  // 섹션 0: 기본 정보 (학과·생년·학번·성별·거주 유형)
   if (section === 0) {
     return (
       <div>
+        <FieldGroup tok={tok}>
+          <FieldLabel text="학과" tok={tok} />
+          {/* 방구하기 온보딩에서 쓰는 StepDepartment 와 동일한 컴포넌트 — 단과대 →
+              학과 2단계 + 선배 팁. 룸메이트 매칭에서도 같은 dept 정보가 필요해
+              users.dept 로 동기화한다 (/api/roommate POST). */}
+          <StepDepartment
+            selected={profile.dept ?? null}
+            onSelect={v => onChange({ dept: v })}
+            tok={tok}
+          />
+        </FieldGroup>
+
         <FieldGroup tok={tok}>
           <FieldLabel text="몇 년생이에요?" tok={tok} />
           <BirthYearPicker value={profile.birth_year ?? null} onChange={v => onChange({ birth_year: v })} tok={tok} />
@@ -537,6 +554,16 @@ export default function RoommateChecklist({ section, profile, onChange, tok }: P
           <FieldLabel text="학번" tok={tok} />
           <ScrollChips options={STUDENT_IDS.map(n => `${n}학번`)} value={profile.student_id ? `${profile.student_id}학번` : null}
             onChange={v => onChange({ student_id: parseInt(v) })} tok={tok} />
+        </FieldGroup>
+
+        <FieldGroup tok={tok}>
+          <FieldLabel text="성별" tok={tok} />
+          <ChipGroup
+            options={[...GENDER_OPTIONS]}
+            value={profile.gender ?? ''}
+            onChange={v => onChange({ gender: v as 'male' | 'female' })}
+            tok={tok}
+          />
         </FieldGroup>
 
         <FieldGroup tok={tok}>
@@ -854,7 +881,8 @@ function Section7Finish({ profile, onChange, tok }: { profile: Partial<RoommateP
 export function isSectionComplete(section: number, profile: Partial<RoommateProfile>): boolean {
   switch (section) {
     case 0:
-      return !!(profile.birth_year && profile.student_id && profile.living_type &&
+      return !!(profile.dept && profile.birth_year && profile.student_id &&
+        profile.gender && profile.living_type &&
         (profile.living_type !== 'dormitory' || profile.dormitory))
     case 1:
       return !!(profile.bedtime_start && profile.bedtime_end &&

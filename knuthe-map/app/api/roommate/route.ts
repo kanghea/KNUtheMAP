@@ -25,12 +25,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Missing profile or weights' }, { status: 400 })
   }
 
+  // dept 는 roommate_profiles 컬럼이 아니라 users.dept 로 동기화 — 분리.
+  // student_id 는 roommate_profiles 컬럼이지만 users.grade(text) 에도 동시에
+  // 채워둬 마이페이지·랜딩에서 일관되게 표시한다.
+  const { dept, ...profileForRoommate } = profile as Record<string, unknown> & { dept?: unknown }
+  const studentIdNum = typeof profileForRoommate.student_id === 'number'
+    ? profileForRoommate.student_id
+    : null
+
   // 프로필 upsert (user_id가 unique이므로 conflict 시 업데이트)
   const { data, error } = await supabase
     .from('roommate_profiles')
     .upsert({
       user_id: user.id,
-      ...profile,
+      ...profileForRoommate,
       swipe_weights: weights,
     }, { onConflict: 'user_id' })
     .select()
@@ -43,14 +51,22 @@ export async function POST(request: Request) {
   // 현재 role 확인 — 이미 roommate면 굳이 다시 쓰지 않는다(불필요한 DB write 방지)
   const { data: u } = await supabase
     .from('users')
-    .select('role')
+    .select('role, dept, grade')
     .eq('id', user.id)
     .single()
 
-  if (u?.role !== 'roommate') {
+  // role · dept · grade 동기화 — 변경된 필드만 업데이트
+  const userUpdate: Record<string, string> = {}
+  if (u?.role !== 'roommate')                 userUpdate.role  = 'roommate'
+  if (typeof dept === 'string' && dept && u?.dept !== dept) userUpdate.dept  = dept
+  if (studentIdNum) {
+    const gradeStr = `${studentIdNum}학번`
+    if (u?.grade !== gradeStr) userUpdate.grade = gradeStr
+  }
+  if (Object.keys(userUpdate).length > 0) {
     await supabase
       .from('users')
-      .update({ role: 'roommate' })
+      .update(userUpdate)
       .eq('id', user.id)
   }
 
