@@ -6,13 +6,33 @@ import Image from 'next/image'
 import type { ThemeTokens, ThemeMode } from '@/lib/theme-tokens'
 import type { ChecklistItem, Rating } from '@/lib/bangbwayo-checklist'
 import { tapHaptic, successHaptic } from '@/lib/hooks/useHaptic'
-import MoneyDrumPicker from '@/components/shared/MoneyDrumPicker'
+import MoneyDrumPicker, {
+  DEPOSIT_VALUES, MONTHLY_VALUES, MAINTENANCE_VALUES,
+} from '@/components/shared/MoneyDrumPicker'
 
 // 호수 드럼 값 — 0(없음) + 1~999. iOS picker 결.
-// 실제 호수는 보통 1~999 안에 들어가고, 0 은 "선택 안 함" 으로 사용.
 const UNIT_VALUES: number[] = [0, ...Array.from({ length: 999 }, (_, i) => i + 1)]
 function formatUnit(v: number): string {
   return v === 0 ? '없음' : `${v}호`
+}
+
+// 층 드럼 — 지하 5층 ~ 지상 50층 (0층 제외, ContractForm 패턴 그대로)
+const FLOOR_VALUES: number[] = [
+  ...Array.from({ length: 5 }, (_, i) => -(5 - i)),  // -5 .. -1
+  ...Array.from({ length: 50 }, (_, i) => i + 1),    // 1 .. 50
+]
+function formatFloor(v: number): string {
+  return v < 0 ? `지하 ${-v}층` : `${v}층`
+}
+
+function formatDeposit(v: number): string {
+  if (v === 0) return '없음'
+  if (v >= 10000 && v % 10000 === 0) return `${v / 10000}억`
+  if (v >= 1000  && v % 1000  === 0) return `${v / 1000}천만원`
+  return `${v}만원`
+}
+function formatMonthly(v: number): string {
+  return v === 0 ? '없음' : `${v}만원`
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -230,6 +250,13 @@ export default function TrackCardFlow({
   const onUnitChange = (v: string) => {
     setUnitNumber(v)
     scheduleSave('unit', () => patchTrack({ unit_number: v.trim() || null }))
+    // 층 자동 도출 — 호수 100 이상이면 백자리수가 곧 층 (예: 304→3, 1004→10)
+    const num = parseInt(v, 10)
+    if (Number.isFinite(num) && num >= 100) {
+      const inferredFloor = Math.floor(num / 100)
+      setContract((c) => ({ ...c, floor: inferredFloor }))
+      scheduleSave('contract:floor', () => patchTrack({ floor: inferredFloor }))
+    }
   }
 
   // ── 응답 변경 ──────────────────────────────────────────────────────────
@@ -420,6 +447,7 @@ export default function TrackCardFlow({
             tok={tok}
             contract={contract}
             onChange={setContractField}
+            unitNumber={unitNumber}
           />
         )}
 
@@ -801,34 +829,37 @@ function ItemCard({
 // ─────────────────────────────────────────────────────────────────────────────
 
 function ContractStep({
-  tok, contract, onChange,
+  tok, contract, onChange, unitNumber,
 }: {
   tok: ThemeTokens
   contract: { deposit: number | string; monthly_rent: number | string; maintenance: number | string; floor: number | string; contract_type: '월세' | '전세' | '매매' }
   onChange: (field: 'deposit' | 'monthly_rent' | 'maintenance' | 'floor' | 'contract_type', value: string | number | null) => void
+  unitNumber: string
 }) {
-  const inputStyle = {
-    width: '100%',
-    padding: '12px 14px',
-    borderRadius: 10,
-    border: `1px solid ${tok.inputBorder}`,
-    background: tok.inputBg,
-    color: tok.inputColor,
-    fontSize: 14,
-    outline: 'none',
-    boxSizing: 'border-box' as const,
-  }
   const labelStyle = {
     fontSize: 11, fontWeight: 700, color: tok.textTertiary,
     margin: '0 0 6px', letterSpacing: '0.04em',
   }
-  const numChange = (field: 'deposit' | 'monthly_rent' | 'maintenance' | 'floor', v: string) => {
-    if (v === '') onChange(field, null)
-    else {
-      const n = Number(v.replace(/[^\d-]/g, ''))
-      if (Number.isFinite(n)) onChange(field, n)
-    }
+  const subLabelStyle = {
+    fontSize: 11, fontWeight: 600, color: tok.textSecondary,
+    margin: '0 0 6px',
   }
+
+  const isMonthly = contract.contract_type === '월세'
+
+  // 호수에서 층 자동 도출 — 사용자에게 보일 자동값 (변경 가능)
+  const inferredFloor = (() => {
+    const n = parseInt(unitNumber, 10)
+    if (!Number.isFinite(n) || n < 100) return null
+    return Math.floor(n / 100)
+  })()
+
+  const depositValue     = typeof contract.deposit      === 'number' ? contract.deposit      : 0
+  const monthlyValue     = typeof contract.monthly_rent === 'number' ? contract.monthly_rent : 0
+  const maintenanceValue = typeof contract.maintenance  === 'number' ? contract.maintenance  : 0
+  const floorValue       = typeof contract.floor === 'number'
+    ? contract.floor
+    : (inferredFloor ?? 1)
 
   return (
     <div style={{
@@ -852,6 +883,7 @@ function ContractStep({
               <button
                 key={t}
                 type="button"
+                className="knu-press"
                 onClick={() => onChange('contract_type', t)}
                 style={{
                   flex: 1, padding: '10px 0', borderRadius: 10,
@@ -859,6 +891,7 @@ function ContractStep({
                   background: active ? tok.accentBg : tok.inputBg,
                   color: active ? tok.accentColor : tok.textPrimary,
                   fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                  transition: 'transform .1s',
                 }}
               >{t}</button>
             )
@@ -866,58 +899,71 @@ function ContractStep({
         </div>
       </div>
 
-      {/* 보증금 / 월세 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-        <div>
-          <p style={labelStyle}>보증금 (만원)</p>
-          <input
-            value={contract.deposit === null ? '' : String(contract.deposit)}
-            onChange={(e) => numChange('deposit', e.target.value)}
-            inputMode="numeric"
-            placeholder="1000"
-            style={inputStyle}
-          />
-        </div>
-        <div>
-          <p style={labelStyle}>
-            {contract.contract_type === '전세' || contract.contract_type === '매매' ? '거래가 (만원)' : '월세 (만원)'}
-          </p>
-          <input
-            value={contract.monthly_rent === null ? '' : String(contract.monthly_rent)}
-            onChange={(e) => numChange('monthly_rent', e.target.value)}
-            inputMode="numeric"
-            placeholder="45"
-            style={inputStyle}
-          />
-        </div>
+      {/* 보증금 */}
+      <div style={{ marginBottom: 14 }}>
+        <p style={subLabelStyle}>
+          보증금 · <strong style={{ color: tok.textPrimary }}>{formatDeposit(depositValue)}</strong>
+        </p>
+        <MoneyDrumPicker
+          tok={tok}
+          values={DEPOSIT_VALUES}
+          value={depositValue}
+          onChange={(v) => onChange('deposit', v)}
+          format={formatDeposit}
+        />
       </div>
 
-      {/* 관리비 / 층 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <div>
-          <p style={labelStyle}>관리비 (만원)</p>
-          <input
-            value={contract.maintenance === null ? '' : String(contract.maintenance)}
-            onChange={(e) => numChange('maintenance', e.target.value)}
-            inputMode="numeric"
-            placeholder="7"
-            style={inputStyle}
+      {/* 월세 — 월세 계약일 때만 노출 */}
+      {isMonthly && (
+        <div style={{ marginBottom: 14 }}>
+          <p style={subLabelStyle}>
+            월세 · <strong style={{ color: tok.textPrimary }}>{formatMonthly(monthlyValue)}</strong>
+          </p>
+          <MoneyDrumPicker
+            tok={tok}
+            values={MONTHLY_VALUES}
+            value={monthlyValue}
+            onChange={(v) => onChange('monthly_rent', v)}
+            format={formatMonthly}
           />
         </div>
-        <div>
-          <p style={labelStyle}>층</p>
-          <input
-            value={contract.floor === null ? '' : String(contract.floor)}
-            onChange={(e) => numChange('floor', e.target.value)}
-            inputMode="numeric"
-            placeholder="3"
-            style={inputStyle}
-          />
-        </div>
+      )}
+
+      {/* 관리비 */}
+      <div style={{ marginBottom: 14 }}>
+        <p style={subLabelStyle}>
+          관리비 (선택) · <strong style={{ color: tok.textPrimary }}>{formatMonthly(maintenanceValue)}</strong>
+        </p>
+        <MoneyDrumPicker
+          tok={tok}
+          values={MAINTENANCE_VALUES}
+          value={maintenanceValue}
+          onChange={(v) => onChange('maintenance', v)}
+          format={formatMonthly}
+        />
+      </div>
+
+      {/* 층 — 호수에서 자동 도출되지만 직접 변경 가능 */}
+      <div>
+        <p style={subLabelStyle}>
+          층 · <strong style={{ color: tok.textPrimary }}>{formatFloor(floorValue)}</strong>
+          {inferredFloor !== null && contract.floor === inferredFloor && (
+            <span style={{ marginLeft: 6, color: tok.accentColor, fontWeight: 700 }}>
+              (호수 기준 자동)
+            </span>
+          )}
+        </p>
+        <MoneyDrumPicker
+          tok={tok}
+          values={FLOOR_VALUES}
+          value={floorValue}
+          onChange={(v) => onChange('floor', v)}
+          format={formatFloor}
+        />
       </div>
 
       <p style={{ fontSize: 11, color: tok.textTertiary, margin: '14px 0 0', lineHeight: 1.5 }}>
-        들은 대로만 적어주세요. 정확하지 않아도 돼요 — 비교에만 쓰여요.
+        들은 대로만 골라주세요. 정확하지 않아도 돼요 — 비교에만 쓰여요.
       </p>
     </div>
   )
