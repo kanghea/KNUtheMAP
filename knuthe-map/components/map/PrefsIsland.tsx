@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { useRole, type Role } from '@/lib/useRole'
@@ -173,6 +173,7 @@ function tapHaptic() {
 
 export default function PrefsIsland({ initialRole = 'tenant', initialTheme = 'dark', initialViewMode = 'rooms' }: Props) {
   const pathname          = usePathname()
+  const searchParams      = useSearchParams()
   const router            = useRouter()
   const clientRole        = useRole()
   const role              = clientRole ?? initialRole  // 클라이언트 role 우선, 로딩 중엔 서버값 사용
@@ -264,8 +265,9 @@ export default function PrefsIsland({ initialRole = 'tenant', initialTheme = 'da
   }), [tok.accentColor, tok.textTertiary])
 
   // 온보딩 중(`/?reset=1`)에는 숨김 — 모든 hooks 선언 이후에 분기.
-  const isOnboarding = pathname === '/' &&
-    typeof window !== 'undefined' && window.location.search.includes('reset=1')
+  // useSearchParams() 를 써야 SSR/CSR 결과가 동일하고(hydration mismatch 방지),
+  // 같은 pathname 안에서 쿼리만 바뀌는 클라이언트 네비게이션에도 반응한다.
+  const isOnboarding = pathname === '/' && searchParams.get('reset') === '1'
   if (isOnboarding) return null
 
   return (
