@@ -9,8 +9,8 @@
  * `service` 클라이언트를 함께 넘긴다 (페이지 layer 에서 이미 만들어 쓰는 것 재사용).
  */
 
-import { format } from 'date-fns'
-import { ko }     from 'date-fns/locale'
+import { formatInTimeZone } from 'date-fns-tz'
+import { ko }               from 'date-fns/locale'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { formatTrackLabel } from './bangbwayo-track-label'
 
@@ -78,7 +78,9 @@ function setLabelFor(s: SetCardInputSet): string {
   const title = s.title?.trim()
   if (title) return title
   // 같은 날 여러 셋을 구분할 수 있도록 시각까지 포함
-  return format(new Date(s.started_at), 'M월 d일 (eee) a h:mm', { locale: ko })
+  // started_at 은 timestamptz(UTC). 서버 런타임이 UTC 라 그대로 format 하면
+  // 한국 사용자에게 9시간 어긋난 시각이 보이므로 Asia/Seoul 로 변환해 출력.
+  return formatInTimeZone(new Date(s.started_at), 'Asia/Seoul', 'M월 d일 (eee) a h:mm', { locale: ko })
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
