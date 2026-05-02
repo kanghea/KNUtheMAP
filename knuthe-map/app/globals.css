@@ -8,11 +8,17 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
+  /* 헤더·sticky 표면 — `tok.headerBg` (라이트: rgba(248,250,252,0.92)) 와 매칭.
+     PageWrapper 와 별개 변수로 두는 이유: 알파값을 가져 body 배경을 비추는 패턴 */
+  --header-bg: rgba(248,250,252,0.92);
+  --header-border: #e2e8f0;
 }
 
 [data-theme="dark"] {
   --background: #0a0a0a;
   --foreground: #ededed;
+  --header-bg: rgba(10,10,10,0.92);
+  --header-border: rgba(255,255,255,0.07);
 }
 
 @theme inline {
@@ -25,6 +31,10 @@
 body {
   background: var(--background);
   color: var(--foreground);
+  /* 다크/라이트 토글 시 부드러운 색 전환 — `<html data-theme>` 변경만으로 즉시
+     반응하므로 router.refresh() 결과를 기다릴 필요 없다. PageWrapper 도 같은
+     변수를 쓰므로 동시에 바뀐다 (시각적 임팩트 즉각). */
+  transition: background 180ms ease, color 180ms ease;
   font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont,
     "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR",
     "Helvetica Neue", Arial, sans-serif;

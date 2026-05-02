@@ -59,8 +59,12 @@ export function DashboardHeader({
   return (
     <header style={{
       ...HEADER_BASE,
-      background: tok.headerBg,
-      borderBottom: `1px solid ${tok.headerBorder}`,
+      // 테마 토글 즉각 반영 — CSS 변수 사용. globals.css 의 --header-bg /
+      // --header-border 가 [data-theme] 에 따라 자동 전환되므로 router.refresh()
+      // 결과를 기다릴 필요가 없다. (tok 은 다른 요소들에서 그대로 사용)
+      background: 'var(--header-bg)',
+      borderBottom: '1px solid var(--header-border)',
+      transition: 'background 180ms ease, border-color 180ms ease',
       ...style,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
@@ -111,8 +115,9 @@ export function DashboardHeaderSkeleton({
   return (
     <header style={{
       ...HEADER_BASE,
-      background: tok.headerBg,
-      borderBottom: `1px solid ${tok.headerBorder}`,
+      background: 'var(--header-bg)',
+      borderBottom: '1px solid var(--header-border)',
+      transition: 'background 180ms ease, border-color 180ms ease',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{
