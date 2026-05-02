@@ -6,10 +6,10 @@ export async function getServerTheme(): Promise<ThemeMode> {
   try {
     const jar = await cookies()
     const raw = jar.get('knu_prefs')?.value
-    if (!raw) return 'dark'
-    return parsePrefs(raw)?.theme ?? 'dark'
+    if (!raw) return 'light'
+    return parsePrefs(raw)?.theme ?? 'light'
   } catch {
-    return 'dark'
+    return 'light'
   }
 }
 

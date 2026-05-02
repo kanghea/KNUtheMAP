@@ -140,7 +140,7 @@ export async function DeferredReviewsAndTx({
         <h2 className="text-[1.15rem] font-bold mb-5" style={{ color: tok.textPrimary }}>
           살아본 사람들의 이야기 👋
         </h2>
-        <BookmarkButton buildingId={buildingId} theme={(theme as 'dark' | 'light') ?? 'dark'} />
+        <BookmarkButton buildingId={buildingId} theme={(theme as 'dark' | 'light') ?? 'light'} />
         <ReviewSection
           buildingId={buildingId}
           buildingName={buildingName}

@@ -49,7 +49,7 @@ export default function OnboardingClient() {
 
   // ── 공통 상태 ──────────────────────────────────────────────────────────────
   const [phase,      setPhase]      = useState<Phase>('theme')
-  const [theme,      setTheme]      = useState<Theme>('dark')
+  const [theme,      setTheme]      = useState<Theme>('light')
   const [userRole,   setUserRole]   = useState<UserRole | null>(null)
 
   // ── 세입자 스텝 상태 ───────────────────────────────────────────────────────

@@ -8,7 +8,7 @@ interface Props {
   theme?:         ThemeMode
 }
 
-export default function AdminSection({ buildingsCount, roomsCount, usersCount, theme = 'dark' }: Props) {
+export default function AdminSection({ buildingsCount, roomsCount, usersCount, theme = 'light' }: Props) {
   const tok = THEME_TOKENS[theme]
 
   const stats = [

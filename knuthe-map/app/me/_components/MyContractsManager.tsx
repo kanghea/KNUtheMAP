@@ -38,7 +38,7 @@ export interface UserContract {
   user_contract_history: HistoryEntry[]
 }
 
-export default function MyContractsManager({ theme = 'dark' as ThemeMode }: { theme?: ThemeMode }) {
+export default function MyContractsManager({ theme = 'light' as ThemeMode }: { theme?: ThemeMode }) {
   const tok = THEME_TOKENS[theme]
   const [contracts, setContracts] = useState<UserContract[]>([])
   const [loading,   setLoading]   = useState(true)

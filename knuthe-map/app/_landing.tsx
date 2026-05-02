@@ -83,7 +83,7 @@ export default function LandingPage({ prefs }: { prefs: UserPrefs }) {
   const gradeLabel  = prefs.grade ? `${prefs.grade}` : null
   const heroLabel   = [gradeLabel, prefs.dept].filter(Boolean).join(' · ') || null
 
-  const theme = prefs.theme ?? 'dark'
+  const theme = prefs.theme ?? 'light'
   const tok   = THEME_TOKENS[theme]
   const deco  = LANDING_DECO[theme]
 

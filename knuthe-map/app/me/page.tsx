@@ -27,7 +27,7 @@ const ROLE_LABELS: Record<string, string> = {
 }
 
 function readTheme(prefsRaw: string | undefined): ThemeMode {
-  return prefsRaw ? (parsePrefs(prefsRaw)?.theme ?? 'dark') : 'dark'
+  return prefsRaw ? (parsePrefs(prefsRaw)?.theme ?? 'light') : 'light'
 }
 
 export default async function MePage() {

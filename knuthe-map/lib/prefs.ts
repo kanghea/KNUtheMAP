@@ -30,8 +30,8 @@ export function encodePrefs(p: UserPrefs): string {
 export function parsePrefs(raw: string): UserPrefs | null {
   try {
     const parsed = JSON.parse(decodeURIComponent(raw))
-    // 이전 버전 쿠키 호환: theme 없으면 dark 기본값
-    return { theme: 'dark', ...parsed } as UserPrefs
+    // 이전 버전 쿠키 호환: theme 없으면 light 기본값
+    return { theme: 'light', ...parsed } as UserPrefs
   } catch {
     return null
   }

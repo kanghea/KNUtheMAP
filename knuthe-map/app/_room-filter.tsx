@@ -222,7 +222,7 @@ function Section({
 
 // ── 메인 컴포넌트 ──────────────────────────────────────────────────────
 
-export default function RoomFilterCard({ theme = 'dark' }: { theme?: 'dark' | 'light' }) {
+export default function RoomFilterCard({ theme = 'light' }: { theme?: 'dark' | 'light' }) {
   const { filters: filter, setFilters } = useFilters()
   const [section,      setSection]      = useState<string | null>(null)
   const [notifOn,      setNotifOn]      = useState(false)

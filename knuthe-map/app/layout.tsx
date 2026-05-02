@@ -40,7 +40,7 @@ export default async function RootLayout({
   // viewMode 쿠키: role과 분리된 "보기 모드"(방보기 ↔ 룸메이트). role이 권한이라면
   // viewMode는 표시. 쿠키 없으면 role을 기준으로 기본값 추정.
   let role:     Role      = 'tenant'
-  let theme:    ThemeMode = 'dark'
+  let theme:    ThemeMode = 'light'
   let viewMode: ViewMode | null = null
   try {
     const jar    = await cookies()
@@ -51,7 +51,7 @@ export default async function RootLayout({
     viewMode = sealedView ? unsealViewMode(sealedView) : null
 
     const prefsRaw = jar.get('knu_prefs')?.value
-    if (prefsRaw) theme = parsePrefs(prefsRaw)?.theme ?? 'dark'
+    if (prefsRaw) theme = parsePrefs(prefsRaw)?.theme ?? 'light'
   } catch {}
 
   // viewMode 쿠키 없으면 role로부터 추정: roommate role → 'roommate', 그 외 → 'rooms'

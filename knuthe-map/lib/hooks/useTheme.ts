@@ -14,6 +14,6 @@ import { THEME_TOKENS, type ThemeMode, type ThemeTokens } from '@/lib/theme-toke
  *   쿠키 저장은 별도로 `savePrefs()`를 호출해야 한다.
  */
 export function useTheme(): { theme: ThemeMode; tok: ThemeTokens; setTheme: (m: ThemeMode) => void } {
-  const [theme, setTheme] = useState<ThemeMode>(() => loadPrefs()?.theme ?? 'dark')
+  const [theme, setTheme] = useState<ThemeMode>(() => loadPrefs()?.theme ?? 'light')
   return { theme, tok: THEME_TOKENS[theme], setTheme }
 }

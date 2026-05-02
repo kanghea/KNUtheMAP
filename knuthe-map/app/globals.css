@@ -4,7 +4,7 @@
    소스 오브 트루스는 `knu_prefs.theme` 쿠키이고, 서버에서 `<html data-theme="...">`
    로 부착된다 (app/layout.tsx). CSS 변수와 JS 토큰(`lib/theme-tokens.ts`) 가
    동일한 쿠키를 따르므로 hydration 직후·overscroll·safe-area 영역에서도
-   배경/전경이 어긋나지 않는다. 쿠키 미설정 시 다크가 기본값(layout 폴백). */
+   배경/전경이 어긋나지 않는다. 쿠키 미설정 시 라이트가 기본값(layout 폴백). */
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;

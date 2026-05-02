@@ -195,7 +195,7 @@ export default async function BuildingPage({
   }
 
   const title = b.name?.trim() || shortAddress(b.address)
-  const theme = prefs?.theme ?? 'dark'
+  const theme = prefs?.theme ?? 'light'
   const tok: Tok = BLDG_THEME[theme]
 
   const mapboxStaticImg = b.lat && b.lng
