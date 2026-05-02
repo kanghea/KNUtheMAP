@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from
 import { useRole, type Role } from '@/lib/useRole'
 import { THEME_TOKENS, type ThemeMode } from '@/lib/theme-tokens'
 import type { ViewMode } from '@/lib/view-mode-cookie'
+import type { OnboardingMode } from '@/lib/prefs'
 
 // ── 아이콘 ───────────────────────────────────────────────────────────────────
 // color는 부모에서 active/inactive·테마에 따라 계산해 전달.
@@ -98,6 +99,38 @@ function IconRoommate({ color }: NavIconProps) {
   )
 }
 
+function IconClipboard({ color }: NavIconProps) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+      stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="8" y="2" width="8" height="4" rx="1" />
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      <path d="M9 12h6" /><path d="M9 16h6" />
+    </svg>
+  )
+}
+
+function IconClock({ color }: NavIconProps) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+      stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  )
+}
+
+function IconMap({ color }: NavIconProps) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+      stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21 3 6" />
+      <line x1="9" y1="3" x2="9" y2="18" />
+      <line x1="15" y1="6" x2="15" y2="21" />
+    </svg>
+  )
+}
+
 // ── nav 설정 ─────────────────────────────────────────────────────────────────
 
 type NavItem = {
@@ -108,13 +141,13 @@ type NavItem = {
   disabled?: boolean  // 미구현 탭
 }
 
-function navItems(role: Role, viewMode: ViewMode): NavItem[] {
+function navItems(role: Role, viewMode: ViewMode, mode: OnboardingMode | null): NavItem[] {
   const me: NavItem = {
     href: '/me', label: '마이', icon: (c) => <IconMe color={c} />,
     match: (p) => p.startsWith('/me'),
   }
 
-  // owner / agent / admin은 viewMode와 무관하게 자기 대시보드 nav 사용.
+  // owner / agent / admin은 viewMode·mode 와 무관하게 자기 대시보드 nav 사용.
   if (role === 'owner') return [
     { href: '/owner',           label: '대시보드', icon: (c) => <IconBuilding color={c} />, match: (p) => p === '/owner' },
     { href: '/owner/units',     label: '호실관리', icon: (c) => <IconRooms color={c} />,    match: (p) => p.startsWith('/owner/units') },
@@ -150,7 +183,19 @@ function navItems(role: Role, viewMode: ViewMode): NavItem[] {
     me,
   ]
 
-  // 기본: 방보기 모드
+  // 온보딩에서 "방봐요" 를 주 모드로 고른 사용자 — 방봐요 흐름 nav.
+  // /bangbwayo 와 그 자식 라우트(셋·트랙·결과·지도) 모두 포함하도록 prefix 매칭.
+  if (mode === 'bangbwayo') return [
+    { href: '/bangbwayo',         label: '새로 시작', icon: (c) => <IconClipboard color={c} />,
+      match: (p) => p === '/bangbwayo' || p.startsWith('/bangbwayo/sets') },
+    { href: '/bangbwayo/history', label: '지난 투어', icon: (c) => <IconClock color={c} />,
+      match: (p) => p.startsWith('/bangbwayo/history') },
+    { href: '/bangbwayo/map',     label: '투어 지도', icon: (c) => <IconMap color={c} />,
+      match: (p) => p.startsWith('/bangbwayo/map') },
+    me,
+  ]
+
+  // 기본: 방보기 모드 (mode === 'rooms' 또는 모드 미설정)
   return [
     { href: '/',      label: '홈',      icon: (c) => <IconHome color={c} />,   match: (p) => p === '/' },
     { href: '/rooms', label: '방보기',  icon: (c) => <IconRooms color={c} />,  match: (p) => p.startsWith('/rooms') },
@@ -168,6 +213,9 @@ interface Props {
   initialTheme?: ThemeMode
   /** 서버 컴포넌트에서 쿠키로 결정한 보기 모드. */
   initialViewMode?: ViewMode
+  /** 온보딩에서 사용자가 고른 주 모드 — nav 구성 분기에 사용.
+   *  null 이면 디폴트(방보기) nav. */
+  initialMode?: OnboardingMode | null
 }
 
 // 햅틱 피드백 — 지원하지 않는 브라우저(iOS Safari 등)는 자동 무시.
@@ -177,7 +225,7 @@ function tapHaptic() {
   }
 }
 
-export default function PrefsIsland({ initialRole = 'tenant', initialTheme = 'dark', initialViewMode = 'rooms' }: Props) {
+export default function PrefsIsland({ initialRole = 'tenant', initialTheme = 'light', initialViewMode = 'rooms', initialMode = null }: Props) {
   const pathname          = usePathname()
   const searchParams      = useSearchParams()
   const router            = useRouter()
@@ -233,8 +281,8 @@ export default function PrefsIsland({ initialRole = 'tenant', initialTheme = 'da
     startTransition(() => { router.push(href) })
   }, [router])
 
-  // 메모이즈 — role/viewMode가 안 바뀌면 배열·아이콘 ReactNode 재생성을 막는다.
-  const items = useMemo(() => navItems(role, initialViewMode), [role, initialViewMode])
+  // 메모이즈 — role/viewMode/mode 가 안 바뀌면 배열·아이콘 ReactNode 재생성을 막는다.
+  const items = useMemo(() => navItems(role, initialViewMode, initialMode), [role, initialViewMode, initialMode])
 
   // 색 매핑 — 다크/라이트 모두에서 active는 accent로 명확히, inactive는 textTertiary로 절제
   const activeIconColor   = tok.accentColor
