@@ -7,8 +7,21 @@ import type { ThemeTokens, ThemeMode } from '@/lib/theme-tokens'
 import type { ChecklistItem, Rating } from '@/lib/bangbwayo-checklist'
 import { tapHaptic, successHaptic } from '@/lib/hooks/useHaptic'
 import MoneyDrumPicker, {
-  DEPOSIT_VALUES, MONTHLY_VALUES, MAINTENANCE_VALUES,
+  MAINTENANCE_VALUES,
 } from '@/components/shared/MoneyDrumPicker'
+
+// 방봐요 전용 보증금 — 300만원부터 10만원 단위 + 일반 자취방 범위(~3000) + 고액 구간.
+// 공유 DEPOSIT_VALUES(0~) 와 다른 이유: 방봐요는 자취방 시세에 더 좁힘 → 빠른 스크롤.
+const BANGBWAYO_DEPOSIT_VALUES: number[] = [
+  ...Array.from({ length: 271 }, (_, i) => 300 + i * 10),  // 300, 310, … 3000
+  3500, 4000, 4500, 5000, 6000, 7000, 8000, 10000,
+]
+
+// 방봐요 전용 월세 — 30만원부터 1만원 단위 + 일반 범위(~100) + 고액 구간.
+const BANGBWAYO_MONTHLY_VALUES: number[] = [
+  ...Array.from({ length: 71 }, (_, i) => 30 + i),         // 30, 31, … 100
+  110, 120, 130, 140, 150, 180, 200,
+]
 
 // 호수 드럼 값 — ContractForm 과 동일한 패턴.
 // 한 층당 8개 슬롯(N01~N08), 1~50층 → [101..108, 201..208, …, 5001..5008].
@@ -917,35 +930,40 @@ function ContractStep({
         </div>
       </div>
 
-      {/* 보증금 */}
-      <div style={{ marginBottom: 14 }}>
-        <p style={subLabelStyle}>
-          보증금 · <strong style={{ color: tok.textPrimary }}>{formatDeposit(depositValue)}</strong>
-        </p>
-        <MoneyDrumPicker
-          tok={tok}
-          values={DEPOSIT_VALUES}
-          value={depositValue}
-          onChange={(v) => onChange('deposit', v)}
-          format={formatDeposit}
-        />
-      </div>
-
-      {/* 월세 — 월세 계약일 때만 노출 */}
-      {isMonthly && (
-        <div style={{ marginBottom: 14 }}>
+      {/* 보증금 + 월세 — 가로 정렬 (월세 계약일 때만 1:1, 그 외 보증금만 풀폭) */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: isMonthly ? '1fr 1fr' : '1fr',
+        gap: 10,
+        marginBottom: 14,
+      }}>
+        <div>
           <p style={subLabelStyle}>
-            월세 · <strong style={{ color: tok.textPrimary }}>{formatMonthly(monthlyValue)}</strong>
+            보증금 · <strong style={{ color: tok.textPrimary }}>{formatDeposit(depositValue)}</strong>
           </p>
           <MoneyDrumPicker
             tok={tok}
-            values={MONTHLY_VALUES}
-            value={monthlyValue}
-            onChange={(v) => onChange('monthly_rent', v)}
-            format={formatMonthly}
+            values={BANGBWAYO_DEPOSIT_VALUES}
+            value={depositValue}
+            onChange={(v) => onChange('deposit', v)}
+            format={formatDeposit}
           />
         </div>
-      )}
+        {isMonthly && (
+          <div>
+            <p style={subLabelStyle}>
+              월세 · <strong style={{ color: tok.textPrimary }}>{formatMonthly(monthlyValue)}</strong>
+            </p>
+            <MoneyDrumPicker
+              tok={tok}
+              values={BANGBWAYO_MONTHLY_VALUES}
+              value={monthlyValue}
+              onChange={(v) => onChange('monthly_rent', v)}
+              format={formatMonthly}
+            />
+          </div>
+        )}
+      </div>
 
       {/* 관리비 */}
       <div style={{ marginBottom: 14 }}>
