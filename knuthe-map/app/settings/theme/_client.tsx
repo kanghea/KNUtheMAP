@@ -21,6 +21,7 @@ export default function ThemeSettingsClient({ initialTheme }: { initialTheme: Th
     // 기존 prefs 위에 theme 만 갱신. 학과·학번·우선순위 등 다른 필드는 보존.
     const cur = loadPrefs() ?? {
       grade: null, dept: null, zone: null, priorities: [], gate: null, theme: t,
+      gender: null, mode: null,
     }
     savePrefs({ ...cur, theme: t })
     if (typeof document !== 'undefined') {

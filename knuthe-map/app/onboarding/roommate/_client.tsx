@@ -79,6 +79,8 @@ export default function RoommateOnboardingClient({
         grade: profile.student_id ? `${profile.student_id}학번` : null,
         dept:  profile.dept ?? null,
         zone:  null, priorities: [], gate: null, theme: initialTheme,
+        gender: (profile.gender as 'male' | 'female' | undefined) ?? null,
+        mode:   'roommate',
       })
       setPhase('login-required')
       return
