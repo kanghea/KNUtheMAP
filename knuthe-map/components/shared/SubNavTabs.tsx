@@ -41,9 +41,12 @@ export function SubNavTabs({ tok, tabs, accent }: SubNavTabsProps) {
         position: 'sticky',
         top: 56,                  // DashboardHeader 의 sticky top 바로 아래
         zIndex: 9,
-        background: tok.headerBg,
+        // 테마 토글 즉각 반영을 위해 CSS 변수 사용 — globals.css 의
+        // --header-bg/--header-border 가 [data-theme] 에 따라 자동 전환된다.
+        background: 'var(--header-bg)',
         backdropFilter: 'blur(12px)',
-        borderBottom: `1px solid ${tok.headerBorder}`,
+        borderBottom: '1px solid var(--header-border)',
+        transition: 'background 180ms ease, border-color 180ms ease',
       }}
     >
       <div
