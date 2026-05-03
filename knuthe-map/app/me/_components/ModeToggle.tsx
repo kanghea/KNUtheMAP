@@ -2,11 +2,15 @@
 
 // 마이페이지 — 보기 모드 토글 (방보기 / 방봐요 / 룸메이트).
 //
-// 분기:
-//   · 방보기   → viewMode='rooms', prefs.mode='rooms', router.refresh
-//   · 룸메이트 → viewMode='roommate', prefs.mode='roommate', router.refresh
+// 분기 (모두 동일 흐름 — 그 자리 머무름):
+//   · 방보기   → viewMode='rooms',    prefs.mode='rooms',     router.refresh
+//   · 방봐요   → viewMode='rooms',    prefs.mode='bangbwayo', router.refresh
+//   · 룸메이트 → viewMode='roommate', prefs.mode='roommate',  router.refresh
 //                (프로필 없으면 /onboarding/roommate 로 이동)
-//   · 방봐요   → prefs.mode='bangbwayo', /bangbwayo 로 이동
+//
+// 토글 후 페이지 이동 X — 사용자가 방봐요 페이지로 가고 싶으면 즉시 갱신된
+// 하단 nav 의 "새로 시작" 탭 클릭. PrefsIsland 가 'knu:nav-change' 이벤트를
+// 받아 nav 구성을 즉시 새 모드 기준으로 그린다.
 //
 // 활성 버튼 우선순위: prefs.mode='bangbwayo' > viewMode='roommate' > 방보기
 // 즉 방봐요 mode 가 가장 권위적 (PR #69 의 PrefsIsland nav 분기와 일치).
@@ -66,31 +70,27 @@ export default function ModeToggle({ initialViewMode, initialMode, theme, hasRoo
     const prefsMode: OnboardingMode = mode  // type narrowing for prefs
     savePrefs({ ...cur, mode: prefsMode })
 
+    // viewMode 쿠키는 'rooms' | 'roommate' 만 받음 — 방봐요는 'rooms' 로 전송.
+    // (방봐요 nav 분기는 PrefsIsland 가 prefs.mode / role 으로 결정)
+    const nextViewMode: 'rooms' | 'roommate' = mode === 'roommate' ? 'roommate' : 'rooms'
+
     // PrefsIsland 에 즉시 반영 신호 — router.refresh() 의 SSR 왕복 대기 없이
     // 하단 다이나믹 아일랜드가 새 nav 구성으로 바로 전환된다.
     if (typeof window !== 'undefined') {
-      const nextViewMode: 'rooms' | 'roommate' = mode === 'roommate' ? 'roommate' : 'rooms'
       window.dispatchEvent(new CustomEvent('knu:nav-change', {
         detail: { mode: prefsMode, viewMode: nextViewMode },
       }))
     }
 
-    if (mode === 'bangbwayo') {
-      // 방봐요 모드는 자체 진입 페이지로 이동. role 갱신은 /bangbwayo 가
-      // EnsureAnonymousSession (익명) 또는 OAuth callback (정식 로그인)
-      // 통해 처리 — 정식 사용자가 처음 토글 시에는 role 미갱신이지만
-      // PrefsIsland 가 mode 폴백으로 nav 정확하게 노출 (PR #71).
-      router.push('/bangbwayo')
-      return
-    }
-
-    // 방보기 / 룸메이트는 viewMode 쿠키 갱신 후 SSR 트리 재요청.
+    // 모든 모드(방보기·방봐요·룸메이트) 동일 흐름: viewMode 쿠키 갱신 + SSR 재요청.
+    // 그 자리(/me)에 머물고 nav 만 변경 — 방봐요라고 별도 페이지로 강제 이동하지
+    // 않는다. 사용자가 방봐요 페이지로 가고 싶으면 nav 의 "새로 시작" 탭 클릭.
     void (async () => {
       try {
         const res = await fetch('/api/me/view-mode', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mode }),
+          body: JSON.stringify({ mode: nextViewMode }),
         })
         if (!res.ok) {
           const json = await res.json().catch(() => ({}))
