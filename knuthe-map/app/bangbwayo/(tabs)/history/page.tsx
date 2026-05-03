@@ -1,11 +1,16 @@
 // 방봐요 — "지난 투어" 탭.
-// status !== 'active' 인 셋들의 결과물 진입점 모음.
+//
+// 성능: 무거운 데이터 페치(셋·트랙·응답·사진·signed URL)는 <Suspense> 로
+// streaming. 페이지 진입 시 셸이 즉시 도착하고, 카드 리스트는 데이터 도착
+// 후 채워진다.
 
+import { Suspense } from 'react'
 import { getServerThemeTokens } from '@/lib/theme-server'
 import { createSupabaseServer } from '@/lib/supabase-server'
 import { createServiceClient }  from '@/lib/supabase'
 import { Card }                 from '@/components/shared/Card'
 import { EmptyState }           from '@/components/shared/EmptyState'
+import { Skeleton }             from '@/components/shared/Skeleton'
 import { SetCardRow }           from '@/components/bangbwayo/SetCardRow'
 import { buildSetCards,
          type SetCardInputSet,
@@ -13,15 +18,22 @@ import { buildSetCards,
          type SetCardInputResponse,
          type SetCardInputPhoto,
          type SetCardInputBuilding } from '@/lib/bangbwayo-set-summary'
+import type { ThemeTokens }     from '@/lib/theme-tokens'
 
 export default async function BangbwayoHistoryPage() {
-  const [themeRes, supabase] = await Promise.all([
-    getServerThemeTokens(),
-    createSupabaseServer(),
-  ])
-  const { tok } = themeRes
+  const { tok } = await getServerThemeTokens()
+  return (
+    <div style={{ maxWidth: 520, margin: '0 auto', padding: '20px 16px' }}>
+      <Suspense fallback={<HistorySkeleton tok={tok} />}>
+        <HistoryList tok={tok} />
+      </Suspense>
+    </div>
+  )
+}
 
-  // 종료된 셋만 — active 는 "새로 시작" 탭이 다룸.
+async function HistoryList({ tok }: { tok: ThemeTokens }) {
+  const supabase = await createSupabaseServer()
+
   const { data: setsData } = await supabase
     .from('bangbwayo_sets')
     .select('id, title, status, started_at, result_generated_at')
@@ -32,19 +44,16 @@ export default async function BangbwayoHistoryPage() {
 
   if (sets.length === 0) {
     return (
-      <div style={{ maxWidth: 520, margin: '0 auto', padding: '20px 16px' }}>
-        <Card tok={tok}>
-          <EmptyState
-            tok={tok}
-            title="지난 투어 기록이 없어요"
-            description="투어를 마치면 여기서 결과물을 다시 볼 수 있어요."
-          />
-        </Card>
-      </div>
+      <Card tok={tok}>
+        <EmptyState
+          tok={tok}
+          title="지난 투어 기록이 없어요"
+          description="투어를 마치면 여기서 결과물을 다시 볼 수 있어요."
+        />
+      </Card>
     )
   }
 
-  // 셋 카드 빌드용 데이터 일괄 fetch
   const setIds      = sets.map((s) => s.id)
   const { data: tracksData } = await supabase
     .from('bangbwayo_tracks')
@@ -77,22 +86,36 @@ export default async function BangbwayoHistoryPage() {
     service, sets, tracks, responses, photos, buildings,
   })
 
-  // 결과물 페이지로 이동 — 종료된 셋이라 status 가 ended/results_generated 둘 중 하나.
   function hrefFor(id: string): string {
     return `/bangbwayo/sets/${id}/results`
   }
 
   return (
-    <div style={{ maxWidth: 520, margin: '0 auto', padding: '20px 16px' }}>
-      <Card tok={tok} padding={0} overflow="hidden" style={{ marginBottom: 14 }}>
-        {cards.map((c, i) => (
-          <div key={c.id} style={{
-            borderTop: i === 0 ? 'none' : `1px solid ${tok.cardBorder}`,
-          }}>
-            <SetCardRow tok={tok} summary={c} href={hrefFor(c.id)} />
-          </div>
-        ))}
-      </Card>
-    </div>
+    <Card tok={tok} padding={0} overflow="hidden" style={{ marginBottom: 14 }}>
+      {cards.map((c, i) => (
+        <div key={c.id} style={{
+          borderTop: i === 0 ? 'none' : `1px solid ${tok.cardBorder}`,
+        }}>
+          <SetCardRow tok={tok} summary={c} href={hrefFor(c.id)} />
+        </div>
+      ))}
+    </Card>
+  )
+}
+
+function HistorySkeleton({ tok }: { tok: ThemeTokens }) {
+  return (
+    <Card tok={tok} padding={0} overflow="hidden">
+      {[1, 2, 3].map((i) => (
+        <div key={i} style={{
+          padding: '14px 20px',
+          borderTop: i === 1 ? 'none' : `1px solid ${tok.cardBorder}`,
+          display: 'flex', flexDirection: 'column', gap: 6,
+        }}>
+          <Skeleton tok={tok} width="50%" height={14} pulse />
+          <Skeleton tok={tok} width="30%" height={12} pulse />
+        </div>
+      ))}
+    </Card>
   )
 }
