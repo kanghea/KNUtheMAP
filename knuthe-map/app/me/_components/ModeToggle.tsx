@@ -63,7 +63,17 @@ export default function ModeToggle({ initialViewMode, initialMode, theme, hasRoo
       grade: null, dept: null, zone: null, priorities: [], gate: null,
       theme: theme, gender: null, mode: null,
     }
-    savePrefs({ ...cur, mode })
+    const prefsMode: OnboardingMode = mode  // type narrowing for prefs
+    savePrefs({ ...cur, mode: prefsMode })
+
+    // PrefsIsland 에 즉시 반영 신호 — router.refresh() 의 SSR 왕복 대기 없이
+    // 하단 다이나믹 아일랜드가 새 nav 구성으로 바로 전환된다.
+    if (typeof window !== 'undefined') {
+      const nextViewMode: 'rooms' | 'roommate' = mode === 'roommate' ? 'roommate' : 'rooms'
+      window.dispatchEvent(new CustomEvent('knu:nav-change', {
+        detail: { mode: prefsMode, viewMode: nextViewMode },
+      }))
+    }
 
     if (mode === 'bangbwayo') {
       // 방봐요 모드는 자체 진입 페이지로 이동. role 갱신은 /bangbwayo 가
