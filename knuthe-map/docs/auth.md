@@ -25,9 +25,16 @@ Supabase Auth (Google OAuth) 기반 인증. 역할(role) 기반 인가 시스템
 |---|---|
 | `observer` | Google 로그인만 완료 — 지도 열람, 건물·호실 조회, 리뷰 열람 |
 | `tenant` | 학교 이메일 인증 완료 — 리뷰 작성, 북마크, 룸메이트 게시글 |
+| `roommate` | 룸메이트 모드 사용자 — 룸메이트 매칭 흐름 |
+| `bangbwayo` | 방봐요 모드 사용자 (익명 + 정식) — 방 보러 갈 때 도구 |
 | `owner` | 건물주 — 자기 건물 호실·계약 관리 |
 | `agent` | 공인중개사 — 담당 건물 매물 관리 |
 | `admin` | 내부 관리자 — 전체 데이터 CRUD |
+
+`roommate` / `bangbwayo` 는 권한 의미보다는 **현재 어느 모드를 쓰는가** 를 반영.
+같은 컬럼(`users.role`)을 공유하지만 OAuth callback 의 `next` 경로 또는 익명 사인업
+시점에 자동 부여된다 (룸메이트 → `next=/roommate`, 방봐요 → `next=/bangbwayo` 또는
+`EnsureAnonymousSession`).
 
 ### 역할 검증 흐름
 1. **쿠키 캐시**: 로그인 시 역할을 AES-256-GCM 암호화해 HttpOnly 쿠키에 저장 → 페이지 로드 시 빠른 UI 렌더링

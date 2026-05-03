@@ -19,9 +19,12 @@ export default async function Page({
 
   if (user && !sp.reset) {
     const role = await getServerRole()
-    if (role === 'admin')    redirect('/admin')
-    if (role === 'owner')    redirect('/owner')
-    if (role === 'agent')    redirect('/agent')
+    if (role === 'admin')     redirect('/admin')
+    if (role === 'owner')     redirect('/owner')
+    if (role === 'agent')     redirect('/agent')
+    // 방봐요 role 사용자는 자기 모드 홈으로 — 룸메이트와 동일 패턴.
+    // 다른 모드를 보려면 마이페이지의 ModeToggle 또는 메인 CTA 카드 사용.
+    if (role === 'bangbwayo') redirect('/bangbwayo')
 
     // 룸메이트 모드 사용자는 룸메이트 전용 홈을 본다.
     //  - role==='roommate' AND viewMode!=='rooms' (기본값 포함) → 룸메이트 홈

@@ -183,9 +183,12 @@ function navItems(role: Role, viewMode: ViewMode, mode: OnboardingMode | null): 
     me,
   ]
 
-  // 온보딩에서 "방봐요" 를 주 모드로 고른 사용자 — 방봐요 흐름 nav.
-  // /bangbwayo 와 그 자식 라우트(셋·트랙·결과·지도) 모두 포함하도록 prefix 매칭.
-  if (mode === 'bangbwayo') return [
+  // 방봐요 모드 — role 또는 prefs.mode 둘 중 하나라도 'bangbwayo' 면 방봐요 nav.
+  //   · role==='bangbwayo': 024 migration 이후 정식 분리된 출처 (DB 권위)
+  //   · mode==='bangbwayo': prefs 쿠키 — role 동기화 이전이거나 익명 세션의 폴백
+  // 둘 다 보는 이유: role update 가 RLS·네트워크 실패로 늦게 반영될 수 있고,
+  // 익명 사인업 직후 reload 사이의 짧은 윈도우에서도 nav 가 일관되게 보이도록.
+  if (role === 'bangbwayo' || mode === 'bangbwayo') return [
     { href: '/bangbwayo',         label: '새로 시작', icon: (c) => <IconClipboard color={c} />,
       match: (p) => p === '/bangbwayo' || p.startsWith('/bangbwayo/sets') },
     { href: '/bangbwayo/history', label: '지난 투어', icon: (c) => <IconClock color={c} />,

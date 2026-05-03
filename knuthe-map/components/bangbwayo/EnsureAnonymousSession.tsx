@@ -37,11 +37,24 @@ export default function EnsureAnonymousSession({ tok }: { tok?: ThemeTokens } = 
       return
     }
 
-    const { error: signErr } = await supabase.auth.signInAnonymously()
+    const { data: signData, error: signErr } = await supabase.auth.signInAnonymously()
     if (signErr) {
       setError(signErr.message || '익명 사인업이 실패했어요')
       setPending(false)
       return
+    }
+
+    // 익명 사용자는 방봐요 모드 진입 직후이므로 role='bangbwayo' 부여.
+    // handle_new_user 트리거가 INSERT 시점에 role 을 명시하지 않아 DB 기본값
+    // (tenant) 으로 들어오는데, PrefsIsland 의 role 기반 nav 분기와 정합성을
+    // 맞추기 위해 명시적으로 update. 실패해도 mode='bangbwayo' prefs 가
+    // 폴백 역할을 하므로 치명적이지 않음 — 에러는 무시하고 진행.
+    const newUserId = signData?.user?.id
+    if (newUserId) {
+      await supabase
+        .from('users')
+        .update({ role: 'bangbwayo' })
+        .eq('id', newUserId)
     }
 
     // 새 익명 세션 쿠키가 서버에 정상 전달되도록 강제 새로고침.

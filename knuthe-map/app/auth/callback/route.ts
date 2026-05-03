@@ -70,6 +70,20 @@ export async function GET(request: Request) {
         return response
       }
 
+      // 방봐요 온보딩에서 넘어온 경우 — role 을 'bangbwayo' 로 업데이트.
+      // 룸메이트와 동일 패턴이라 일관성 유지. 이 사용자가 다른 모드로 전환하려면
+      // 마이페이지의 ModeToggle 또는 메인 CTA 클릭 시 다시 role 갱신 (후속 PR).
+      if (next === '/bangbwayo') {
+        await supabase
+          .from('users')
+          .update({ role: 'bangbwayo' })
+          .eq('id', data.user.id)
+
+        const response = NextResponse.redirect(`${origin}/bangbwayo`)
+        response.cookies.set(ROLE_COOKIE_NAME, sealRole('bangbwayo'), ROLE_COOKIE_OPTIONS)
+        return response
+      }
+
       // DB에서 role 조회 → AES-256-GCM 암호화 후 HttpOnly 쿠키에 저장
       // HttpOnly: JS에서 document.cookie로 읽기/쓰기 불가 → XSS로부터 보호
       const { data: profile } = await supabase
