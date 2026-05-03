@@ -8,6 +8,7 @@
 
 import { notFound, redirect } from 'next/navigation'
 import Link                   from 'next/link'
+import { cookies }             from 'next/headers'
 import { formatInTimeZone }   from 'date-fns-tz'
 import { ko }                 from 'date-fns/locale'
 import { getServerThemeTokens } from '@/lib/theme-server'
@@ -15,6 +16,8 @@ import { getServerUser }        from '@/lib/auth-server'
 import { createSupabaseServer } from '@/lib/supabase-server'
 import { createServiceClient }  from '@/lib/supabase'
 import { signPathsCached }      from '@/lib/storage-signed-url-cache'
+import { parsePrefs }           from '@/lib/prefs'
+import { getGatesByDept }       from '@/lib/department-zones'
 import { PageWrapper }          from '@/components/shared/PageWrapper'
 import { DashboardHeader }      from '@/components/shared/DashboardHeader'
 import { EmptyState }           from '@/components/shared/EmptyState'
@@ -59,6 +62,9 @@ export interface ResultTrack {
   responses:    ResultResponse[]
   photos:       ResultPhoto[]
   checklist:    readonly ChecklistItem[]
+  /** 매칭된 buildings 의 좌표 — 거리 축 계산용. 없으면 null (거리 0 처리). */
+  lat:          number | null
+  lng:          number | null
 }
 
 function setLabel(s: SetRow): string {
@@ -139,7 +145,7 @@ export default async function ResultsPage({
       .in('track_id', trackIds)
       .order('created_at', { ascending: true }),
     buildingIds.length > 0
-      ? supabase.from('buildings').select('id, name, address').in('id', buildingIds)
+      ? supabase.from('buildings').select('id, name, address, lat, lng').in('id', buildingIds)
       : Promise.resolve({ data: [] }),
   ])
 
@@ -153,9 +159,12 @@ export default async function ResultsPage({
       )
     : {}
 
-  const buildingMap: Record<string, { name: string | null; address: string | null }> = {}
-  for (const b of (bData ?? []) as Array<{ id: string; name: string | null; address: string | null }>) {
-    if (b.id) buildingMap[b.id] = { name: b.name ?? null, address: b.address ?? null }
+  const buildingMap: Record<string, { name: string | null; address: string | null; lat: number | null; lng: number | null }> = {}
+  for (const b of (bData ?? []) as Array<{ id: string; name: string | null; address: string | null; lat: number | null; lng: number | null }>) {
+    if (b.id) buildingMap[b.id] = {
+      name: b.name ?? null, address: b.address ?? null,
+      lat:  b.lat  ?? null, lng:     b.lng     ?? null,
+    }
   }
 
   // 트랙 단위로 묶기
@@ -181,8 +190,16 @@ export default async function ResultsPage({
           url:                signed[p.storage_path] ?? null,
         })),
       checklist:    getChecklistFor(t.time_option),
+      lat:          b?.lat ?? null,
+      lng:          b?.lng ?? null,
     }
   })
+
+  // 학과 주문(主門) — 거리 축 계산 기준. 학과 미설정 시 null (트랙별 가장 가까운
+  // 문 폴백). prefs 쿠키에서 dept 읽어 getGatesByDept 로 결정.
+  const prefsRaw = (await cookies()).get('knu_prefs')?.value
+  const prefs    = prefsRaw ? parsePrefs(prefsRaw) : null
+  const targetGateName = prefs?.dept ? (getGatesByDept(prefs.dept)[0] ?? null) : null
 
   return (
     <PageWrapper tok={tok}>
@@ -192,7 +209,7 @@ export default async function ResultsPage({
         subtitle={`${tracks.length}개 방 비교`}
         backHref={`/bangbwayo/sets/${set.id}`}
       />
-      <ResultsClient tok={tok} setId={set.id} tracks={result} />
+      <ResultsClient tok={tok} setId={set.id} tracks={result} targetGateName={targetGateName} />
       <div style={{ maxWidth: 520, margin: '12px auto 0', padding: '0 16px' }}>
         <Link
           href={`/bangbwayo/sets/${set.id}`}

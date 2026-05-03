@@ -21,6 +21,8 @@ interface Props {
   tok:    ThemeTokens
   setId:  string
   tracks: ResultTrack[]
+  /** 거리 축 계산 기준 문 (학과 주문). null 이면 트랙별 가장 가까운 문 폴백. */
+  targetGateName?: string | null
 }
 
 const RATING_TINT: Record<Rating, { dot: string; label: string }> = {
@@ -30,7 +32,7 @@ const RATING_TINT: Record<Rating, { dot: string; label: string }> = {
   unknown: { dot: 'rgba(148,163,184,0.6)', label: '모름' },
 }
 
-export default function ResultsClient({ tok, setId, tracks }: Props) {
+export default function ResultsClient({ tok, setId, tracks, targetGateName = null }: Props) {
   const [tilt, setTilt] = useState({ x: 0, y: 0 })
   const scrollerRef = useRef<HTMLDivElement>(null)
 
@@ -44,13 +46,17 @@ export default function ResultsClient({ tok, setId, tracks }: Props) {
     if (baseChecklist.length === 0) return null
     return buildRadarData({
       checklist: baseChecklist,
+      withDistance: true,
+      targetGateName,
       tracks: tracks.map((rt, i) => ({
-        label: rt.label,
-        color: colorForTrack(i, tracks.length),
+        label:     rt.label,
+        color:     colorForTrack(i, tracks.length),
         responses: rt.responses,
+        lat:       rt.lat,
+        lng:       rt.lng,
       })),
     })
-  }, [tracks])
+  }, [tracks, targetGateName])
 
   // 자이로 — 모바일에서 자연스러운 입체감.
   // iOS Safari 는 사용자 제스처로 권한 요청 필요. 일단 자동 시도, 실패 시 스크롤로만 동작.
@@ -122,7 +128,11 @@ export default function ResultsClient({ tok, setId, tracks }: Props) {
           <p style={{
             margin: '8px 0 0', fontSize: 10, color: tok.textTertiary, lineHeight: 1.5,
           }}>
-            가장자리에 가까울수록 좋음. 응답 없는 항목은 중심으로 표시돼요.
+            가장자리에 가까울수록 좋음. <strong style={{ color: tok.textSecondary }}>거리</strong>는
+            {targetGateName
+              ? <> 내 학과의 주문(<strong style={{ color: tok.textSecondary }}>{targetGateName}</strong>) 기준 도보 분</>
+              : <> 가장 가까운 문 기준 도보 분</>
+            } (30분 이상은 0). 응답·좌표 없는 항목은 중심으로 표시돼요.
           </p>
         </section>
       )}
