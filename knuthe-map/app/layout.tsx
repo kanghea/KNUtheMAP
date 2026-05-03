@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
 import { getServerRole } from "@/lib/auth-server";
 import { unsealRole, ROLE_COOKIE_NAME } from "@/lib/role-cookie";
 import { unsealViewMode, VIEW_MODE_COOKIE_NAME, type ViewMode } from "@/lib/view-mode-cookie";
-import { parsePrefs } from "@/lib/prefs";
+import { parsePrefs, type OnboardingMode } from "@/lib/prefs";
 import type { ThemeMode } from "@/lib/theme-tokens";
 import type { Role } from "@/lib/useRole";
 
@@ -42,6 +42,10 @@ export default async function RootLayout({
   let role:     Role      = 'tenant'
   let theme:    ThemeMode = 'light'
   let viewMode: ViewMode | null = null
+  // 사용자가 온보딩에서 고른 주 모드 — PrefsIsland 의 nav 구성을 좌우.
+  // null 이면 디폴트(방보기) nav 노출. role 보다 우선순위는 낮음 (owner/agent/admin
+  // 은 mode 와 무관하게 자기 대시보드 nav 사용).
+  let mode: OnboardingMode | null = null
   try {
     const jar    = await cookies()
     const sealed = jar.get(ROLE_COOKIE_NAME)?.value
@@ -51,7 +55,11 @@ export default async function RootLayout({
     viewMode = sealedView ? unsealViewMode(sealedView) : null
 
     const prefsRaw = jar.get('knu_prefs')?.value
-    if (prefsRaw) theme = parsePrefs(prefsRaw)?.theme ?? 'light'
+    if (prefsRaw) {
+      const p = parsePrefs(prefsRaw)
+      theme = p?.theme ?? 'light'
+      mode  = p?.mode  ?? null
+    }
   } catch {}
 
   // viewMode 쿠키 없으면 role로부터 추정: roommate role → 'roommate', 그 외 → 'rooms'
@@ -69,7 +77,7 @@ export default async function RootLayout({
           {/* PrefsIsland 가 useSearchParams() 를 쓰므로 Suspense 경계 필수 —
               없으면 정적 prerender 시 빌드가 실패한다. */}
           <Suspense fallback={null}>
-            <PrefsIsland initialRole={role} initialTheme={theme} initialViewMode={initialViewMode} />
+            <PrefsIsland initialRole={role} initialTheme={theme} initialViewMode={initialViewMode} initialMode={mode} />
           </Suspense>
         </Providers>
       </body>
