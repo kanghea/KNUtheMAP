@@ -1016,6 +1016,25 @@ function ContractStep({
   onChange: (field: 'deposit' | 'monthly_rent' | 'maintenance' | 'floor' | 'contract_type', value: string | number | null) => void
   unitNumber: string
 }) {
+  // 드럼 픽커는 0(없음) 인덱스를 갖지 않아서, 부모 state 가 빈 string 이면
+  // value=0 → nearestIdx=0(첫 값) 으로 위치하지만 라벨은 format(0)='없음' 으로
+  // 표시되어 "드럼은 30 인데 표시는 없음" 불일치 + DB 도 미저장 발생.
+  // 마운트 시 비어있는 보증금/월세를 첫 드럼 값으로 자동 시드해 일관 보장.
+  useEffect(() => {
+    if (typeof contract.deposit !== 'number') {
+      onChange('deposit', BANGBWAYO_DEPOSIT_VALUES[0])
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // 월세 계약 진입 시 (또는 전세→월세 전환 시) 월세 비어있으면 첫 드럼 값으로 시드.
+  useEffect(() => {
+    if (contract.contract_type === '월세' && typeof contract.monthly_rent !== 'number') {
+      onChange('monthly_rent', BANGBWAYO_MONTHLY_VALUES[0])
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contract.contract_type])
+
   const labelStyle = {
     fontSize: 11, fontWeight: 700, color: tok.textTertiary,
     margin: '0 0 6px', letterSpacing: '0.04em',
