@@ -10,18 +10,22 @@ import { buildRadarData, colorForTrack } from '@/lib/bangbwayo-radar'
 import type { ResultTrack } from '../page'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 결과물 클라이언트 — 가로 스와이프 + CSS 3D 틸트
+// 결과물 클라이언트 — 가로 스와이프 트랙 카드 + 비교 레이더
 //
-// 각 트랙이 카드 1장. 자이로 또는 스크롤·드래그 방향으로 카드가 미세하게
-// 회전(rotateX/Y) 한다. 깊이 추정은 다음 사이클이지만, perspective 만으로도
-// "블렌더 같은 입체감" 의 결을 충분히 낸다.
+// 레이아웃:
+//   1) 가로 스와이프 영역 (각 트랙 1장)
+//   2) 비교 레이더 카드 (스와이프 아래) — 트랙 선택 칩 + N차원 차트
+//
+// 트랙 선택: 기본 전체 선택. 사용자가 칩을 탭해 토글 — 색상 dot 과 라벨이
+// 일체화된 모바일 친화 컨트롤. 선택된 트랙이 2개 미만이면 차트 자체를 숨기고
+// 칩만 노출 (다시 추가하라는 시각 신호).
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface Props {
   tok:    ThemeTokens
   setId:  string
   tracks: ResultTrack[]
-  /** 거리 축 계산 기준 문 (학과 주문). null 이면 트랙별 가장 가까운 문 폴백. */
+  /** 거리 축 계산 기준 문 (학과 주문). null 이면 거리 축 비표시. */
   targetGateName?: string | null
 }
 
@@ -36,36 +40,51 @@ export default function ResultsClient({ tok, setId, tracks, targetGateName = nul
   const [tilt, setTilt] = useState({ x: 0, y: 0 })
   const scrollerRef = useRef<HTMLDivElement>(null)
 
-  // 비교 레이더 — 모든 트랙의 응답을 한 화면에 오버레이.
-  //   · 첫 번째 트랙의 checklist 를 axes 기준으로 사용 (모든 트랙이 같은 시간
-  //     옵션이라면 동일하지만, 다른 옵션 트랙은 응답 없는 항목이 0 으로 채워짐)
-  //   · 트랙이 1개 이하면 비교 의미가 약하니 카드 자체를 숨김
+  // 트랙 선택 — 기본 전체 선택. 칩 클릭으로 토글.
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(
+    () => new Set(tracks.map((t) => t.track.id))
+  )
+  const toggleTrack = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else              next.add(id)
+      return next
+    })
+  }
+
+  // 트랙 → 색 (인덱스 기반, 토글과 무관하게 동일 트랙은 동일 색)
+  const colorByTrackId = useMemo(() => {
+    const map = new Map<string, string>()
+    tracks.forEach((rt, i) => map.set(rt.track.id, colorForTrack(i, tracks.length)))
+    return map
+  }, [tracks])
+
+  // 레이더 데이터 — 선택된 트랙 ≥ 2 일 때만
   const radar = useMemo(() => {
     if (tracks.length < 2) return null
     const baseChecklist = tracks[0].checklist
     if (baseChecklist.length === 0) return null
-    // 학과 주문이 결정된 경우에만 거리 축 추가 — 학과 미설정 시 7각형 폴백.
-    const hasDistanceAxis = !!targetGateName
+    const selected = tracks.filter((t) => selectedIds.has(t.track.id))
+    if (selected.length < 2) return null
     return buildRadarData({
       checklist: baseChecklist,
-      withDistance: hasDistanceAxis,
+      withDistance: !!targetGateName,
       targetGateName,
-      tracks: tracks.map((rt, i) => ({
+      tracks: selected.map((rt) => ({
         label:     rt.label,
-        color:     colorForTrack(i, tracks.length),
+        color:     colorByTrackId.get(rt.track.id) ?? '#2563eb',
         responses: rt.responses,
         lat:       rt.lat,
         lng:       rt.lng,
       })),
     })
-  }, [tracks, targetGateName])
+  }, [tracks, selectedIds, targetGateName, colorByTrackId])
 
   // 자이로 — 모바일에서 자연스러운 입체감.
-  // iOS Safari 는 사용자 제스처로 권한 요청 필요. 일단 자동 시도, 실패 시 스크롤로만 동작.
   useEffect(() => {
     const handler = (e: DeviceOrientationEvent) => {
       if (e.beta == null || e.gamma == null) return
-      // gamma: 좌우 -90~90, beta: 앞뒤 -180~180
       const y =  Math.max(-8, Math.min(8, e.gamma / 6))
       const x = -Math.max(-6, Math.min(6, (e.beta - 30) / 8))
       setTilt({ x, y })
@@ -74,75 +93,11 @@ export default function ResultsClient({ tok, setId, tracks, targetGateName = nul
     return () => window.removeEventListener('deviceorientation', handler)
   }, [])
 
+  const showCompareCard = tracks.length >= 2
+
   return (
     <div style={{ marginTop: 8 }}>
-      {/* ── 비교 레이더 — 트랙 2개 이상일 때만 ──────────────────── */}
-      {radar && (
-        <section
-          aria-label="트랙 비교 레이더"
-          style={{
-            margin: '8px 16px 6px',
-            padding: '14px 16px 12px',
-            borderRadius: 18,
-            background: tok.cardBg,
-            border: `1px solid ${tok.cardBorder}`,
-            boxShadow: tok.shadow,
-          }}
-        >
-          <div style={{
-            display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
-            marginBottom: 6,
-          }}>
-            <h2 style={{ fontSize: 13, fontWeight: 700, color: tok.textPrimary, margin: 0 }}>
-              한 눈에 비교
-            </h2>
-            <span style={{ fontSize: 11, color: tok.textTertiary, fontWeight: 500 }}>
-              {tracks.length}개 방
-            </span>
-          </div>
-          <RadarChart axes={radar.axes} series={radar.series} tok={tok} size={300} />
-          {/* 범례 — 각 트랙 색상 + 라벨 */}
-          <div style={{
-            display: 'flex', flexWrap: 'wrap', gap: 8,
-            marginTop: 6, paddingTop: 8,
-            borderTop: `1px solid ${tok.cardBorder}`,
-          }}>
-            {radar.series.map((s) => (
-              <span key={s.label} style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                fontSize: 11, color: tok.textSecondary, fontWeight: 600,
-                maxWidth: '48%',
-              }}>
-                <span aria-hidden style={{
-                  width: 10, height: 10, borderRadius: 999,
-                  background: s.color, flexShrink: 0,
-                  boxShadow: `0 0 0 1px ${s.color}33`,
-                }} />
-                <span style={{
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  minWidth: 0,
-                }}>
-                  {s.label}
-                </span>
-              </span>
-            ))}
-          </div>
-          <p style={{
-            margin: '8px 0 0', fontSize: 10, color: tok.textTertiary, lineHeight: 1.5,
-          }}>
-            가장자리에 가까울수록 좋음.
-            {targetGateName && (
-              <>
-                {' '}<strong style={{ color: tok.textSecondary }}>거리</strong>는
-                내 학과의 주문(<strong style={{ color: tok.textSecondary }}>{targetGateName}</strong>) 기준
-                도보 분 (30분 이상은 0).
-              </>
-            )}
-            {' '}응답·좌표 없는 항목은 중심으로 표시돼요.
-          </p>
-        </section>
-      )}
-
+      {/* ── 1) 스와이프 영역 ─────────────────────────────────────── */}
       <div
         ref={scrollerRef}
         style={{
@@ -157,8 +112,6 @@ export default function ResultsClient({ tok, setId, tracks, targetGateName = nul
         }}
       >
         {tracks.map((rt) => (
-          // 카드 클릭 시 트랙 흐름의 호수 단계로 진입.
-          // 호수가 이미 입력되어 있으면 그 값이 그대로 input 에 채워진 채 보임.
           <Link
             key={rt.track.id}
             href={`/bangbwayo/sets/${setId}/tracks/${rt.track.id}?step=unit`}
@@ -188,6 +141,108 @@ export default function ResultsClient({ tok, setId, tracks, targetGateName = nul
           }} />
         ))}
       </div>
+
+      {/* ── 2) 비교 레이더 카드 (스와이프 아래) ─────────────────── */}
+      {showCompareCard && (
+        <section
+          aria-label="트랙 비교 레이더"
+          style={{
+            margin: '16px 16px 0',
+            padding: '14px 16px 12px',
+            borderRadius: 18,
+            background: tok.cardBg,
+            border: `1px solid ${tok.cardBorder}`,
+            boxShadow: tok.shadow,
+          }}
+        >
+          <div style={{
+            display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+            marginBottom: 10,
+          }}>
+            <h2 style={{ fontSize: 13, fontWeight: 700, color: tok.textPrimary, margin: 0 }}>
+              한 눈에 비교
+            </h2>
+            <span style={{ fontSize: 11, color: tok.textTertiary, fontWeight: 500 }}>
+              {selectedIds.size}/{tracks.length}개 방
+            </span>
+          </div>
+
+          {/* ── 트랙 선택 칩 ─────────────────────────────────────── */}
+          <div style={{
+            display: 'flex', flexWrap: 'wrap', gap: 6,
+            marginBottom: 10,
+          }}>
+            {tracks.map((rt) => {
+              const active = selectedIds.has(rt.track.id)
+              const color  = colorByTrackId.get(rt.track.id) ?? '#2563eb'
+              return (
+                <button
+                  key={rt.track.id}
+                  type="button"
+                  onClick={() => toggleTrack(rt.track.id)}
+                  aria-pressed={active}
+                  className="knu-press"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    padding: '6px 10px', borderRadius: 999,
+                    fontSize: 11, fontWeight: 600,
+                    color: active ? tok.textPrimary : tok.textTertiary,
+                    background: active ? tok.inputBg : 'transparent',
+                    border: `1px solid ${active ? tok.inputBorder : tok.cardBorder}`,
+                    cursor: 'pointer',
+                    transition: 'opacity .15s, background .15s, color .15s',
+                    maxWidth: '60%',
+                  }}
+                >
+                  <span aria-hidden style={{
+                    width: 10, height: 10, borderRadius: 999,
+                    background: active ? color : 'transparent',
+                    border: `1.5px solid ${active ? color : tok.cardBorder}`,
+                    boxShadow: active ? `0 0 0 1px ${color}33` : 'none',
+                    flexShrink: 0,
+                  }} />
+                  <span style={{
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    minWidth: 0,
+                  }}>
+                    {rt.label}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* ── 차트 또는 안내 ──────────────────────────────────── */}
+          {radar ? (
+            <RadarChart axes={radar.axes} series={radar.series} tok={tok} size={300} />
+          ) : (
+            <div style={{
+              padding: '24px 12px',
+              textAlign: 'center',
+              fontSize: 12, color: tok.textTertiary,
+              background: tok.inputBg,
+              borderRadius: 12,
+              border: `1px dashed ${tok.cardBorder}`,
+            }}>
+              비교하려면 위 칩에서 <strong style={{ color: tok.textSecondary }}>두 개 이상</strong>의 방을 선택해 주세요.
+            </div>
+          )}
+
+          <p style={{
+            margin: '8px 0 0', fontSize: 10, color: tok.textTertiary, lineHeight: 1.5,
+          }}>
+            가장자리에 가까울수록 좋음.
+            {targetGateName && (
+              <>
+                {' '}<strong style={{ color: tok.textSecondary }}>거리</strong>는
+                내 학과의 주문(<strong style={{ color: tok.textSecondary }}>{targetGateName}</strong>) 기준
+                도보 분 (30분 이상은 0).
+              </>
+            )}
+            {' '}응답·좌표 없는 항목은 중심으로 표시돼요.
+          </p>
+        </section>
+      )}
     </div>
   )
 }
@@ -327,4 +382,3 @@ function priceLabel(t: { deposit: number | null; monthly_rent: number | null; ma
   if (t.maintenance) parts.push(`관리비 ${t.maintenance}만`)
   return parts.join(' · ')
 }
-
