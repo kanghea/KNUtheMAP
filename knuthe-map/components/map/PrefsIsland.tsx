@@ -236,6 +236,29 @@ export default function PrefsIsland({ initialRole = 'tenant', initialTheme = 'li
   const role              = clientRole ?? initialRole  // 클라이언트 role 우선, 로딩 중엔 서버값 사용
   const tok               = THEME_TOKENS[initialTheme]
 
+  // ── 모드/뷰모드 즉시 반영 ─────────────────────────────────────
+  // ModeToggle 같은 다른 컴포넌트가 모드를 바꿀 때 router.refresh() 의 SSR
+  // 왕복(200~500ms) 을 기다리지 않고 nav 가 즉시 새 구성으로 바뀌도록 한다.
+  // 클라이언트 useState 로 초기값을 잡고, 글로벌 'knu:nav-change' 이벤트로
+  // 즉시 갱신 받는다. router.refresh() 후 layout 이 새 prop 을 보내면 그걸로
+  // 정합 (effect 가 prop 변화도 흡수).
+  const [mode,     setMode]     = useState<OnboardingMode | null>(initialMode)
+  const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode)
+
+  useEffect(() => { setMode(initialMode) }, [initialMode])
+  useEffect(() => { setViewMode(initialViewMode) }, [initialViewMode])
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ mode?: OnboardingMode | null; viewMode?: ViewMode }>).detail
+      if (!detail) return
+      if (detail.mode !== undefined)     setMode(detail.mode)
+      if (detail.viewMode !== undefined) setViewMode(detail.viewMode)
+    }
+    window.addEventListener('knu:nav-change', handler)
+    return () => window.removeEventListener('knu:nav-change', handler)
+  }, [])
+
   // useTransition: 라우트 전환 중인지 추적해 진행 인디케이터를 띄움.
   const [isPending, startTransition] = useTransition()
 
@@ -285,7 +308,7 @@ export default function PrefsIsland({ initialRole = 'tenant', initialTheme = 'li
   }, [router])
 
   // 메모이즈 — role/viewMode/mode 가 안 바뀌면 배열·아이콘 ReactNode 재생성을 막는다.
-  const items = useMemo(() => navItems(role, initialViewMode, initialMode), [role, initialViewMode, initialMode])
+  const items = useMemo(() => navItems(role, viewMode, mode), [role, viewMode, mode])
 
   // 색 매핑 — 다크/라이트 모두에서 active는 accent로 명확히, inactive는 textTertiary로 절제
   const activeIconColor   = tok.accentColor
