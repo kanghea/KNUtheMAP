@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createBrowserSupabase } from '@/lib/supabase-browser'
 
-export type Role = 'tenant' | 'owner' | 'agent' | 'admin' | 'roommate'
+export type Role = 'tenant' | 'owner' | 'agent' | 'admin' | 'roommate' | 'bangbwayo'
 
 /**
  * 클라이언트에서 현재 사용자의 role을 반환합니다.

@@ -22,7 +22,7 @@ const KEY_LEN   = 32   // 256-bit AES 키
 const IV_LEN    = 12   // 96-bit GCM nonce (NIST 권장)
 const TAG_LEN   = 16   // 128-bit GCM 인증 태그
 
-const VALID_ROLES: readonly string[] = ['tenant', 'owner', 'agent', 'admin', 'roommate']
+const VALID_ROLES: readonly string[] = ['tenant', 'owner', 'agent', 'admin', 'roommate', 'bangbwayo']
 
 // 파생 키: 서버 프로세스 기동 후 최초 호출 시 1회만 계산, 이후 캐시
 let _derivedKey: Buffer | null = null
