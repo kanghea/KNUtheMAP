@@ -31,6 +31,10 @@ function readTheme(prefsRaw: string | undefined): ThemeMode {
   return prefsRaw ? (parsePrefs(prefsRaw)?.theme ?? 'light') : 'light'
 }
 
+function readMode(prefsRaw: string | undefined): 'rooms' | 'bangbwayo' | 'roommate' | null {
+  return prefsRaw ? (parsePrefs(prefsRaw)?.mode ?? null) : null
+}
+
 export default async function MePage() {
   const supabase = await createSupabaseServer()
   const { data: { user } } = await supabase.auth.getUser()
@@ -38,6 +42,7 @@ export default async function MePage() {
   const jar      = await cookies()
   const prefsRaw = jar.get('knu_prefs')?.value
   const theme    = readTheme(prefsRaw)
+  const initialMode = readMode(prefsRaw)
   const tok      = THEME_TOKENS[theme]
 
   // 비로그인 사용자도 마이페이지 진입 허용 — 로그인 권유 화면을 보여준다.
@@ -164,10 +169,11 @@ export default async function MePage() {
         )}
 
         {/* ── 보기 모드 토글 (정식 학생만) ──────────────────────── */}
-        {!isAnonymous && (role === 'tenant' || role === 'roommate') && (
+        {!isAnonymous && (role === 'tenant' || role === 'roommate' || role === 'bangbwayo') && (
           <Card tok={tok} padding={20} style={{ marginBottom: 16 }}>
             <ModeToggle
               initialViewMode={viewMode}
+              initialMode={initialMode}
               theme={theme}
               hasRoommateProfile={hasRoommateProfile}
             />
