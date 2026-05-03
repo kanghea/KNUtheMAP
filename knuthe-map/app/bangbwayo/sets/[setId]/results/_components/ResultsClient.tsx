@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import type { ThemeTokens } from '@/lib/theme-tokens'
 import type { Rating } from '@/lib/bangbwayo-checklist'
+import { RadarChart } from '@/components/bangbwayo/RadarChart'
+import { buildRadarData, colorForTrack } from '@/lib/bangbwayo-radar'
 import type { ResultTrack } from '../page'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -32,6 +34,24 @@ export default function ResultsClient({ tok, setId, tracks }: Props) {
   const [tilt, setTilt] = useState({ x: 0, y: 0 })
   const scrollerRef = useRef<HTMLDivElement>(null)
 
+  // 비교 레이더 — 모든 트랙의 응답을 한 화면에 오버레이.
+  //   · 첫 번째 트랙의 checklist 를 axes 기준으로 사용 (모든 트랙이 같은 시간
+  //     옵션이라면 동일하지만, 다른 옵션 트랙은 응답 없는 항목이 0 으로 채워짐)
+  //   · 트랙이 1개 이하면 비교 의미가 약하니 카드 자체를 숨김
+  const radar = useMemo(() => {
+    if (tracks.length < 2) return null
+    const baseChecklist = tracks[0].checklist
+    if (baseChecklist.length === 0) return null
+    return buildRadarData({
+      checklist: baseChecklist,
+      tracks: tracks.map((rt, i) => ({
+        label: rt.label,
+        color: colorForTrack(i, tracks.length),
+        responses: rt.responses,
+      })),
+    })
+  }, [tracks])
+
   // 자이로 — 모바일에서 자연스러운 입체감.
   // iOS Safari 는 사용자 제스처로 권한 요청 필요. 일단 자동 시도, 실패 시 스크롤로만 동작.
   useEffect(() => {
@@ -48,6 +68,65 @@ export default function ResultsClient({ tok, setId, tracks }: Props) {
 
   return (
     <div style={{ marginTop: 8 }}>
+      {/* ── 비교 레이더 — 트랙 2개 이상일 때만 ──────────────────── */}
+      {radar && (
+        <section
+          aria-label="트랙 비교 레이더"
+          style={{
+            margin: '8px 16px 6px',
+            padding: '14px 16px 12px',
+            borderRadius: 18,
+            background: tok.cardBg,
+            border: `1px solid ${tok.cardBorder}`,
+            boxShadow: tok.shadow,
+          }}
+        >
+          <div style={{
+            display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+            marginBottom: 6,
+          }}>
+            <h2 style={{ fontSize: 13, fontWeight: 700, color: tok.textPrimary, margin: 0 }}>
+              한 눈에 비교
+            </h2>
+            <span style={{ fontSize: 11, color: tok.textTertiary, fontWeight: 500 }}>
+              {tracks.length}개 방
+            </span>
+          </div>
+          <RadarChart axes={radar.axes} series={radar.series} tok={tok} size={300} />
+          {/* 범례 — 각 트랙 색상 + 라벨 */}
+          <div style={{
+            display: 'flex', flexWrap: 'wrap', gap: 8,
+            marginTop: 6, paddingTop: 8,
+            borderTop: `1px solid ${tok.cardBorder}`,
+          }}>
+            {radar.series.map((s) => (
+              <span key={s.label} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                fontSize: 11, color: tok.textSecondary, fontWeight: 600,
+                maxWidth: '48%',
+              }}>
+                <span aria-hidden style={{
+                  width: 10, height: 10, borderRadius: 999,
+                  background: s.color, flexShrink: 0,
+                  boxShadow: `0 0 0 1px ${s.color}33`,
+                }} />
+                <span style={{
+                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  minWidth: 0,
+                }}>
+                  {s.label}
+                </span>
+              </span>
+            ))}
+          </div>
+          <p style={{
+            margin: '8px 0 0', fontSize: 10, color: tok.textTertiary, lineHeight: 1.5,
+          }}>
+            가장자리에 가까울수록 좋음. 응답 없는 항목은 중심으로 표시돼요.
+          </p>
+        </section>
+      )}
+
       <div
         ref={scrollerRef}
         style={{
