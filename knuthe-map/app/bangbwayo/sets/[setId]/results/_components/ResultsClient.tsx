@@ -44,9 +44,11 @@ export default function ResultsClient({ tok, setId, tracks, targetGateName = nul
     if (tracks.length < 2) return null
     const baseChecklist = tracks[0].checklist
     if (baseChecklist.length === 0) return null
+    // 학과 주문이 결정된 경우에만 거리 축 추가 — 학과 미설정 시 7각형 폴백.
+    const hasDistanceAxis = !!targetGateName
     return buildRadarData({
       checklist: baseChecklist,
-      withDistance: true,
+      withDistance: hasDistanceAxis,
       targetGateName,
       tracks: tracks.map((rt, i) => ({
         label:     rt.label,
@@ -128,11 +130,15 @@ export default function ResultsClient({ tok, setId, tracks, targetGateName = nul
           <p style={{
             margin: '8px 0 0', fontSize: 10, color: tok.textTertiary, lineHeight: 1.5,
           }}>
-            가장자리에 가까울수록 좋음. <strong style={{ color: tok.textSecondary }}>거리</strong>는
-            {targetGateName
-              ? <> 내 학과의 주문(<strong style={{ color: tok.textSecondary }}>{targetGateName}</strong>) 기준 도보 분</>
-              : <> 가장 가까운 문 기준 도보 분</>
-            } (30분 이상은 0). 응답·좌표 없는 항목은 중심으로 표시돼요.
+            가장자리에 가까울수록 좋음.
+            {targetGateName && (
+              <>
+                {' '}<strong style={{ color: tok.textSecondary }}>거리</strong>는
+                내 학과의 주문(<strong style={{ color: tok.textSecondary }}>{targetGateName}</strong>) 기준
+                도보 분 (30분 이상은 0).
+              </>
+            )}
+            {' '}응답·좌표 없는 항목은 중심으로 표시돼요.
           </p>
         </section>
       )}

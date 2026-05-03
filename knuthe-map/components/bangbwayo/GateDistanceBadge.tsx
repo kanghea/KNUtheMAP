@@ -1,11 +1,13 @@
 // 방봐요 — 학과 주문(主門) ↔ 둘러본 건물 거리 표시 배지.
 //
-// 자동 계산:
-//   1) prefs.dept → getGatesByDept(dept)[0] 로 학과별 주문 결정
-//   2) gateDistances(lat, lng) 로 그 문에서의 직선 거리 + 도보 분 산출
+// 학과 주문 결정 정책 (단일 출처):
+//   prefs.dept → getGatesByDept(dept)[0]
 //
-// DB 변경 없이 서버 렌더 시점에 매번 계산. 학과·문 데이터가 바뀌면 자동 반영.
-// 추후 6각형 비교 시각화의 거리 항목으로도 동일 함수에서 데이터를 가져온다.
+// 학과가 설정되어 있고 그 학과의 주문이 정의된 경우에만 배지 노출. 학과 미설정·
+// 주문 미정의(예: 의대 칠곡) 트랙에 대해서는 "가장 가까운 문" 폴백을 사용하지
+// 않는다 — 사용자 학과 정보를 신뢰해 의미 있는 비교만 보여주는 게 정책.
+//
+// 추후 사용자가 다른 문 기준을 원하면 마이페이지에서 오버라이드 (TODO).
 
 import { cookies } from 'next/headers'
 import { parsePrefs } from '@/lib/prefs'
@@ -29,20 +31,17 @@ export default async function GateDistanceBadge({ tok, lat, lng, compact }: Prop
   const raw   = jar.get('knu_prefs')?.value
   const prefs = raw ? parsePrefs(raw) : null
   const dept  = prefs?.dept ?? null
+  if (!dept) return null  // 학과 미설정 → 노출 안 함
 
-  // 학과 미입력 → 거리 계산 기준이 없음. 가장 가까운 문을 fallback 으로 보여준다.
-  const deptGates = dept ? getGatesByDept(dept) : []
-  const targetName = deptGates[0] ?? null
-  const target = targetName ? GATES.find((g) => g.name === targetName) ?? null : null
+  const targetName = getGatesByDept(dept)[0] ?? null
+  if (!targetName) return null  // 학과의 주문 미정의 → 노출 안 함
 
-  // 주문이 없거나(학과 미설정 + 학과에 매핑 없음) 좌표 못 찾으면 가장 가까운 문 사용.
+  const target = GATES.find((g) => g.name === targetName)
+  if (!target) return null
+
   const sorted = gateDistances(lat, lng)
-  const used = target
-    ? (sorted.find((s) => s.gate.name === target.name) ?? sorted[0])
-    : sorted[0]
+  const used = sorted.find((s) => s.gate.name === target.name)
   if (!used) return null
-
-  const isFallback = !target
 
   if (compact) {
     return (
@@ -66,11 +65,7 @@ export default async function GateDistanceBadge({ tok, lat, lng, compact }: Prop
     }}>
       <span aria-hidden style={{ fontSize: 14 }}>🚶</span>
       <span>
-        {isFallback
-          ? <>가장 가까운 문 <strong style={{ color: tok.textPrimary }}>{used.gate.name}</strong>까지</>
-          : <>내 학과 기준 <strong style={{ color: tok.textPrimary }}>{used.gate.name}</strong>에서</>
-        }
-        {' '}
+        내 학과 기준 <strong style={{ color: tok.textPrimary }}>{used.gate.name}</strong>에서{' '}
         <strong style={{ color: tok.textPrimary }}>도보 {used.minutes}분</strong>
         <span style={{ color: tok.textTertiary, marginLeft: 4, fontSize: 11 }}>
           ({Math.round(used.distM)}m)

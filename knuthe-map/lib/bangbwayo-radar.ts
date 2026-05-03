@@ -43,23 +43,24 @@ export function walkMinutesToScore(minutes: number | null | undefined): number {
 }
 
 /**
- * 학과 주문(主門) — `targetGateName` 이 있으면 그 문, 없으면 가장 가까운 문에서의
- * 도보 분을 계산. GateDistanceBadge 와 동일한 폴백 정책.
+ * 학과 주문(主門) 까지의 도보 분.
+ *
+ * 정책: targetGateName 이 정의돼 있을 때만 계산. 없으면 null 반환 (호출자가
+ * 거리 축 자체를 비표시 처리). 이전 버전의 "가장 가까운 문" 폴백은 제거 —
+ * 사용자 학과 정보를 신뢰하는 단일 정책.
  */
 export function gateWalkMinutes(
   lat: number,
   lng: number,
   targetGateName: string | null,
-): { minutes: number; gate: Gate; isFallback: boolean } | null {
+): { minutes: number; gate: Gate } | null {
+  if (!targetGateName) return null
+  const target = GATES.find((g) => g.name === targetGateName)
+  if (!target) return null
   const sorted = gateDistances(lat, lng)
-  if (sorted.length === 0) return null
-  const target = targetGateName
-    ? GATES.find((g) => g.name === targetGateName) ?? null
-    : null
-  const used = target
-    ? sorted.find((s) => s.gate.name === target.name) ?? sorted[0]
-    : sorted[0]
-  return { minutes: used.minutes, gate: used.gate, isFallback: !target }
+  const used = sorted.find((s) => s.gate.name === target.name)
+  if (!used) return null
+  return { minutes: used.minutes, gate: used.gate }
 }
 
 /**

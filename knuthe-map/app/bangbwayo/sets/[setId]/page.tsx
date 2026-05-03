@@ -122,11 +122,10 @@ export default async function SetDetailPage({
   const targetGate = gateName ? GATES.find((g) => g.name === gateName) ?? null : null
 
   function distanceLabelFor(b: { lat: number | null; lng: number | null } | null): string | null {
-    if (!b || b.lat == null || b.lng == null) return null
+    // 학과 주문이 결정된 경우에만 표시. 학과 미설정·주문 미정의면 라벨 X.
+    if (!b || b.lat == null || b.lng == null || !targetGate) return null
     const sorted = gateDistances(b.lat, b.lng)
-    const used = targetGate
-      ? (sorted.find((s) => s.gate.name === targetGate.name) ?? sorted[0])
-      : sorted[0]
+    const used = sorted.find((s) => s.gate.name === targetGate.name)
     if (!used) return null
     return `${used.gate.name} ${used.minutes}분`
   }
