@@ -6,6 +6,7 @@ import { PageWrapper } from '@/components/shared/PageWrapper'
 import { DashboardHeader } from '@/components/shared/DashboardHeader'
 import { Card } from '@/components/shared/Card'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { IconInbox } from '@/components/shared/icons'
 import MinwonStatusSelect from './_components/MinwonStatusSelect'
 
 interface MinwonRow {
@@ -64,7 +65,11 @@ export default async function AdminMinwonPage() {
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '20px 16px',
                     display: 'flex', flexDirection: 'column', gap: 12 }}>
         {list.length === 0 && (
-          <EmptyState tok={tok} icon="📭" title="접수된 민원이 없습니다" />
+          <EmptyState
+            tok={tok}
+            icon={<IconInbox size={36} color={tok.textTertiary} />}
+            title="접수된 민원이 없습니다"
+          />
         )}
 
         {list.map(row => (
@@ -123,9 +128,14 @@ function InfoCell({
       border: `1px solid ${tok.cardBorder}`,
       borderRadius: 8,
       display: 'flex', flexDirection: 'column', gap: 2,
+      minWidth: 0,
     }}>
       <span style={{ fontSize: 10, color: tok.textTertiary, fontWeight: 700 }}>{label}</span>
-      <span style={{ fontSize: 13, color: tok.textPrimary, wordBreak: 'break-all' }}>{value}</span>
+      <span style={{
+        fontSize: 13, color: tok.textPrimary,
+        // 한글 단어 단위 줄바꿈 + 긴 영문/숫자도 강제 wrap
+        wordBreak: 'keep-all', overflowWrap: 'anywhere',
+      }}>{value}</span>
     </div>
   )
 }
