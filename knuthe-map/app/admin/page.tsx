@@ -29,22 +29,26 @@ export default async function AdminPage() {
     { count: userCount },
     { count: buildingCount },
     { count: roomCount },
+    { count: minwonPendingCount },
   ] = await Promise.all([
     service.from('role_requests').select('*', { count: 'estimated', head: true }).eq('status', 'pending'),
     service.from('users').select('*', { count: 'estimated', head: true }),
     service.from('buildings').select('*', { count: 'estimated', head: true }).eq('is_active', true),
     service.from('rooms').select('*', { count: 'estimated', head: true }).eq('is_active', true),
+    service.from('minwons').select('*', { count: 'estimated', head: true }).eq('status', 'pending'),
   ])
 
   const stats = [
-    { label: '승인 대기',   value: pendingCount  ?? 0, icon: '⏳', color: '#d97706',         bg: 'rgba(217,119,6,0.15)',  href: '/admin/approvals' },
-    { label: '전체 사용자', value: userCount     ?? 0, icon: '👥', color: tok.accentColor,   bg: tok.accentBg,            href: '/admin/users' },
-    { label: '활성 건물',   value: buildingCount ?? 0, icon: '🏢', color: '#0891b2',         bg: 'rgba(8,145,178,0.15)',  href: '/admin/buildings' },
-    { label: '활성 방',     value: roomCount     ?? 0, icon: '🚪', color: '#7c3aed',         bg: 'rgba(124,58,237,0.15)', href: '/admin/rooms' },
+    { label: '승인 대기',   value: pendingCount       ?? 0, icon: '⏳', color: '#d97706',         bg: 'rgba(217,119,6,0.15)',  href: '/admin/approvals' },
+    { label: '민원 대기',   value: minwonPendingCount ?? 0, icon: '📨', color: '#dc2626',         bg: 'rgba(220,38,38,0.15)',  href: '/admin/minwon' },
+    { label: '전체 사용자', value: userCount          ?? 0, icon: '👥', color: tok.accentColor,   bg: tok.accentBg,            href: '/admin/users' },
+    { label: '활성 건물',   value: buildingCount      ?? 0, icon: '🏢', color: '#0891b2',         bg: 'rgba(8,145,178,0.15)',  href: '/admin/buildings' },
+    { label: '활성 방',     value: roomCount          ?? 0, icon: '🚪', color: '#7c3aed',         bg: 'rgba(124,58,237,0.15)', href: '/admin/rooms' },
   ]
 
   const menus = [
     { href: '/admin/approvals', icon: '✅', label: '권한 신청 관리', description: '건물주·중개사 승인/거절' },
+    { href: '/admin/minwon',    icon: '📨', label: '민원 관리',      description: '대신 처리 민원 접수·처리' },
     { href: '/admin/users',     icon: '👥', label: '사용자 관리',    description: '전체 사용자 조회·역할 변경' },
     { href: '/admin/buildings', icon: '🏢', label: '건물 관리',      description: '건물 정보 수정·노출 설정' },
     { href: '/admin/rooms',     icon: '🚪', label: '방(매물) 관리',  description: '매물 활성화·삭제' },
