@@ -37,7 +37,7 @@ const TOKENS = ONBOARDING_TOKENS
 // ── 공통 스텝 — 모든 사용자가 받는 4문항(학교 KNU 고정 + 학과/학번/성별) ──
 const COMMON_STEPS = [
   { id: 'dept',   title: '학과가 어디예요?',           sub: '학과 위치에 가까운 구역부터 보여드릴게요' },
-  { id: 'grade',  title: '학번이 어떻게 되세요?',       sub: '비슷한 학번 선배들이 많이 사는 구역부터 보여드릴게요' },
+  { id: 'grade',  title: '학번이 어떻게 되세요?',       sub: '학번에 맞춰 추천 구역을 보여드릴게요' },
   { id: 'gender', title: '성별을 알려주세요',           sub: '룸메이트 매칭 동성 우선 표시에 사용해요' },
 ]
 
