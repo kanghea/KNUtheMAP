@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import type { ThemeTokens } from '@/lib/theme-tokens'
 import type { TimeOption, TimeOptionMeta } from '@/lib/bangbwayo-checklist'
 import { tapHaptic } from '@/lib/hooks/useHaptic'
+import { IconChevronRight } from '@/components/shared/icons'
 
 interface Props {
   tok:         ThemeTokens
@@ -49,46 +50,63 @@ export default function StartTrackButton({ tok, setId, timeOptions }: Props) {
   return (
     <div>
       <p style={{
-        fontSize: 12, fontWeight: 700, color: tok.textTertiary,
+        fontSize: 12, fontWeight: 700, color: tok.textSecondary,
         margin: '0 0 8px 4px', letterSpacing: '0.04em',
       }}>
-        새 방 보러 갈게요
+        어떻게 둘러볼까요? · 시간을 골라 시작
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {timeOptions.map((opt) => {
           const isLoading = isPending && pending === opt.value
           const disabled  = !opt.available || isPending
+          const isCta     = opt.available
           return (
             <button
               key={opt.value}
               type="button"
               disabled={disabled}
               onClick={() => handleStart(opt.value)}
-              className={opt.available ? 'knu-press' : undefined}
+              className={isCta ? 'knu-press' : undefined}
               style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '14px 18px',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+                padding: isCta ? '16px 18px' : '12px 18px',
                 borderRadius: 14,
-                border: `1px solid ${tok.cardBorder}`,
-                background: opt.available ? tok.cardBg : tok.inputBg,
-                color: opt.available ? tok.textPrimary : tok.textTertiary,
+                border: isCta
+                  ? `1px solid ${tok.accentColor}`
+                  : `1px solid ${tok.cardBorder}`,
+                background: isCta ? tok.accentColor : tok.inputBg,
+                color: isCta ? '#ffffff' : tok.textTertiary,
                 cursor: disabled ? 'default' : 'pointer',
-                opacity: disabled && !isLoading ? 0.6 : 1,
-                fontSize: 14, fontWeight: 600,
+                opacity: disabled && !isLoading ? 0.55 : 1,
+                fontSize: 14, fontWeight: 700,
                 textAlign: 'left',
+                boxShadow: isCta ? tok.shadow : 'none',
                 transition: 'opacity .15s, transform .1s',
               }}
             >
-              <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
                 <span>{opt.label}</span>
-                <span style={{ fontSize: 11, color: tok.textSecondary, fontWeight: 500 }}>
+                <span style={{
+                  fontSize: 11, fontWeight: 500,
+                  color: isCta ? 'rgba(255,255,255,0.85)' : tok.textSecondary,
+                }}>
                   {opt.description}
                   {opt.available ? ` · ${opt.itemCount}항목` : ''}
                 </span>
               </span>
-              {isLoading && (
-                <span style={{ fontSize: 11, color: tok.accentColor }}>시작하는 중…</span>
-              )}
+              {isLoading ? (
+                <span style={{ fontSize: 12, color: '#ffffff', fontWeight: 700, flexShrink: 0 }}>
+                  시작하는 중…
+                </span>
+              ) : isCta ? (
+                <span style={{
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  fontSize: 13, fontWeight: 700, color: '#ffffff', flexShrink: 0,
+                }}>
+                  <span>시작</span>
+                  <IconChevronRight size={14} color="#ffffff" />
+                </span>
+              ) : null}
             </button>
           )
         })}
